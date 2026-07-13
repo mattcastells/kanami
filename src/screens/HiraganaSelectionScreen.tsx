@@ -27,7 +27,6 @@ export function HiraganaSelectionScreen({
   navigation,
   route,
 }: RootStackScreenProps<'KanaGroups'>) {
-  const wordsModeEnabled = false;
   const scriptLabel = getKanaScriptLabel(route.params.script);
   const scriptLabelLowercase = scriptLabel.toLowerCase();
   const availableSections = getKanaSections(route.params.script);
@@ -55,28 +54,24 @@ export function HiraganaSelectionScreen({
   const [selectedWordCategoryIds, setSelectedWordCategoryIds] = useState<
     WordPracticeCategoryId[]
   >(allWordCategoryIds);
-  const [selectedMode, setSelectedMode] = useState<PracticeMode>('reading');
+  const [selectedMode, setSelectedMode] = useState<PracticeMode>(
+    route.params.initialMode ?? 'reading',
+  );
   const [invertedMode, setInvertedMode] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<HiraganaSectionId, boolean>>(
     initialExpandedSections,
   );
-  const [wordCategoriesExpanded, setWordCategoriesExpanded] = useState(false);
   const { theme: activeTheme, mode } = useAppTheme();
   const isDark = mode === 'dark';
-  const groupIndependentModeSelected = wordsModeEnabled && selectedMode === 'words';
   const isDrawingMode = selectedMode === 'drawing';
   const isWordCategoryMode =
     selectedMode === 'syllables' ||
     selectedMode === 'fill-blank' ||
     selectedMode === 'word-builder';
   const supportsInvertedMode =
-    selectedMode !== 'syllables' &&
-    selectedMode !== 'drawing' &&
-    selectedMode !== 'script-conversion' &&
-    selectedMode !== 'fill-blank' &&
-    selectedMode !== 'word-builder' &&
-    selectedMode !== 'matching-pairs' &&
-    selectedMode !== 'demonstratives';
+    selectedMode === 'reading' ||
+    selectedMode === 'writing' ||
+    selectedMode === 'phrases';
   const allSelected = selectedGroupIds.length === availableGroups.length;
   const allWordCategoriesSelected =
     selectedWordCategoryIds.length === availableWordCategories.length;
@@ -85,27 +80,17 @@ export function HiraganaSelectionScreen({
   const canStartPractice =
     isWordCategoryMode
       ? selectedWordCategoryIds.length > 0
-      : selectedMode === 'phrases' ||
-          selectedMode === 'demonstratives' ||
-          groupIndependentModeSelected
+      : selectedMode === 'phrases'
         ? true
         : selectedGroupIds.length > 0;
 
   useEffect(() => {
     setSelectedGroupIds([]);
     setSelectedWordCategoryIds(allWordCategoryIds);
-    setSelectedMode('reading');
+    setSelectedMode(route.params.initialMode ?? 'reading');
     setInvertedMode(false);
     setExpandedSections(initialExpandedSections);
-    setWordCategoriesExpanded(false);
-  }, [allWordCategoryIds, initialExpandedSections, route.params.script]);
-
-  useEffect(() => {
-    if (!wordsModeEnabled && selectedMode === 'words') {
-      setSelectedMode('reading');
-      setInvertedMode(false);
-    }
-  }, [selectedMode, wordsModeEnabled]);
+  }, [allWordCategoryIds, initialExpandedSections, route.params.initialMode, route.params.script]);
 
   const toggleGroup = (groupId: HiraganaGroupId) => {
     setSelectedGroupIds((currentGroupIds) =>
@@ -124,9 +109,6 @@ export function HiraganaSelectionScreen({
   };
 
   const toggleAllWordCategories = () => {
-    setSelectedMode('syllables');
-    setInvertedMode(false);
-    setWordCategoriesExpanded(true);
     setSelectedWordCategoryIds((currentCategoryIds) =>
       currentCategoryIds.length === availableWordCategories.length
         ? []
@@ -135,35 +117,11 @@ export function HiraganaSelectionScreen({
   };
 
   const selectMode = (mode: PracticeMode) => {
-    if (!wordsModeEnabled && mode === 'words') {
-      return;
-    }
-
     setSelectedMode(mode);
 
-    const nextIsWordCategoryMode =
-      mode === 'syllables' || mode === 'fill-blank' || mode === 'word-builder';
-    setWordCategoriesExpanded(nextIsWordCategoryMode);
-
-    if (
-      mode === 'syllables' ||
-      mode === 'drawing' ||
-      mode === 'script-conversion' ||
-      mode === 'fill-blank' ||
-      mode === 'word-builder' ||
-      mode === 'matching-pairs' ||
-      mode === 'demonstratives'
-    ) {
+    if (mode !== 'reading' && mode !== 'writing' && mode !== 'phrases') {
       setInvertedMode(false);
     }
-  };
-
-  const toggleSyllablesMode = () => {
-    setSelectedMode('syllables');
-    setInvertedMode(false);
-    setWordCategoriesExpanded((currentValue) =>
-      selectedMode === 'syllables' ? !currentValue : true,
-    );
   };
 
   const startPractice = () => {
@@ -225,10 +183,10 @@ export function HiraganaSelectionScreen({
             styles.focusReset,
             {
               borderColor: allSelected
-                ? activeTheme.colors.accentBlue
+                ? activeTheme.colors.accent
                 : activeTheme.colors.line,
               backgroundColor: allSelected
-                ? hexToRgba(activeTheme.colors.accentBlue, 0.1)
+                ? hexToRgba(activeTheme.colors.accent, 0.1)
                 : Platform.OS === 'android'
                   ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
                   : hexToRgba(activeTheme.colors.black, 0.14),
@@ -241,12 +199,12 @@ export function HiraganaSelectionScreen({
               styles.actionCheck,
               {
                 borderColor: allSelected
-                  ? activeTheme.colors.accentBlue
+                  ? activeTheme.colors.accent
                   : isDark
                     ? hexToRgba(activeTheme.colors.white, 0.16)
                     : hexToRgba(activeTheme.colors.black, 0.12),
                 backgroundColor: allSelected
-                  ? hexToRgba(activeTheme.colors.accentBlue, 0.14)
+                  ? hexToRgba(activeTheme.colors.accent, 0.14)
                   : 'transparent',
               },
             ]}
@@ -256,7 +214,7 @@ export function HiraganaSelectionScreen({
               size={allSelected ? 14 : 13}
               color={
                 allSelected
-                  ? activeTheme.colors.accentBlue
+                  ? activeTheme.colors.accent
                   : activeTheme.colors.textMuted
               }
             />
@@ -265,7 +223,7 @@ export function HiraganaSelectionScreen({
             variant="label"
             color={
               allSelected
-                ? activeTheme.colors.accentBlue
+                ? activeTheme.colors.accent
                 : activeTheme.colors.textSecondary
             }
           >
@@ -326,7 +284,7 @@ export function HiraganaSelectionScreen({
                   styles.sectionToggle,
                   styles.focusReset,
                   {
-                    borderColor: hexToRgba(activeTheme.colors.accentBlue, 0.2),
+                    borderColor: hexToRgba(activeTheme.colors.accent, 0.2),
                     backgroundColor:
                       Platform.OS === 'android'
                         ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.9)
@@ -355,10 +313,10 @@ export function HiraganaSelectionScreen({
                   styles.focusReset,
                   {
                     borderColor: allSectionSelected || someSectionSelected
-                      ? activeTheme.colors.accentBlue
+                      ? activeTheme.colors.accent
                       : hexToRgba(activeTheme.colors.white, 0.16),
                     backgroundColor: allSectionSelected
-                      ? hexToRgba(activeTheme.colors.accentBlue, 0.14)
+                      ? hexToRgba(activeTheme.colors.accent, 0.14)
                       : Platform.OS === 'android'
                         ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
                         : hexToRgba(activeTheme.colors.black, 0.12),
@@ -377,7 +335,7 @@ export function HiraganaSelectionScreen({
                   size={allSectionSelected || someSectionSelected ? 14 : 13}
                   color={
                     allSectionSelected || someSectionSelected
-                      ? activeTheme.colors.accentBlue
+                      ? activeTheme.colors.accent
                       : activeTheme.colors.textMuted
                   }
                 />
@@ -426,127 +384,74 @@ export function HiraganaSelectionScreen({
             selected={selectedMode === 'phrases'}
             onPress={() => selectMode('phrases')}
           />
-          <ModeSelectorCard
-            title="Conversión"
-            selected={selectedMode === 'script-conversion'}
-            onPress={() => selectMode('script-conversion')}
-          />
-          <ModeSelectorCard
-            title="Velocidad"
-            selected={selectedMode === 'speed-reading'}
-            onPress={() => selectMode('speed-reading')}
-          />
-          <ModeSelectorCard
-            title="Pares"
-            selected={selectedMode === 'matching-pairs'}
-            onPress={() => selectMode('matching-pairs')}
-          />
-          <ModeSelectorCard
-            title="Gramática"
-            selected={selectedMode === 'demonstratives'}
-            onPress={() => selectMode('demonstratives')}
-          />
-          <ModeSelectorCard
-            title="Completar"
-            selected={selectedMode === 'fill-blank'}
-            onPress={() => selectMode('fill-blank')}
-          />
-          <ModeSelectorCard
-            title="Constructor"
-            selected={selectedMode === 'word-builder'}
-            onPress={() => selectMode('word-builder')}
-          />
-          {wordsModeEnabled ? (
-            <ModeSelectorCard
-              title="Palabras"
-              selected={selectedMode === 'words'}
-              onPress={() => selectMode('words')}
-            />
-          ) : null}
         </View>
 
         <View style={styles.wordCategoriesSection}>
-          <View
-            style={[
-              styles.modeAccordionCard,
-              {
-                borderColor:
-                  isWordCategoryMode
-                    ? hexToRgba(activeTheme.colors.accentBlue, 0.9)
-                    : activeTheme.colors.line,
-                backgroundColor:
-                  Platform.OS === 'android'
-                    ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.9)
-                    : hexToRgba(activeTheme.colors.black, 0.16),
-                shadowColor: activeTheme.colors.accentBlue,
-                shadowOpacity: isWordCategoryMode ? 0.12 : 0,
-                shadowRadius: isWordCategoryMode ? 10 : 0,
-              },
-            ]}
+          <AppText
+            variant="label"
+            color={activeTheme.colors.textMuted}
+            style={styles.vocabularyLabel}
           >
-            <Pressable
-              onPress={toggleSyllablesMode}
-              style={({ pressed }) => [
-                styles.modeAccordionTrigger,
-                styles.focusReset,
-                pressed ? styles.actionPressed : null,
-              ]}
-            >
-              <View style={styles.modeAccordionLeft}>
-                <MaterialCommunityIcons
-                  name={
-                    isWordCategoryMode && wordCategoriesExpanded
-                      ? 'chevron-down'
-                      : 'chevron-right'
-                  }
-                  size={18}
-                  color={activeTheme.colors.textPrimary}
-                />
-                <AppText variant="label" color={activeTheme.colors.textPrimary}>
-                  Palabra guiada
-                </AppText>
-              </View>
-            </Pressable>
+            Vocabulario
+          </AppText>
 
-            <Pressable
-              onPress={toggleAllWordCategories}
-              hitSlop={8}
-              style={({ pressed }) => [
-                styles.modeAccordionIndicator,
-                styles.focusReset,
-                {
-                  borderColor: allWordCategoriesSelected || someWordCategoriesSelected
-                    ? activeTheme.colors.accentBlue
-                    : hexToRgba(activeTheme.colors.white, 0.16),
-                  backgroundColor: allWordCategoriesSelected
-                    ? hexToRgba(activeTheme.colors.accentBlue, 0.14)
-                    : 'transparent',
-                },
-                pressed ? styles.actionPressed : null,
-              ]}
-            >
-              <MaterialCommunityIcons
-                name={
-                  allWordCategoriesSelected
-                    ? 'check'
-                    : someWordCategoriesSelected
-                      ? 'minus'
-                      : 'checkbox-blank-outline'
-                }
-                size={allWordCategoriesSelected || someWordCategoriesSelected ? 14 : 13}
-                color={
-                  allWordCategoriesSelected || someWordCategoriesSelected
-                    ? activeTheme.colors.accentBlue
-                    : activeTheme.colors.textMuted
-                }
-              />
-            </Pressable>
+          <View style={styles.modeGrid}>
+            <ModeSelectorCard
+              title="Palabra guiada"
+              selected={selectedMode === 'syllables'}
+              onPress={() => selectMode('syllables')}
+            />
+            <ModeSelectorCard
+              title="Completar"
+              selected={selectedMode === 'fill-blank'}
+              onPress={() => selectMode('fill-blank')}
+            />
+            <ModeSelectorCard
+              title="Constructor"
+              selected={selectedMode === 'word-builder'}
+              onPress={() => selectMode('word-builder')}
+            />
           </View>
 
-          <AnimatedCollapsible
-            expanded={isWordCategoryMode && wordCategoriesExpanded}
-            style={styles.collapsible}
-          >
+          <AnimatedCollapsible expanded={isWordCategoryMode} style={styles.collapsible}>
+            <View style={styles.tematicaHeader}>
+              <AppText variant="label" color={activeTheme.colors.textMuted}>
+                Temáticas
+              </AppText>
+              <Pressable
+                onPress={toggleAllWordCategories}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.modeAccordionIndicator,
+                  styles.focusReset,
+                  {
+                    borderColor: allWordCategoriesSelected || someWordCategoriesSelected
+                      ? activeTheme.colors.accent
+                      : hexToRgba(activeTheme.colors.white, 0.16),
+                    backgroundColor: allWordCategoriesSelected
+                      ? hexToRgba(activeTheme.colors.accent, 0.14)
+                      : 'transparent',
+                  },
+                  pressed ? styles.actionPressed : null,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name={
+                    allWordCategoriesSelected
+                      ? 'check'
+                      : someWordCategoriesSelected
+                        ? 'minus'
+                        : 'checkbox-blank-outline'
+                  }
+                  size={allWordCategoriesSelected || someWordCategoriesSelected ? 14 : 13}
+                  color={
+                    allWordCategoriesSelected || someWordCategoriesSelected
+                      ? activeTheme.colors.accent
+                      : activeTheme.colors.textMuted
+                  }
+                />
+              </Pressable>
+            </View>
             <View style={styles.list}>
               {availableWordCategories.map((category) => (
                 <WordCategoryCard
@@ -580,16 +485,7 @@ export function HiraganaSelectionScreen({
           </View>
         ) : null}
 
-        {wordsModeEnabled && selectedMode === 'words' ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textMuted}
-            style={styles.modeNote}
-          >
-            Demo de palabras: usa un set fijo de 100 palabras en {scriptLabelLowercase} y
-            no depende de los grupos elegidos.
-          </AppText>
-        ) : selectedMode === 'syllables' ? (
+        {selectedMode === 'syllables' ? (
           <AppText
             variant="bodySmall"
             color={activeTheme.colors.textMuted}
@@ -647,42 +543,6 @@ export function HiraganaSelectionScreen({
             Lee una frase completa y escribi su transcripcion. Usa el modo invertido
             para practicar a la inversa. No depende de los grupos elegidos.
           </AppText>
-        ) : selectedMode === 'script-conversion' ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textMuted}
-            style={styles.modeNote}
-          >
-            Ve un carácter y elegís su equivalente en la otra escritura
-            ({scriptLabelLowercase === 'hiragana' ? 'katakana' : 'hiragana'}).
-          </AppText>
-        ) : selectedMode === 'speed-reading' ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textMuted}
-            style={styles.modeNote}
-          >
-            Como la lectura, pero con un timer de 5 segundos por pregunta. ¡Respondé
-            antes de que se agote!
-          </AppText>
-        ) : selectedMode === 'matching-pairs' ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textMuted}
-            style={styles.modeNote}
-          >
-            Destapá pares de tarjetas que coincidan entre kana y romaji. Cuantos menos
-            errores, mejor.
-          </AppText>
-        ) : selectedMode === 'demonstratives' ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textMuted}
-            style={styles.modeNote}
-          >
-            Practica gramática: こそあど (kore/sore/are, kono/sono/ano, koko/soko/asoko),
-            presentaciones y vocabulario de objetos. No requiere grupos.
-          </AppText>
         ) : null}
       </View>
 
@@ -704,28 +564,14 @@ export function HiraganaSelectionScreen({
                       ? invertedMode
                         ? 'COMENZAR FRASES INVERSAS'
                         : 'COMENZAR FRASES'
-                      : selectedMode === 'words'
-                        ? invertedMode
-                          ? 'COMENZAR PALABRAS INVERSAS'
-                          : 'COMENZAR PALABRAS'
-                        : selectedMode === 'script-conversion'
-                          ? 'COMENZAR CONVERSIÓN'
-                          : selectedMode === 'speed-reading'
-                            ? invertedMode
-                              ? 'COMENZAR VELOCIDAD INVERSA'
-                              : 'COMENZAR VELOCIDAD'
-                            : selectedMode === 'fill-blank'
-                              ? 'COMENZAR COMPLETAR'
-                              : selectedMode === 'word-builder'
-                                ? 'COMENZAR CONSTRUCTOR'
-                                : selectedMode === 'matching-pairs'
-                                  ? 'COMENZAR PARES'
-                                  : selectedMode === 'demonstratives'
-                                    ? 'COMENZAR GRAMÁTICA'
-                                    : 'COMENZAR PALABRA GUIADA'
+                      : selectedMode === 'fill-blank'
+                        ? 'COMENZAR COMPLETAR'
+                        : selectedMode === 'word-builder'
+                          ? 'COMENZAR CONSTRUCTOR'
+                          : 'COMENZAR PALABRA GUIADA'
               : isWordCategoryMode
                 ? 'ELEGI UNA TEMATICA'
-                : selectedMode === 'phrases' || selectedMode === 'demonstratives'
+                : selectedMode === 'phrases'
                   ? 'COMENZAR'
                   : 'ELEGI UN GRUPO'
           }
@@ -822,6 +668,16 @@ const styles = StyleSheet.create({
   },
   wordCategoriesSection: {
     marginTop: theme.spacing.xs,
+  },
+  vocabularyLabel: {
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+  tematicaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: theme.spacing.sm,
   },
   modeNote: {
     marginTop: theme.spacing.sm,

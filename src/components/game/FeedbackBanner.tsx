@@ -19,8 +19,8 @@ export function FeedbackBanner({
   selectedText,
 }: FeedbackBannerProps) {
   const { theme: activeTheme } = useAppTheme();
-  const successTone = '#59F271';
-  const errorTone = '#FF6B5B';
+  const successTone = activeTheme.colors.success;
+  const errorTone = activeTheme.colors.error;
 
   const tone =
     status === 'correct'
@@ -46,9 +46,6 @@ export function FeedbackBanner({
             status === 'idle'
               ? activeTheme.colors.line
               : hexToRgba(tone, 0.48),
-          shadowColor: tone,
-          shadowOpacity: status === 'idle' ? 0 : 0.16,
-          shadowRadius: status === 'idle' ? 0 : 12,
         },
       ]}
     >
@@ -59,7 +56,7 @@ export function FeedbackBanner({
             size={16}
             color={tone}
           />
-          <AutoFitFeedbackText color={activeTheme.colors.white}>
+          <AutoFitFeedbackText color={activeTheme.colors.textPrimary}>
             {message}
           </AutoFitFeedbackText>
         </>

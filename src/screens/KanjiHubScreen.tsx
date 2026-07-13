@@ -16,7 +16,6 @@ export function KanjiHubScreen({ navigation }: RootStackScreenProps<'KanjiHub'>)
         title="漢字"
         eyebrow="JLPT N5"
         subtitle="86 kanji básicos"
-        onBack={() => navigation.goBack()}
       />
 
       <View style={styles.cards}>
@@ -24,14 +23,14 @@ export function KanjiHubScreen({ navigation }: RootStackScreenProps<'KanjiHub'>)
           kanji="学"
           title="Aprender"
           subtitle="Explorá los kanji organizados por categoría"
-          accentColor={activeTheme.colors.accentBlue}
+          accentColor={activeTheme.colors.accent}
           onPress={() => navigation.navigate('KanjiLearn')}
         />
         <HubCard
           kanji="練"
           title="Practicar"
           subtitle="Juegos de múltiple opción para reforzar"
-          accentColor={activeTheme.colors.accentPink}
+          accentColor={activeTheme.colors.accent}
           onPress={() => navigation.navigate('KanjiPractice')}
         />
       </View>
@@ -117,7 +116,7 @@ const styles = StyleSheet.create({
     bottom: -12,
     fontSize: 96,
     lineHeight: 100,
-    fontFamily: 'Sora_700Bold',
+    fontFamily: 'ZenOldMincho_700Bold',
   },
   cardText: {
     gap: theme.spacing.xs,

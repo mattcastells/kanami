@@ -79,13 +79,12 @@ export function KanjiLearnScreen({ navigation }: RootStackScreenProps<'KanjiLear
       <ScreenHeader
         title="Aprender"
         eyebrow="漢字 · JLPT N5"
-        onBack={() => navigation.goBack()}
       />
 
       <View style={styles.content}>
         {KANJI_CATEGORIES.map((cat) => {
           const entries = KANJI_LIST.filter((k) => k.category === cat.id);
-          const accent = CATEGORY_ACCENT[cat.id] ?? activeTheme.colors.accentBlue;
+          const accent = CATEGORY_ACCENT[cat.id] ?? activeTheme.colors.accent;
           return (
             <GlassCard
               key={cat.id}
@@ -150,7 +149,7 @@ const styles = StyleSheet.create({
   kanjiChar: {
     fontSize: 28,
     lineHeight: 32,
-    fontFamily: 'Sora_700Bold',
+    fontFamily: 'ZenOldMincho_700Bold',
     textAlign: 'center',
   },
   rowInfo: {

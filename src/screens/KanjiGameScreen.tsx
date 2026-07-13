@@ -55,7 +55,6 @@ export function KanjiGameScreen({
       <ScreenHeader
         eyebrow="漢字 · JLPT N5"
         title={MODE_LABELS[mode] ?? 'Kanji'}
-        onBack={() => navigation.goBack()}
       />
 
       {/* Stats row */}
@@ -63,7 +62,7 @@ export function KanjiGameScreen({
         <StatPill
           label="✓"
           value={stats.correct}
-          accentColor={activeTheme.colors.accentPink}
+          accentColor={activeTheme.colors.accent}
         />
         <StatPill
           label="✗"
@@ -73,7 +72,7 @@ export function KanjiGameScreen({
         <StatPill
           label="🔥"
           value={stats.streak}
-          accentColor={activeTheme.colors.accentOrange}
+          accentColor={activeTheme.colors.accent}
         />
       </View>
 
@@ -82,12 +81,11 @@ export function KanjiGameScreen({
         style={[
           styles.promptCard,
           {
-            borderColor: hexToRgba(activeTheme.colors.accentPink, 0.22),
+            borderColor: hexToRgba(activeTheme.colors.accent, 0.22),
             backgroundColor:
               Platform.OS === 'android'
                 ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.94)
                 : hexToRgba(activeTheme.colors.black, 0.18),
-            shadowColor: activeTheme.colors.accentPink,
           },
         ]}
       >
@@ -160,7 +158,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   promptText: {
-    fontFamily: 'Sora_600SemiBold',
+    fontFamily: 'ZenKakuGothicNew_700Bold',
     fontSize: 20,
     lineHeight: 28,
     textAlign: 'center',
@@ -168,7 +166,7 @@ const styles = StyleSheet.create({
   promptKanji: {
     fontSize: 64,
     lineHeight: 72,
-    fontFamily: 'Sora_700Bold',
+    fontFamily: 'ZenOldMincho_700Bold',
   },
   optionsGrid: {
     gap: theme.spacing.sm,

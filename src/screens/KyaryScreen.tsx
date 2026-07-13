@@ -47,8 +47,8 @@ type ChatMessage = {
 const createLocalId = (prefix: string): string =>
   `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
-const kyaryAvatarDark = require('../../assets/kyary-dark.png');
-const kyaryAvatarLight = require('../../assets/kyary-light.png');
+const kyaryAvatarDark = require('../../assets/kyary-avatar-dark.png');
+const kyaryAvatarLight = require('../../assets/kyary-avatar-light.png');
 
 export function KyaryScreen() {
   const { theme: activeTheme, mode } = useAppTheme();
@@ -347,7 +347,7 @@ export function KyaryScreen() {
               <MaterialCommunityIcons
                 name="refresh"
                 size={16}
-                color={activeTheme.colors.accentBlue}
+                color={activeTheme.colors.accent}
               />
             </Pressable>
           </View>
@@ -393,11 +393,11 @@ export function KyaryScreen() {
                   message.role === 'user'
                     ? {
                         backgroundColor: hexToRgba(
-                          activeTheme.colors.accentBlue,
+                          activeTheme.colors.accent,
                           0.14,
                         ),
                         borderColor: hexToRgba(
-                          activeTheme.colors.accentBlue,
+                          activeTheme.colors.accent,
                           0.32,
                         ),
                       }
@@ -407,8 +407,8 @@ export function KyaryScreen() {
                           Platform.OS === 'android' ? 0.92 : 0.42,
                         ),
                         borderColor: hexToRgba(
-                          activeTheme.colors.white,
-                          0.06,
+                          activeTheme.colors.textPrimary,
+                          0.08,
                         ),
                       },
                 ]}
@@ -429,11 +429,11 @@ export function KyaryScreen() {
                         <MaterialCommunityIcons
                           name="microphone"
                           size={14}
-                          color={activeTheme.colors.accentOrange}
+                          color={activeTheme.colors.accent}
                         />
                         <AppText
                           variant="bodySmall"
-                          color={activeTheme.colors.accentOrange}
+                          color={activeTheme.colors.accent}
                         >
                           {message.audioLabel}
                         </AppText>
@@ -458,12 +458,12 @@ export function KyaryScreen() {
             style={[
               styles.errorBanner,
               {
-                backgroundColor: hexToRgba('#FF6B5B', 0.12),
-                borderColor: hexToRgba('#FF6B5B', 0.28),
+                backgroundColor: hexToRgba(activeTheme.colors.error, 0.12),
+                borderColor: hexToRgba(activeTheme.colors.error, 0.28),
               },
             ]}
           >
-            <AppText variant="bodySmall" color="#FF8E8E">
+            <AppText variant="bodySmall" color={activeTheme.colors.error}>
               {errorText}
             </AppText>
           </View>
@@ -512,7 +512,7 @@ export function KyaryScreen() {
               <MaterialCommunityIcons
                 name="microphone"
                 size={16}
-                color={activeTheme.colors.accentOrange}
+                color={activeTheme.colors.accent}
               />
               <AppText
                 variant="bodySmall"
@@ -547,7 +547,7 @@ export function KyaryScreen() {
               maxLength={800}
               placeholder="Preguntale a Kyary..."
               placeholderTextColor={activeTheme.colors.textMuted}
-              selectionColor={activeTheme.colors.accentBlue}
+              selectionColor={activeTheme.colors.accent}
               blurOnSubmit={false}
               returnKeyType="default"
               style={[
@@ -578,7 +578,7 @@ export function KyaryScreen() {
                 <MaterialCommunityIcons
                   name="image-outline"
                   size={18}
-                  color={activeTheme.colors.accentGreen}
+                  color={activeTheme.colors.accent}
                 />
               </Pressable>
 
@@ -607,7 +607,7 @@ export function KyaryScreen() {
                   <MaterialCommunityIcons
                     name={isRecording ? 'stop' : 'microphone-outline'}
                     size={18}
-                    color={isRecording ? '#FF6B5B' : activeTheme.colors.accentOrange}
+                    color={isRecording ? '#FF6B5B' : activeTheme.colors.accent}
                   />
                 </Pressable>
               ) : null}
@@ -776,7 +776,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   input: {
-    fontFamily: 'Manrope_500Medium',
+    fontFamily: 'ZenKakuGothicNew_400Regular',
     fontSize: 15,
     lineHeight: 21,
     maxHeight: 80,

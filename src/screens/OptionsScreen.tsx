@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import * as Application from 'expo-application';
 
+import appConfig from '../../app.json';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
@@ -40,7 +41,7 @@ export function OptionsScreen() {
     setThemeMode,
   } = useAppSettings();
   const installedVersion = useMemo(
-    () => Application.nativeApplicationVersion ?? '0.1.0',
+    () => Application.nativeApplicationVersion ?? appConfig.expo.version,
     [],
   );
   const displayInstalledVersion = installedVersion.startsWith('v')
@@ -131,12 +132,12 @@ export function OptionsScreen() {
           <Switch
             value={hapticsEnabled}
             onValueChange={setHapticsEnabled}
-            thumbColor={Platform.OS === 'android' ? activeTheme.colors.white : undefined}
+            thumbColor={'#F7F4EF'}
             trackColor={{
-              false: hexToRgba(activeTheme.colors.white, 0.18),
-              true: hexToRgba(activeTheme.colors.accentBlue, 0.6),
+              false: activeTheme.colors.lineStrong,
+              true: activeTheme.colors.accent,
             }}
-            ios_backgroundColor={hexToRgba(activeTheme.colors.white, 0.16)}
+            ios_backgroundColor={activeTheme.colors.lineStrong}
           />
         </View>
 
@@ -155,7 +156,7 @@ export function OptionsScreen() {
           <View style={styles.settingCopy}>
             <AppText variant="bodyStrong">Tema claro</AppText>
             <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              Sakura
+              {mode === 'light' ? 'Papel' : 'Sumi'}
             </AppText>
           </View>
 
@@ -164,12 +165,12 @@ export function OptionsScreen() {
             onValueChange={(enabled) =>
               setThemeMode(enabled ? 'light' : 'dark')
             }
-            thumbColor={Platform.OS === 'android' ? activeTheme.colors.white : undefined}
+            thumbColor={'#F7F4EF'}
             trackColor={{
-              false: hexToRgba(activeTheme.colors.white, 0.18),
-              true: hexToRgba(activeTheme.colors.accentPink, 0.6),
+              false: activeTheme.colors.lineStrong,
+              true: activeTheme.colors.accent,
             }}
-            ios_backgroundColor={hexToRgba(activeTheme.colors.white, 0.16)}
+            ios_backgroundColor={activeTheme.colors.lineStrong}
           />
         </View>
 
@@ -246,6 +247,13 @@ export function OptionsScreen() {
       >
         {displayInstalledVersion}
       </AppText>
+      <AppText
+        variant="bodySmall"
+        color={activeTheme.colors.textMuted}
+        style={styles.credits}
+      >
+        Orden de trazos: KanjiVG · CC BY-SA 3.0
+      </AppText>
     </ScreenBackground>
   );
 }
@@ -276,7 +284,7 @@ function getStatusTone(kind: UpdateState['kind']) {
       return theme.colors.success;
     case 'available':
     case 'installing':
-      return theme.colors.accentBlue;
+      return theme.colors.accent;
     case 'checking':
       return theme.colors.warning;
     case 'idle':
@@ -324,5 +332,10 @@ const styles = StyleSheet.create({
   installedVersion: {
     alignSelf: 'center',
     marginTop: theme.spacing.md,
+  },
+  credits: {
+    alignSelf: 'center',
+    marginTop: theme.spacing.xxs,
+    textAlign: 'center',
   },
 });

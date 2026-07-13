@@ -16,21 +16,15 @@ export function StatPill({
   accentColor,
 }: StatPillProps) {
   const { theme: activeTheme, mode } = useAppTheme();
-  const resolvedAccentColor = accentColor ?? activeTheme.colors.accentBlue;
+  const resolvedAccentColor = accentColor ?? activeTheme.colors.accent;
 
   return (
     <View
       style={[
         styles.container,
         {
-          borderColor: hexToRgba(resolvedAccentColor, 0.78),
-          backgroundColor:
-            mode === 'dark'
-              ? 'transparent'
-              : hexToRgba(resolvedAccentColor, 0.08),
-          shadowColor: resolvedAccentColor,
-          shadowOpacity: mode === 'dark' ? 0.18 : 0.10,
-          shadowRadius: 12,
+          borderColor: hexToRgba(resolvedAccentColor, 0.5),
+          backgroundColor: hexToRgba(resolvedAccentColor, mode === 'dark' ? 0.1 : 0.08),
         },
       ]}
     >
@@ -67,7 +61,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    shadowOffset: { width: 0, height: 0 },
   },
   label: {
     flex: 1,

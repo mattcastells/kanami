@@ -5,12 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Manrope_400Regular } from '@expo-google-fonts/manrope/400Regular';
-import { Manrope_500Medium } from '@expo-google-fonts/manrope/500Medium';
-import { Manrope_600SemiBold } from '@expo-google-fonts/manrope/600SemiBold';
-import { Manrope_700Bold } from '@expo-google-fonts/manrope/700Bold';
-import { Sora_600SemiBold } from '@expo-google-fonts/sora/600SemiBold';
-import { Sora_700Bold } from '@expo-google-fonts/sora/700Bold';
+import { ZenOldMincho_400Regular } from '@expo-google-fonts/zen-old-mincho/400Regular';
+import { ZenOldMincho_700Bold } from '@expo-google-fonts/zen-old-mincho/700Bold';
+import { ZenKakuGothicNew_400Regular } from '@expo-google-fonts/zen-kaku-gothic-new/400Regular';
+import { ZenKakuGothicNew_500Medium } from '@expo-google-fonts/zen-kaku-gothic-new/500Medium';
+import { ZenKakuGothicNew_700Bold } from '@expo-google-fonts/zen-kaku-gothic-new/700Bold';
 
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AppSettingsProvider } from './src/settings/AppSettingsProvider';
@@ -18,12 +17,11 @@ import { AppThemeProvider, useAppTheme } from './src/theme/AppThemeProvider';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    Sora_600SemiBold,
-    Sora_700Bold,
-    Manrope_400Regular,
-    Manrope_500Medium,
-    Manrope_600SemiBold,
-    Manrope_700Bold,
+    ZenOldMincho_400Regular,
+    ZenOldMincho_700Bold,
+    ZenKakuGothicNew_400Regular,
+    ZenKakuGothicNew_500Medium,
+    ZenKakuGothicNew_700Bold,
   });
 
   if (!fontsLoaded) {
@@ -77,8 +75,8 @@ function AppShell() {
       background: theme.colors.background,
       card: theme.colors.cardStrong,
       border: 'transparent',
-      notification: theme.colors.accentBlue,
-      primary: theme.colors.accentBlue,
+      notification: theme.colors.accent,
+      primary: theme.colors.accent,
       text: theme.colors.textPrimary,
     },
   };

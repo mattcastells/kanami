@@ -1,18 +1,17 @@
 import { ReactNode } from 'react';
 import {
-  Image,
-  Platform,
+  Pressable,
   ScrollView,
   StyleProp,
   StyleSheet,
   View,
   ViewStyle,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomNavBar } from './BottomNavBar';
-import { hexToRgba, theme } from '../../theme/theme';
+import { theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 
 type BottomNavActiveKey = 'home' | 'options' | 'none';
@@ -23,6 +22,9 @@ type ScreenBackgroundProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled';
   bottomOverlay?: ReactNode;
+  // Set to false to hide the automatic back button (e.g. when a screen draws its own).
+  showBack?: boolean;
+  // Kept for call-site compatibility; the bottom tab bar replaces the old nav.
   showBottomNav?: boolean;
   bottomNavActive?: BottomNavActiveKey;
 };
@@ -33,119 +35,47 @@ export function ScreenBackground({
   contentContainerStyle,
   keyboardShouldPersistTaps = 'handled',
   bottomOverlay,
-  showBottomNav = true,
-  bottomNavActive = 'none',
+  showBack = true,
 }: ScreenBackgroundProps) {
-  const { theme: activeTheme, backgroundChoice, mode } = useAppTheme();
+  const { theme: activeTheme } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const isDark = mode === 'dark';
-  const backgroundBlurRadius = Platform.OS === 'android' ? 2 : 6;
-  const backgroundImageOpacity = isDark
-    ? Platform.OS === 'android'
-      ? 0.82
-      : 0.72
-    : Platform.OS === 'android'
-      ? 0.92
-      : 0.88;
-  const backgroundScrimOpacity = isDark
-    ? Platform.OS === 'android'
-      ? 0.42
-      : 0.54
-    : Platform.OS === 'android'
-      ? 0.15
-      : 0.2;
-  const gradientColors: [string, string, string] = isDark
-    ? Platform.OS === 'android'
-      ? [
-          'rgba(18, 31, 44, 0.14)',
-          'rgba(16, 27, 36, 0.22)',
-          'rgba(12, 19, 26, 0.5)',
-        ]
-      : [
-          'rgba(18, 31, 44, 0.22)',
-          'rgba(16, 27, 36, 0.28)',
-          'rgba(12, 19, 26, 0.58)',
-        ]
-    : Platform.OS === 'android'
-      ? [
-          'rgba(230, 238, 246, 0.12)',
-          'rgba(230, 238, 246, 0.18)',
-          'rgba(218, 228, 238, 0.32)',
-        ]
-      : [
-          'rgba(230, 238, 246, 0.18)',
-          'rgba(230, 238, 246, 0.22)',
-          'rgba(218, 228, 238, 0.38)',
-        ];
-  const resolvedBottomOverlay =
-    bottomOverlay ??
-    (showBottomNav ? (
-      <BottomNavBar
-        items={[
-          {
-            id: 'back',
-            label: 'Atras',
-            icon: 'arrow-left',
-          },
-          {
-            id: 'home',
-            label: 'Inicio',
-            icon: 'home-variant-outline',
-            active: bottomNavActive === 'home',
-          },
-          {
-            id: 'options',
-            label: 'Opciones',
-            icon: 'tune-variant',
-            active: bottomNavActive === 'options',
-          },
-        ]}
-      />
-    ) : null);
-  const bottomOverlayPadding = resolvedBottomOverlay
-    ? 82 + Math.max(insets.bottom, 6)
-    : 0;
+  const navigation = useNavigation();
+  const canGoBack = showBack && navigation.canGoBack();
+  const bottomOverlayPadding = bottomOverlay ? 82 + Math.max(insets.bottom, 6) : 0;
   const contentStyle = [
     styles.content,
-    resolvedBottomOverlay ? { paddingBottom: bottomOverlayPadding } : null,
+    canGoBack ? styles.contentWithBack : null,
+    bottomOverlay ? { paddingBottom: bottomOverlayPadding } : null,
     contentContainerStyle,
   ];
 
   return (
     <View style={[styles.root, { backgroundColor: activeTheme.colors.background }]}>
-      <>
-        <Image
-          source={backgroundChoice.source}
-          style={[
-            StyleSheet.absoluteFill,
-            styles.backgroundImage,
-            { opacity: backgroundImageOpacity },
-          ]}
-          resizeMode="cover"
-          blurRadius={backgroundBlurRadius}
-        />
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: hexToRgba(
-                activeTheme.colors.backgroundSecondary,
-                backgroundScrimOpacity,
-              ),
-            },
-          ]}
-        />
-        <LinearGradient
-          colors={gradientColors}
-          locations={[0, 0.45, 1]}
-          style={StyleSheet.absoluteFill}
-        />
-      </>
-
       <SafeAreaView
         style={styles.safeArea}
         edges={['top', 'right', 'left', 'bottom']}
       >
+        {canGoBack ? (
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.backButton,
+              {
+                borderColor: activeTheme.colors.line,
+                backgroundColor: activeTheme.colors.backgroundSecondary,
+              },
+              pressed ? styles.backPressed : null,
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="chevron-left"
+              size={22}
+              color={activeTheme.colors.textPrimary}
+            />
+          </Pressable>
+        ) : null}
+
         {scrollable ? (
           <ScrollView
             bounces={false}
@@ -165,9 +95,9 @@ export function ScreenBackground({
           <View style={contentStyle}>{children}</View>
         )}
 
-        {resolvedBottomOverlay ? (
+        {bottomOverlay ? (
           <View pointerEvents="box-none" style={styles.bottomOverlayWrap}>
-            {resolvedBottomOverlay}
+            {bottomOverlay}
           </View>
         ) : null}
       </SafeAreaView>
@@ -183,6 +113,21 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  backButton: {
+    position: 'absolute',
+    top: theme.spacing.xs,
+    left: theme.spacing.lg,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: theme.radii.sm,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backPressed: {
+    opacity: 0.7,
+  },
   content: {
     flexGrow: 1,
     width: '100%',
@@ -193,9 +138,10 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.xl,
   },
+  contentWithBack: {
+    paddingTop: 52,
+  },
   bottomOverlayWrap: {
     ...StyleSheet.absoluteFillObject,
-  },
-  backgroundImage: {
   },
 });

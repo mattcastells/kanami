@@ -30,15 +30,12 @@ export function PracticeVariantCard({
           styles.card,
           {
             borderColor: selected
-              ? hexToRgba(activeTheme.colors.accentBlue, 0.9)
+              ? hexToRgba(activeTheme.colors.accent, 0.9)
               : activeTheme.colors.line,
             backgroundColor:
               Platform.OS === 'android'
                 ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.9)
                 : hexToRgba(activeTheme.colors.black, 0.16),
-            shadowColor: activeTheme.colors.accentBlue,
-            shadowOpacity: selected ? 0.12 : 0,
-            shadowRadius: selected ? 12 : 0,
           },
         ]}
       >
@@ -56,12 +53,12 @@ export function PracticeVariantCard({
             styles.indicator,
             {
               borderColor: selected
-                ? activeTheme.colors.accentBlue
+                ? activeTheme.colors.accent
                 : mode === 'dark'
                   ? hexToRgba(activeTheme.colors.white, 0.16)
                   : hexToRgba(activeTheme.colors.black, 0.12),
               backgroundColor: selected
-                ? hexToRgba(activeTheme.colors.accentBlue, 0.12)
+                ? hexToRgba(activeTheme.colors.accent, 0.12)
                 : 'transparent',
             },
           ]}
@@ -71,7 +68,7 @@ export function PracticeVariantCard({
             size={selected ? 16 : 15}
             color={
               selected
-                ? activeTheme.colors.accentBlue
+                ? activeTheme.colors.accent
                 : activeTheme.colors.textMuted
             }
           />

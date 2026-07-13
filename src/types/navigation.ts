@@ -6,15 +6,12 @@ import { KanjiCategoryId, KanjiPracticeMode } from './kanji';
 
 export type RootStackParamList = {
   Home: undefined;
-  Options: undefined;
   Kyary: undefined;
-  TheoryParticles: undefined;
-  TheoryQuestions: undefined;
-  TheoryDemonstratives: undefined;
-  TheoryPresentations: undefined;
-  TheoryNumbers: undefined;
+  StudyTopics: undefined;
+  StudyTopic: { topicId: string };
   KanaGroups: {
     script: KanaScript;
+    initialMode?: PracticeMode;
   };
   KanaGame: {
     script: KanaScript;
@@ -30,7 +27,6 @@ export type RootStackParamList = {
     mode: KanjiPracticeMode;
     categoryIds: KanjiCategoryId[];
   };
-  NumbersGame: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

@@ -8,15 +8,12 @@ import {
 import { useAppSettings } from '../settings/AppSettingsProvider';
 import {
   AppTheme,
-  BackgroundChoice,
   createTheme,
-  getBackgroundForMode,
   ThemeMode,
 } from './theme';
 
 type AppThemeContextValue = {
   theme: AppTheme;
-  backgroundChoice: BackgroundChoice;
   mode: ThemeMode;
 };
 
@@ -28,15 +25,13 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
   } = useAppSettings();
 
   const currentTheme = useMemo(() => createTheme(themeMode), [themeMode]);
-  const bg = useMemo(() => getBackgroundForMode(themeMode), [themeMode]);
 
   const value = useMemo(
     () => ({
       theme: currentTheme,
-      backgroundChoice: bg,
       mode: themeMode,
     }),
-    [currentTheme, bg, themeMode],
+    [currentTheme, themeMode],
   );
 
   return (

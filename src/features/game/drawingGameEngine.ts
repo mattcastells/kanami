@@ -14,21 +14,11 @@ export type DrawingRound = {
 export type DrawingGameSessionState = {
   round: DrawingRound;
   userStrokes: DrawingPoint[][];
-  currentStroke: DrawingPoint[];
+  // Per-stroke live result (aligned by index with userStrokes).
+  strokeResults: boolean[];
   answerState: AnswerState;
   stats: GameStats;
 };
-
-function shuffle<T>(items: T[]) {
-  const result = [...items];
-
-  for (let index = result.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
-  }
-
-  return result;
-}
 
 function pickRandom<T>(items: T[]) {
   return items[Math.floor(Math.random() * items.length)];
@@ -71,7 +61,7 @@ export function createInitialDrawingGameState(
   return {
     round: createDrawingRound(pool),
     userStrokes: [],
-    currentStroke: [],
+    strokeResults: [],
     answerState: 'idle',
     stats: {
       correct: 0,
@@ -82,48 +72,40 @@ export function createInitialDrawingGameState(
   };
 }
 
-export function addStrokePoint(
+/**
+ * Commit a completed stroke. The stroke is evaluated immediately against the
+ * guide stroke at the same index so the UI can give per-stroke feedback.
+ */
+export function commitStroke(
   state: DrawingGameSessionState,
-  point: DrawingPoint,
+  points: DrawingPoint[],
 ): DrawingGameSessionState {
-  if (state.answerState !== 'idle') {
+  if (state.answerState !== 'idle' || points.length < 2) {
+    return state;
+  }
+
+  const index = state.userStrokes.length;
+  const guide = state.round.guideStrokes[index];
+  const matched = guide ? evaluateStroke(points, guide).matched : false;
+
+  return {
+    ...state,
+    userStrokes: [...state.userStrokes, points],
+    strokeResults: [...state.strokeResults, matched],
+  };
+}
+
+export function undoStroke(
+  state: DrawingGameSessionState,
+): DrawingGameSessionState {
+  if (state.answerState !== 'idle' || state.userStrokes.length === 0) {
     return state;
   }
 
   return {
     ...state,
-    currentStroke: [...state.currentStroke, point],
-  };
-}
-
-export function beginStroke(
-  state: DrawingGameSessionState,
-  point: DrawingPoint,
-): DrawingGameSessionState {
-  if (state.answerState !== 'idle') {
-    return state;
-  }
-
-  return {
-    ...state,
-    currentStroke: [point],
-  };
-}
-
-export function finishStroke(
-  state: DrawingGameSessionState,
-): DrawingGameSessionState {
-  if (state.answerState !== 'idle' || state.currentStroke.length < 2) {
-    return {
-      ...state,
-      currentStroke: [],
-    };
-  }
-
-  return {
-    ...state,
-    userStrokes: [...state.userStrokes, state.currentStroke],
-    currentStroke: [],
+    userStrokes: state.userStrokes.slice(0, -1),
+    strokeResults: state.strokeResults.slice(0, -1),
   };
 }
 
@@ -137,46 +119,97 @@ export function clearDrawing(
   return {
     ...state,
     userStrokes: [],
-    currentStroke: [],
+    strokeResults: [],
   };
 }
 
+// ── Shape matching ────────────────────────────────────────────────────────────
+
+const RESAMPLE_N = 20;
+
+function polylineLength(points: DrawingPoint[]): number {
+  let total = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+  }
+  return total;
+}
+
+function centroid(points: DrawingPoint[]): DrawingPoint {
+  const sum = points.reduce(
+    (acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }),
+    { x: 0, y: 0 },
+  );
+  return { x: sum.x / points.length, y: sum.y / points.length };
+}
+
 /**
- * Evaluate whether a single user stroke (in normalized 0-100 space) matches
- * the corresponding guide stroke closely enough to be considered correct.
- *
- * Checks:
- *  1. Start position is within ~25% of canvas from the guide start.
- *  2. Direction (angle from first to last point) is within 50° of the guide direction.
- *     Very short guide strokes (dots/marks) only require the position check.
+ * Resample a polyline into `n` points spaced evenly by arc length.
  */
-function evaluateStroke(
+function resample(points: DrawingPoint[], n: number): DrawingPoint[] {
+  if (points.length === 0) return [];
+  if (points.length === 1) return Array.from({ length: n }, () => points[0]);
+
+  const cumulative: number[] = [0];
+  let total = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+    cumulative.push(total);
+  }
+  if (total === 0) return Array.from({ length: n }, () => points[0]);
+
+  const result: DrawingPoint[] = [];
+  for (let k = 0; k < n; k += 1) {
+    const target = (total * k) / (n - 1);
+    let i = 1;
+    while (i < cumulative.length - 1 && cumulative[i] < target) i += 1;
+    const segLen = cumulative[i] - cumulative[i - 1] || 1;
+    const t = (target - cumulative[i - 1]) / segLen;
+    result.push({
+      x: points[i - 1].x + (points[i].x - points[i - 1].x) * t,
+      y: points[i - 1].y + (points[i].y - points[i - 1].y) * t,
+    });
+  }
+  return result;
+}
+
+/**
+ * Compare a user stroke against a guide stroke (both in 0-100 space).
+ * Returns a 0..1 score and a boolean match. The comparison is order-aware
+ * (start → end), so it also validates stroke direction, and shape-aware via
+ * evenly resampled point-to-point mean distance.
+ */
+export function evaluateStroke(
   userStroke: DrawingPoint[],
   guideStroke: CharacterStroke,
-): boolean {
-  if (userStroke.length < 2 || guideStroke.length < 2) return false;
+): { matched: boolean; score: number } {
+  if (userStroke.length < 1 || guideStroke.length < 1) {
+    return { matched: false, score: 0 };
+  }
 
-  const uStart = userStroke[0];
-  const uEnd = userStroke[userStroke.length - 1];
-  const [gStartX, gStartY] = guideStroke[0];
-  const [gEndX, gEndY] = guideStroke[guideStroke.length - 1];
+  const guidePoints = guideStroke.map(([x, y]) => ({ x, y }));
+  const guideLen = polylineLength(guidePoints);
 
-  // 1. Start position must be within 25 units (25% of canvas width) of guide start
-  const startDist = Math.sqrt((uStart.x - gStartX) ** 2 + (uStart.y - gStartY) ** 2);
-  if (startDist > 25) return false;
+  // Dots / very short marks: only proximity of centroids matters.
+  if (guideLen < 12) {
+    const distance = Math.hypot(
+      centroid(userStroke).x - centroid(guidePoints).x,
+      centroid(userStroke).y - centroid(guidePoints).y,
+    );
+    const score = Math.max(0, 1 - distance / 24);
+    return { matched: score >= 0.4, score };
+  }
 
-  // For very short guide strokes (dots, tiny marks) only check position
-  const guideLen = Math.sqrt((gEndX - gStartX) ** 2 + (gEndY - gStartY) ** 2);
-  if (guideLen < 12) return true;
-
-  // 2. Direction must be within 50° of the guide direction
-  const uAngle = Math.atan2(uEnd.y - uStart.y, uEnd.x - uStart.x);
-  const gAngle = Math.atan2(gEndY - gStartY, gEndX - gStartX);
-  let angleDiff = Math.abs((uAngle - gAngle) * (180 / Math.PI));
-  if (angleDiff > 180) angleDiff = 360 - angleDiff;
-  if (angleDiff > 50) return false;
-
-  return true;
+  const ur = resample(userStroke, RESAMPLE_N);
+  const gr = resample(guidePoints, RESAMPLE_N);
+  let sum = 0;
+  for (let i = 0; i < RESAMPLE_N; i += 1) {
+    sum += Math.hypot(ur[i].x - gr[i].x, ur[i].y - gr[i].y);
+  }
+  const meanDistance = sum / RESAMPLE_N;
+  // mean 0 → score 1 ; mean 32 → score 0. Match when mean distance ≲ 18.
+  const score = Math.max(0, 1 - meanDistance / 32);
+  return { matched: score >= 0.44, score };
 }
 
 export type DrawingSubmitResult = {
@@ -190,18 +223,18 @@ export function evaluateDrawing(
   guideStrokes: CharacterStroke[],
 ): DrawingSubmitResult {
   const strokeCountCorrect = userStrokes.length === guideStrokes.length;
+  const pairs = Math.min(userStrokes.length, guideStrokes.length);
 
-  if (!strokeCountCorrect) {
-    return { isCorrect: false, strokeCountCorrect: false, matchedStrokes: 0 };
+  let matched = 0;
+  for (let i = 0; i < pairs; i += 1) {
+    if (evaluateStroke(userStrokes[i], guideStrokes[i]).matched) {
+      matched += 1;
+    }
   }
 
-  const matched = userStrokes.filter((stroke, i) =>
-    evaluateStroke(stroke, guideStrokes[i]),
-  ).length;
-
   return {
-    isCorrect: matched === guideStrokes.length,
-    strokeCountCorrect: true,
+    isCorrect: strokeCountCorrect && matched === guideStrokes.length,
+    strokeCountCorrect,
     matchedStrokes: matched,
   };
 }
@@ -209,11 +242,7 @@ export function evaluateDrawing(
 export function submitDrawing(
   state: DrawingGameSessionState,
 ): DrawingGameSessionState {
-  if (state.answerState !== 'idle') {
-    return state;
-  }
-
-  if (state.userStrokes.length === 0) {
+  if (state.answerState !== 'idle' || state.userStrokes.length === 0) {
     return state;
   }
 
@@ -224,7 +253,6 @@ export function submitDrawing(
 
   return {
     ...state,
-    currentStroke: [],
     answerState: isCorrect ? 'correct' : 'incorrect',
     stats: {
       correct: state.stats.correct + (isCorrect ? 1 : 0),
@@ -243,7 +271,7 @@ export function moveToNextDrawingRound(
     ...state,
     round: createDrawingRound(pool, state.round.roundKey),
     userStrokes: [],
-    currentStroke: [],
+    strokeResults: [],
     answerState: 'idle',
   };
 }

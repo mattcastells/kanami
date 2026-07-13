@@ -85,7 +85,7 @@ export function ScreenHeader({
       {eyebrow ? (
         <AppText
           variant="overline"
-          color={activeTheme.colors.accentBlue}
+          color={activeTheme.colors.accent}
           style={[styles.eyebrow, styles.centerText]}
         >
           {eyebrow}

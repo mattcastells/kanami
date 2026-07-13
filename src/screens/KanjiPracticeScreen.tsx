@@ -67,7 +67,6 @@ export function KanjiPracticeScreen({
       <ScreenHeader
         title="Practicar"
         eyebrow="漢字 · JLPT N5"
-        onBack={() => navigation.goBack()}
       />
 
       {/* Mode selector */}
@@ -89,20 +88,17 @@ export function KanjiPracticeScreen({
                     styles.modeCardInner,
                     {
                       borderColor: selected
-                        ? hexToRgba(activeTheme.colors.accentPink, 0.9)
+                        ? hexToRgba(activeTheme.colors.accent, 0.9)
                         : activeTheme.colors.line,
                       backgroundColor:
                         Platform.OS === 'android'
                           ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.9)
                           : hexToRgba(activeTheme.colors.black, 0.16),
-                      shadowColor: activeTheme.colors.accentPink,
-                      shadowOpacity: selected ? 0.12 : 0,
-                      shadowRadius: selected ? 10 : 0,
                     },
                   ]}
                 >
                   <View style={styles.modeCardText}>
-                    <AppText variant="bodyStrong" color={selected ? activeTheme.colors.accentPink : activeTheme.colors.textPrimary}>
+                    <AppText variant="bodyStrong" color={selected ? activeTheme.colors.accent : activeTheme.colors.textPrimary}>
                       {option.label}
                     </AppText>
                     <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
@@ -114,10 +110,10 @@ export function KanjiPracticeScreen({
                       styles.radioIndicator,
                       {
                         borderColor: selected
-                          ? activeTheme.colors.accentPink
+                          ? activeTheme.colors.accent
                           : hexToRgba(activeTheme.colors.white, 0.16),
                         backgroundColor: selected
-                          ? hexToRgba(activeTheme.colors.accentPink, 0.12)
+                          ? hexToRgba(activeTheme.colors.accent, 0.12)
                           : 'transparent',
                       },
                     ]}
@@ -136,7 +132,7 @@ export function KanjiPracticeScreen({
             Categorías
           </AppText>
           <Pressable onPress={toggleAll}>
-            <AppText variant="label" color={activeTheme.colors.accentPink}>
+            <AppText variant="label" color={activeTheme.colors.accent}>
               {allSelected ? 'Limpiar' : 'Todo'}
             </AppText>
           </Pressable>
@@ -152,10 +148,10 @@ export function KanjiPracticeScreen({
                   styles.chip,
                   {
                     borderColor: active
-                      ? hexToRgba(activeTheme.colors.accentPink, 0.8)
+                      ? hexToRgba(activeTheme.colors.accent, 0.8)
                       : activeTheme.colors.line,
                     backgroundColor: active
-                      ? hexToRgba(activeTheme.colors.accentPink, Platform.OS === 'android' ? 0.18 : 0.1)
+                      ? hexToRgba(activeTheme.colors.accent, Platform.OS === 'android' ? 0.18 : 0.1)
                       : 'transparent',
                   },
                   pressed && styles.pressed,
@@ -163,7 +159,7 @@ export function KanjiPracticeScreen({
               >
                 <AppText
                   variant="label"
-                  color={active ? activeTheme.colors.accentPink : activeTheme.colors.textMuted}
+                  color={active ? activeTheme.colors.accent : activeTheme.colors.textMuted}
                 >
                   {cat.label}
                 </AppText>

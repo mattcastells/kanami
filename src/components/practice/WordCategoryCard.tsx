@@ -1,4 +1,4 @@
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../../theme/theme';
@@ -28,20 +28,18 @@ export function WordCategoryCard({
         style={[
           styles.card,
           {
-            borderColor: selected
-              ? hexToRgba(activeTheme.colors.accentPink, 0.88)
-              : hexToRgba(activeTheme.colors.accentBlue, 0.2),
-            backgroundColor:
-              Platform.OS === 'android'
-                ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.9)
-                : hexToRgba(activeTheme.colors.black, 0.16),
-            shadowColor: selected ? activeTheme.colors.accentPink : activeTheme.colors.accentBlue,
-            shadowOpacity: selected ? 0.28 : 0.03,
-            shadowRadius: selected ? 10 : 0,
+            borderColor: selected ? activeTheme.colors.accent : activeTheme.colors.line,
+            backgroundColor: selected
+              ? hexToRgba(activeTheme.colors.accent, 0.08)
+              : activeTheme.colors.backgroundSecondary,
           },
         ]}
       >
-        <AppText variant="label" color={activeTheme.colors.textPrimary} style={styles.title}>
+        <AppText
+          variant="label"
+          color={selected ? activeTheme.colors.accent : activeTheme.colors.textPrimary}
+          style={styles.title}
+        >
           {title}
         </AppText>
 
@@ -50,21 +48,17 @@ export function WordCategoryCard({
             styles.countBadge,
             {
               borderColor: selected
-                ? activeTheme.colors.accentPink
-                : hexToRgba(activeTheme.colors.white, 0.14),
+                ? activeTheme.colors.accent
+                : activeTheme.colors.line,
               backgroundColor: selected
-                ? hexToRgba(activeTheme.colors.accentPink, 0.12)
-                : hexToRgba(activeTheme.colors.white, 0.03),
+                ? hexToRgba(activeTheme.colors.accent, 0.12)
+                : 'transparent',
             },
           ]}
         >
           <AppText
             variant="bodySmall"
-            color={
-              selected
-                ? activeTheme.colors.accentPink
-                : activeTheme.colors.textMuted
-            }
+            color={selected ? activeTheme.colors.accent : activeTheme.colors.textMuted}
             style={styles.countText}
           >
             {count}
@@ -82,7 +76,7 @@ const styles = StyleSheet.create({
   },
   card: {
     minHeight: 44,
-    borderRadius: 18,
+    borderRadius: theme.radii.md,
     borderWidth: 1,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
@@ -90,8 +84,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: theme.spacing.sm,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 2,
   },
   title: {
     flex: 1,
@@ -99,7 +91,7 @@ const styles = StyleSheet.create({
   countBadge: {
     minWidth: 30,
     height: 24,
-    borderRadius: 999,
+    borderRadius: theme.radii.sm,
     borderWidth: 1,
     paddingHorizontal: theme.spacing.xs,
     alignItems: 'center',
@@ -112,6 +104,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   pressed: {
-    opacity: 0.92,
+    opacity: 0.85,
   },
 });

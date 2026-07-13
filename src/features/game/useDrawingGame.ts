@@ -5,22 +5,18 @@ import { useAppSettings } from '../../settings/AppSettingsProvider';
 import { HiraganaCharacter } from '../../types/hiragana';
 import { GameSessionState } from './gameEngine';
 import {
-  addStrokePoint,
-  beginStroke,
   clearDrawing,
+  commitStroke,
   createInitialDrawingGameState,
   DrawingGameSessionState,
   DrawingPoint,
   evaluateDrawing,
-  finishStroke,
   moveToNextDrawingRound,
   submitDrawing,
+  undoStroke,
 } from './drawingGameEngine';
 
-export function useDrawingGame(
-  pool: HiraganaCharacter[],
-  resetKey: string,
-) {
+export function useDrawingGame(pool: HiraganaCharacter[], resetKey: string) {
   const {
     settings: { hapticsEnabled },
   } = useAppSettings();
@@ -80,14 +76,17 @@ export function useDrawingGame(
       clearTimeout(nextRoundTimeoutRef.current);
     }
 
-    nextRoundTimeoutRef.current = setTimeout(() => {
-      setState((currentState) => {
-        const nextState = moveToNextDrawingRound(currentState, pool);
-        stateRef.current = nextState;
-        return nextState;
-      });
-      nextRoundTimeoutRef.current = null;
-    }, state.answerState === 'correct' ? 900 : 1400);
+    nextRoundTimeoutRef.current = setTimeout(
+      () => {
+        setState((currentState) => {
+          const nextState = moveToNextDrawingRound(currentState, pool);
+          stateRef.current = nextState;
+          return nextState;
+        });
+        nextRoundTimeoutRef.current = null;
+      },
+      state.answerState === 'correct' ? 900 : 1500,
+    );
 
     return () => {
       if (nextRoundTimeoutRef.current) {
@@ -97,25 +96,23 @@ export function useDrawingGame(
     };
   }, [pool, state.answerState, state.round.roundKey]);
 
-  const strokeStart = useCallback((point: DrawingPoint) => {
-    setState((current) => {
-      const next = beginStroke(current, point);
-      stateRef.current = next;
-      return next;
-    });
-  }, []);
+  const commit = useCallback(
+    (points: DrawingPoint[]) => {
+      setState((current) => {
+        const next = commitStroke(current, points);
+        stateRef.current = next;
+        return next;
+      });
+      if (hapticsEnabled) {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    },
+    [hapticsEnabled],
+  );
 
-  const strokeUpdate = useCallback((point: DrawingPoint) => {
+  const undo = useCallback(() => {
     setState((current) => {
-      const next = addStrokePoint(current, point);
-      stateRef.current = next;
-      return next;
-    });
-  }, []);
-
-  const strokeEnd = useCallback(() => {
-    setState((current) => {
-      const next = finishStroke(current);
+      const next = undoStroke(current);
       stateRef.current = next;
       return next;
     });
@@ -150,16 +147,15 @@ export function useDrawingGame(
     let correctText: string;
     let selectedText: string | null;
     if (nextAnswerState === 'correct') {
-      correctText = `${expectedCount} ${expectedCount === 1 ? 'trazo' : 'trazos'}`;
+      correctText = `${expectedCount} ${expectedCount === 1 ? 'trazo' : 'trazos'} correctos`;
       selectedText = null;
     } else if (!evalResult.strokeCountCorrect) {
       correctText = `${expectedCount} ${expectedCount === 1 ? 'trazo' : 'trazos'}`;
-      selectedText = `${currentState.userStrokes.length} trazos`;
+      selectedText = `Dibujaste ${currentState.userStrokes.length}`;
     } else {
-      // Count was right but directions/positions were wrong
       const wrong = expectedCount - evalResult.matchedStrokes;
-      correctText = 'Dirección y posición correctas';
-      selectedText = `${wrong} ${wrong === 1 ? 'trazo incorrecto' : 'trazos incorrectos'}`;
+      correctText = `${evalResult.matchedStrokes}/${expectedCount} bien`;
+      selectedText = `${wrong} ${wrong === 1 ? 'trazo a corregir' : 'trazos a corregir'}`;
     }
 
     setLastFeedback({
@@ -180,9 +176,8 @@ export function useDrawingGame(
 
   return {
     state,
-    strokeStart,
-    strokeUpdate,
-    strokeEnd,
+    commitStroke: commit,
+    undo,
     clear,
     submit,
     lastFeedback,

@@ -24,7 +24,7 @@ type AppSettingsContextValue = {
 
 const DEFAULT_SETTINGS: AppSettings = {
   hapticsEnabled: false,
-  themeMode: 'dark',
+  themeMode: 'light',
 };
 
 const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
@@ -127,9 +127,9 @@ function normalizeSettings(value: unknown): AppSettings {
   return {
     hapticsEnabled: candidate.hapticsEnabled === true,
     themeMode:
-      (candidate as Record<string, unknown>).themeMode === 'light'
-        ? 'light'
-        : 'dark',
+      (candidate as Record<string, unknown>).themeMode === 'dark'
+        ? 'dark'
+        : 'light',
   };
 }
 

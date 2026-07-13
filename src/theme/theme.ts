@@ -1,54 +1,46 @@
-import { ImageSourcePropType, TextStyle } from 'react-native';
+import { TextStyle } from 'react-native';
 
 export type ThemeMode = 'dark' | 'light';
 
-const darkColors = {
-  background: '#253340',
-  backgroundSecondary: '#1A242F',
-  backgroundTertiary: '#121A22',
-  card: 'rgba(25, 31, 38, 0.76)',
-  cardStrong: 'rgba(16, 20, 27, 0.9)',
-  textPrimary: '#F5F7FB',
-  textSecondary: '#D2D8E1',
-  textMuted: '#929DAE',
-  line: 'rgba(255, 255, 255, 0.08)',
-  lineStrong: 'rgba(24, 186, 255, 0.34)',
-  accentBlue: '#14B7FF',
-  accentCyan: '#4FD6FF',
-  accentGreen: '#47C59C',
-  accentPink: '#FF7FC5',
-  accentOrange: '#E7B367',
-  success: '#37C589',
-  error: '#FF7D88',
-  warning: '#E8B464',
+// Rediseño "tinta y bermellón" — reemplaza dark glass/cyan.
+// Light = papel (default). Dark = sumi.
+const lightColors = {
+  background: '#F7F4EF',
+  backgroundSecondary: '#FFFFFF',
+  backgroundTertiary: '#ECE8E0',
+  card: '#FFFFFF',
+  cardStrong: '#FFFFFF',
+  textPrimary: '#1C1A17',
+  textSecondary: '#6B655C',
+  textMuted: '#8A8378',
+  line: 'rgba(28, 26, 23, 0.12)',
+  lineStrong: 'rgba(28, 26, 23, 0.18)',
+  accent: '#C73E2E',
+  success: '#3E7D5C',
+  error: '#B03A2E',
+  warning: '#A87B2F',
   black: '#000000',
   white: '#FFFFFF',
 };
 
-const lightColors: typeof darkColors = {
-  background: '#E6EEF6',
-  backgroundSecondary: '#F2F6FA',
-  backgroundTertiary: '#DAE4EE',
-  card: 'rgba(255, 255, 255, 0.62)',
-  cardStrong: 'rgba(255, 255, 255, 0.84)',
-  textPrimary: '#0F1D2B',
-  textSecondary: '#2E4A5E',
-  textMuted: '#3D5A6E',
-  line: 'rgba(0, 0, 0, 0.07)',
-  lineStrong: 'rgba(219, 112, 170, 0.40)',
-  accentBlue: '#1A9AD0',
-  accentCyan: '#2DB0D4',
-  accentGreen: '#36A87C',
-  accentPink: '#D86CA6',
-  accentOrange: '#CC8E58',
-  success: '#30A872',
-  error: '#D45462',
-  warning: '#CC8E58',
+const darkColors: typeof lightColors = {
+  background: '#1B1A17',
+  backgroundSecondary: '#242220',
+  backgroundTertiary: '#141311',
+  card: '#242220',
+  cardStrong: '#242220',
+  textPrimary: '#F0EDE6',
+  textSecondary: '#B7B1A4',
+  textMuted: '#989285',
+  line: 'rgba(240, 237, 230, 0.14)',
+  lineStrong: 'rgba(240, 237, 230, 0.22)',
+  accent: '#D4553F',
+  success: '#5AA47C',
+  error: '#C96A57',
+  warning: '#C29A54',
   black: '#000000',
   white: '#FFFFFF',
 };
-
-const colors = darkColors;
 
 const sharedTheme = {
   spacing: {
@@ -61,106 +53,85 @@ const sharedTheme = {
     xxl: 32,
     xxxl: 40,
   },
+  // Esquinas casi rectas; pill queda para chips y el botón de voz.
   radii: {
-    sm: 14,
-    md: 20,
-    lg: 28,
-    xl: 36,
+    sm: 4,
+    md: 6,
+    lg: 8,
+    xl: 12,
     pill: 999,
   },
   typography: {
     overline: {
-      fontFamily: 'Sora_600SemiBold',
-      fontSize: 11,
-      lineHeight: 14,
-      letterSpacing: 1.5,
+      fontFamily: 'ZenKakuGothicNew_700Bold',
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 1.6,
       textTransform: 'uppercase',
     } satisfies TextStyle,
     label: {
-      fontFamily: 'Sora_600SemiBold',
+      fontFamily: 'ZenKakuGothicNew_700Bold',
       fontSize: 12,
       lineHeight: 16,
       letterSpacing: 1,
     } satisfies TextStyle,
     bodySmall: {
-      fontFamily: 'Manrope_500Medium',
+      fontFamily: 'ZenKakuGothicNew_400Regular',
       fontSize: 13,
-      lineHeight: 18,
+      lineHeight: 19,
     } satisfies TextStyle,
     body: {
-      fontFamily: 'Manrope_500Medium',
+      fontFamily: 'ZenKakuGothicNew_400Regular',
       fontSize: 15,
-      lineHeight: 22,
+      lineHeight: 23,
     } satisfies TextStyle,
     bodyStrong: {
-      fontFamily: 'Manrope_700Bold',
+      fontFamily: 'ZenKakuGothicNew_700Bold',
       fontSize: 15,
-      lineHeight: 22,
+      lineHeight: 23,
     } satisfies TextStyle,
     title: {
-      fontFamily: 'Sora_600SemiBold',
+      fontFamily: 'ZenKakuGothicNew_700Bold',
       fontSize: 18,
-      lineHeight: 24,
+      lineHeight: 25,
     } satisfies TextStyle,
     headline: {
-      fontFamily: 'Sora_600SemiBold',
-      fontSize: 24,
-      lineHeight: 30,
+      fontFamily: 'ZenOldMincho_700Bold',
+      fontSize: 26,
+      lineHeight: 34,
     } satisfies TextStyle,
     display: {
-      fontFamily: 'Sora_700Bold',
-      fontSize: 32,
-      lineHeight: 38,
+      fontFamily: 'ZenOldMincho_700Bold',
+      fontSize: 34,
+      lineHeight: 42,
     } satisfies TextStyle,
     kana: {
-      fontFamily: 'Sora_600SemiBold',
-      fontSize: 60,
-      lineHeight: 68,
+      fontFamily: 'ZenOldMincho_400Regular',
+      fontSize: 96,
+      lineHeight: 108,
     } satisfies TextStyle,
     option: {
-      fontFamily: 'Sora_600SemiBold',
-      fontSize: 22,
-      lineHeight: 28,
+      fontFamily: 'ZenKakuGothicNew_500Medium',
+      fontSize: 20,
+      lineHeight: 26,
     } satisfies TextStyle,
   },
 };
 
 export const theme = {
   ...sharedTheme,
-  colors,
+  colors: lightColors,
 };
 
 export type AppTheme = typeof theme & { mode: ThemeMode };
 export type TextVariant = keyof typeof theme.typography;
 
-export type BackgroundChoice = {
-  id: string;
-  label: string;
-  source: ImageSourcePropType;
-};
-
-const darkBackground: BackgroundChoice = {
-  id: 'background-dark',
-  label: 'Bosque oscuro',
-  source: require('../../assets/background-1.jpg'),
-};
-
-const lightBackground: BackgroundChoice = {
-  id: 'background-light',
-  label: 'Sakura',
-  source: require('../../assets/light-theme-bg.jpg'),
-};
-
-export function createTheme(mode: ThemeMode = 'dark'): AppTheme {
+export function createTheme(mode: ThemeMode = 'light'): AppTheme {
   return {
     ...sharedTheme,
     colors: mode === 'dark' ? darkColors : lightColors,
     mode,
   };
-}
-
-export function getBackgroundForMode(mode: ThemeMode): BackgroundChoice {
-  return mode === 'dark' ? darkBackground : lightBackground;
 }
 
 export function hexToRgba(hex: string, alpha: number) {

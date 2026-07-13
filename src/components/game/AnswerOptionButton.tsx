@@ -1,4 +1,12 @@
-import { Animated, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import {
+  Animated,
+  Easing,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  ViewStyle,
+} from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../../theme/theme';
@@ -27,24 +35,63 @@ export function AnswerOptionButton({
 }: AnswerOptionButtonProps) {
   const { theme: activeTheme, mode } = useAppTheme();
   const isDark = mode === 'dark';
-  const successTone = '#59F271';
-  const errorTone = '#FF6B5B';
+
+  // Correct: subtle scale pulse 1 -> 1.02 -> 1 (180ms).
+  // Incorrect: horizontal shake +/-4px, 3 cycles (240ms).
+  // Feedback also carries via border color + text, never animation alone.
+  const pulse = useRef(new Animated.Value(0)).current;
+  const shake = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visualState === 'correct') {
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 90,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 90,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (visualState === 'incorrect') {
+      shake.setValue(0);
+      Animated.sequence([
+        Animated.timing(shake, { toValue: 1, duration: 40, useNativeDriver: true }),
+        Animated.timing(shake, { toValue: -1, duration: 80, useNativeDriver: true }),
+        Animated.timing(shake, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.timing(shake, { toValue: 0, duration: 40, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [pulse, shake, visualState]);
 
   const tone =
     visualState === 'correct'
-      ? successTone
+      ? activeTheme.colors.success
       : visualState === 'incorrect'
-        ? errorTone
-        : activeTheme.colors.accentBlue;
+        ? activeTheme.colors.error
+        : activeTheme.colors.accent;
 
   const isMuted = visualState === 'muted';
+
+  const animatedStyle = {
+    transform: [
+      { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] }) },
+      { translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-4, 4] }) },
+    ],
+  };
+
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [styles.wrap, pressed && !disabled ? styles.pressed : null]}
     >
-      <View
+      <Animated.View
         style={[
           styles.container,
           {
@@ -63,10 +110,9 @@ export function AnswerOptionButton({
                 ? isDark
                   ? hexToRgba(activeTheme.colors.white, 0.02)
                   : hexToRgba(activeTheme.colors.black, 0.02)
-                : isDark
-                  ? hexToRgba(activeTheme.colors.white, 0.04)
-                  : hexToRgba(activeTheme.colors.white, 0.45),
+                : activeTheme.colors.backgroundSecondary,
           },
+          animatedStyle,
         ]}
       >
         <Animated.View style={labelWrapStyle}>
@@ -83,7 +129,7 @@ export function AnswerOptionButton({
             {label}
           </AppText>
         </Animated.View>
-      </View>
+      </Animated.View>
     </Pressable>
   );
 }
@@ -96,7 +142,7 @@ const styles = StyleSheet.create({
   },
   container: {
     minHeight: 64,
-    borderRadius: 16,
+    borderRadius: theme.radii.md,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 10,
