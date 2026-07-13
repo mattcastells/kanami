@@ -11,6 +11,7 @@ import { KanjiGameScreen } from '../screens/KanjiGameScreen';
 import { KanjiHubScreen } from '../screens/KanjiHubScreen';
 import { KanjiLearnScreen } from '../screens/KanjiLearnScreen';
 import { KanjiPracticeScreen } from '../screens/KanjiPracticeScreen';
+import { KanjiDrawScreen } from '../screens/KanjiDrawScreen';
 import { KyaryScreen } from '../screens/KyaryScreen';
 import { OptionsScreen } from '../screens/OptionsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
@@ -39,6 +40,7 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="KanjiHub" component={KanjiHubScreen} />
       <PracticeStack.Screen name="KanjiLearn" component={KanjiLearnScreen} />
       <PracticeStack.Screen name="KanjiPractice" component={KanjiPracticeScreen} />
+      <PracticeStack.Screen name="KanjiDraw" component={KanjiDrawScreen} />
       <PracticeStack.Screen name="KanjiGame" component={KanjiGameScreen} />
     </PracticeStack.Navigator>
   );

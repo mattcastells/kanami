@@ -1,6 +1,6 @@
-# Hanami
+# Kanami
 
-MVP mobile para practicar **Hiragana** con **Expo + React Native + TypeScript**.
+App mobile para practicar **japonés** (hiragana, katakana y kanji N5) con **Expo + React Native + TypeScript**.
 
 ## Requisitos
 
@@ -59,8 +59,8 @@ Una forma simple de generar el keystore localmente es:
 ```bash
 keytool -genkeypair -v \
   -storetype PKCS12 \
-  -keystore hanami-upload.keystore \
-  -alias hanami \
+  -keystore kanami-upload.keystore \
+  -alias kanami \
   -keyalg RSA \
   -keysize 2048 \
   -validity 3650
@@ -69,7 +69,7 @@ keytool -genkeypair -v \
 Y luego convertirlo a base64:
 
 ```bash
-base64 -i hanami-upload.keystore | pbcopy
+base64 -i kanami-upload.keystore | pbcopy
 ```
 
 ### Publicar una release

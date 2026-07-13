@@ -18,7 +18,7 @@ import {
   AnswerOptionButton,
   AnswerOptionVisualState,
 } from '../components/game/AnswerOptionButton';
-import { DrawingCanvas } from '../components/game/DrawingCanvas';
+import { DrawingPractice } from '../components/game/DrawingPractice';
 import { FeedbackBanner } from '../components/game/FeedbackBanner';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -38,7 +38,6 @@ import {
   getPhrasePromptKind,
   sanitizePhraseInput,
 } from '../features/game/phraseGameEngine';
-import { useDrawingGame } from '../features/game/useDrawingGame';
 import { useHiraganaGame } from '../features/game/useHiraganaGame';
 import { usePhraseGame } from '../features/game/usePhraseGame';
 import { useWritingHiraganaGame } from '../features/game/useWritingHiraganaGame';
@@ -106,7 +105,9 @@ export function GameScreen({
   const drawablePool = useMemo(
     () =>
       route.params.mode === 'drawing'
-        ? filterDrawableCharacters(kanaPool)
+        ? filterDrawableCharacters(
+            kanaPool.map((c) => ({ id: c.id, char: c.kana, sub: c.romaji.toUpperCase() })),
+          )
         : [],
     [route.params.mode, kanaPool],
   );
@@ -175,9 +176,10 @@ export function GameScreen({
       }
     >
       {route.params.mode === 'drawing' ? (
-        <DrawingGameView
+        <DrawingPractice
           pool={drawablePool}
           resetKey={resetKey}
+          title="Dibujo"
         />
       ) : route.params.mode === 'writing' ? (
         <WritingGameView
@@ -317,135 +319,6 @@ function ReadingGameView({
             labelWrapStyle={optionTextAnimatedStyle}
           />
         ))}
-      </View>
-    </View>
-  );
-}
-
-function DrawingGameView({
-  pool,
-  resetKey,
-}: {
-  pool: HiraganaCharacter[];
-  resetKey: string;
-}) {
-  const { theme: activeTheme } = useAppTheme();
-  const { state, commitStroke, undo, clear, submit, lastFeedback } =
-    useDrawingGame(pool, resetKey);
-  const promptTransition = useRef(new Animated.Value(1)).current;
-  const [canvasSize, setCanvasSize] = useState(280);
-
-  useEffect(() => {
-    promptTransition.setValue(0);
-
-    Animated.timing(promptTransition, {
-      toValue: 1,
-      duration: 130,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [promptTransition, state.round.roundKey]);
-
-  const promptAnimatedStyle = {
-    opacity: promptTransition,
-    transform: [
-      {
-        translateY: promptTransition.interpolate({
-          inputRange: [0, 1],
-          outputRange: [10, 0],
-        }),
-      },
-      {
-        scale: promptTransition.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0.975, 1],
-        }),
-      },
-    ],
-  };
-
-  const canSubmit = state.answerState === 'idle' && state.userStrokes.length > 0;
-  const canClear = state.answerState === 'idle' && state.userStrokes.length > 0;
-  const canUndo = state.answerState === 'idle' && state.userStrokes.length > 0;
-
-  return (
-    <View style={styles.screen}>
-      <GameTopBlock
-        title="Dibujo"
-        stats={state.stats}
-        lastFeedback={lastFeedback}
-      />
-
-      <View style={styles.drawingReferenceRow}>
-        <Animated.View style={[styles.drawingReferenceWrap, promptAnimatedStyle]}>
-          <AppText variant="headline" style={styles.drawingReferenceKana}>
-            {state.round.character.kana}
-          </AppText>
-          <AppText
-            variant="label"
-            color={activeTheme.colors.textSecondary}
-            style={styles.drawingReferenceRomaji}
-          >
-            {state.round.character.romaji.toUpperCase()}
-          </AppText>
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textMuted}
-          >
-            {state.round.expectedStrokeCount} {state.round.expectedStrokeCount === 1 ? 'trazo' : 'trazos'}
-          </AppText>
-        </Animated.View>
-      </View>
-
-      <View
-        style={styles.drawingCanvasWrap}
-        onLayout={(e) => {
-          const width = Math.round(e.nativeEvent.layout.width);
-          setCanvasSize((current) => current === width ? current : Math.min(width, 340));
-        }}
-      >
-        <DrawingCanvas
-          size={canvasSize}
-          guideStrokes={state.round.guideStrokes}
-          userStrokes={state.userStrokes}
-          strokeResults={state.strokeResults}
-          nextStrokeIndex={state.userStrokes.length}
-          disabled={state.answerState !== 'idle'}
-          onStrokeComplete={commitStroke}
-        />
-      </View>
-
-      <View style={styles.drawingStrokeCounter}>
-        <AppText variant="label" color={activeTheme.colors.textSecondary}>
-          Trazos: {state.userStrokes.length}/{state.round.expectedStrokeCount}
-        </AppText>
-      </View>
-
-      <View style={styles.drawingActions}>
-        <PrimaryButton
-          title="DESHACER"
-          variant="ghost"
-          size="compact"
-          disabled={!canUndo}
-          onPress={undo}
-          style={styles.drawingActionButton}
-        />
-        <PrimaryButton
-          title="BORRAR"
-          variant="secondary"
-          size="compact"
-          disabled={!canClear}
-          onPress={clear}
-          style={styles.drawingActionButton}
-        />
-        <PrimaryButton
-          title="VERIFICAR"
-          variant="primary"
-          size="compact"
-          disabled={!canSubmit}
-          onPress={submit}
-          style={styles.drawingActionButton}
-        />
       </View>
     </View>
   );

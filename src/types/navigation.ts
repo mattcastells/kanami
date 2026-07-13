@@ -23,6 +23,10 @@ export type RootStackParamList = {
   KanjiHub: undefined;
   KanjiLearn: undefined;
   KanjiPractice: undefined;
+  KanjiDraw: {
+    categoryIds: KanjiCategoryId[];
+    kanjiId?: string;
+  };
   KanjiGame: {
     mode: KanjiPracticeMode;
     categoryIds: KanjiCategoryId[];

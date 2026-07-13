@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Hanami",
-    "slug": "Hanami",
+    "name": "Kanami",
+    "slug": "Kanami",
     "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/app-icon.png",
+    "icon": "./assets/kanami.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -16,8 +16,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#060A16",
-        "foregroundImage": "./assets/app-icon.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/kanami.png"
       },
       "versionCode": 1,
       "permissions": [
@@ -25,7 +25,7 @@
       ],
       "softwareKeyboardLayoutMode": "resize",
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.Hanami"
+      "package": "com.anonymous.Kanami"
     },
     "web": {
       "favicon": "./assets/favicon.png"

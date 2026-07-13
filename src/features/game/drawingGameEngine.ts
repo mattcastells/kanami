@@ -1,11 +1,13 @@
-import { HiraganaCharacter } from '../../types/hiragana';
 import { AnswerState, GameStats } from './gameEngine';
 import { CharacterStroke, getStrokeGuide } from '../../data/hiraganaStrokes';
 
 export type DrawingPoint = { x: number; y: number };
 
+// Any character that can be practiced by drawing (kana or kanji).
+export type DrawableChar = { id: string; char: string; sub?: string };
+
 export type DrawingRound = {
-  character: HiraganaCharacter;
+  character: DrawableChar;
   guideStrokes: CharacterStroke[];
   expectedStrokeCount: number;
   roundKey: string;
@@ -27,16 +29,14 @@ function pickRandom<T>(items: T[]) {
 /**
  * Filter pool to characters that have stroke guide data.
  */
-export function filterDrawableCharacters(
-  pool: HiraganaCharacter[],
-): HiraganaCharacter[] {
+export function filterDrawableCharacters(pool: DrawableChar[]): DrawableChar[] {
   return pool.filter(
-    (character) => character.kana.length === 1 && getStrokeGuide(character.kana) !== null,
+    (character) => character.char.length === 1 && getStrokeGuide(character.char) !== null,
   );
 }
 
 export function createDrawingRound(
-  pool: HiraganaCharacter[],
+  pool: DrawableChar[],
   previousRoundKey?: string,
 ): DrawingRound {
   const candidates =
@@ -45,7 +45,7 @@ export function createDrawingRound(
       : pool;
 
   const character = pickRandom(candidates.length > 0 ? candidates : pool);
-  const guideStrokes = getStrokeGuide(character.kana) ?? [];
+  const guideStrokes = getStrokeGuide(character.char) ?? [];
 
   return {
     character,
@@ -56,7 +56,7 @@ export function createDrawingRound(
 }
 
 export function createInitialDrawingGameState(
-  pool: HiraganaCharacter[],
+  pool: DrawableChar[],
 ): DrawingGameSessionState {
   return {
     round: createDrawingRound(pool),
@@ -265,7 +265,7 @@ export function submitDrawing(
 
 export function moveToNextDrawingRound(
   state: DrawingGameSessionState,
-  pool: HiraganaCharacter[],
+  pool: DrawableChar[],
 ): DrawingGameSessionState {
   return {
     ...state,

@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '../components/ui/AppText';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
+import { KANJI_CATEGORIES } from '../data/kanji';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
@@ -32,6 +33,17 @@ export function KanjiHubScreen({ navigation }: RootStackScreenProps<'KanjiHub'>)
           subtitle="Juegos de múltiple opción para reforzar"
           accentColor={activeTheme.colors.accent}
           onPress={() => navigation.navigate('KanjiPractice')}
+        />
+        <HubCard
+          kanji="書"
+          title="Trazos"
+          subtitle="Dibujá los kanji siguiendo el orden correcto"
+          accentColor={activeTheme.colors.accent}
+          onPress={() =>
+            navigation.navigate('KanjiDraw', {
+              categoryIds: KANJI_CATEGORIES.map((c) => c.id),
+            })
+          }
         />
       </View>
     </ScreenBackground>

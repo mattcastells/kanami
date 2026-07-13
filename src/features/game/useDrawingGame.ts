@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 
 import { useAppSettings } from '../../settings/AppSettingsProvider';
-import { HiraganaCharacter } from '../../types/hiragana';
 import { GameSessionState } from './gameEngine';
 import {
   clearDrawing,
   commitStroke,
   createInitialDrawingGameState,
+  DrawableChar,
   DrawingGameSessionState,
   DrawingPoint,
   evaluateDrawing,
@@ -16,7 +16,7 @@ import {
   undoStroke,
 } from './drawingGameEngine';
 
-export function useDrawingGame(pool: HiraganaCharacter[], resetKey: string) {
+export function useDrawingGame(pool: DrawableChar[], resetKey: string) {
   const {
     settings: { hapticsEnabled },
   } = useAppSettings();
@@ -160,7 +160,7 @@ export function useDrawingGame(pool: HiraganaCharacter[], resetKey: string) {
 
     setLastFeedback({
       status: nextAnswerState,
-      promptText: currentState.round.character.kana,
+      promptText: currentState.round.character.char,
       correctText,
       selectedText,
     });

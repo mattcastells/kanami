@@ -60,24 +60,24 @@ jobs:
 
       - name: Decode Android keystore
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/hanami-upload.keystore"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/kanami-upload.keystore"
 
       - name: Build release APK
         working-directory: android
         run: |
           GRADLE_USER_HOME=$PWD/.gradle ./gradlew assembleRelease --console=plain \
-            -PHANAMI_UPLOAD_STORE_FILE="$RUNNER_TEMP/hanami-upload.keystore" \
-            -PHANAMI_UPLOAD_STORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD" \
-            -PHANAMI_UPLOAD_KEY_ALIAS="$ANDROID_KEY_ALIAS" \
-            -PHANAMI_UPLOAD_KEY_PASSWORD="$ANDROID_KEY_PASSWORD"
+            -PKANAMI_UPLOAD_STORE_FILE="$RUNNER_TEMP/kanami-upload.keystore" \
+            -PKANAMI_UPLOAD_STORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD" \
+            -PKANAMI_UPLOAD_KEY_ALIAS="$ANDROID_KEY_ALIAS" \
+            -PKANAMI_UPLOAD_KEY_PASSWORD="$ANDROID_KEY_PASSWORD"
 
       - name: Prepare release artifacts
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk "dist/hanami-v${RELEASE_VERSION}-arm64-v8a.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/kanami-v${RELEASE_VERSION}-arm64-v8a.apk"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/hanami-v${{ env.RELEASE_VERSION }}-arm64-v8a.apk
+          files: dist/kanami-v${{ env.RELEASE_VERSION }}-arm64-v8a.apk
           generate_release_notes: true
