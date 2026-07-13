@@ -13,7 +13,6 @@ export type WritingGameSessionState = {
   round: WritingRound;
   answerState: AnswerState;
   inputValue: string;
-  submittedValue: string | null;
   stats: GameStats;
 };
 
@@ -97,7 +96,6 @@ export function createInitialWritingGameState(
     round: createWritingRound(pool, undefined, inverted),
     answerState: 'idle',
     inputValue: '',
-    submittedValue: null,
     stats: {
       correct: 0,
       incorrect: 0,
@@ -144,7 +142,6 @@ export function submitWritingAnswer(
   return {
     ...currentState,
     inputValue: '',
-    submittedValue,
     answerState: isCorrect ? 'correct' : 'incorrect',
     stats: {
       correct: currentState.stats.correct + (isCorrect ? 1 : 0),
@@ -165,6 +162,5 @@ export function moveToNextWritingRound(
     round: createWritingRound(pool, currentState.round.roundKey, inverted),
     answerState: 'idle',
     inputValue: '',
-    submittedValue: null,
   };
 }

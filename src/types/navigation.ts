@@ -6,7 +6,6 @@ import { KanjiCategoryId, KanjiPracticeMode } from './kanji';
 
 export type RootStackParamList = {
   Home: undefined;
-  Kyary: undefined;
   StudyTopics: undefined;
   StudyTopic: { topicId: string };
   KanaGroups: {

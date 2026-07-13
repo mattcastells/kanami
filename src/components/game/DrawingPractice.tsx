@@ -11,10 +11,6 @@ import { StatPill } from '../ui/StatPill';
 import { DrawingCanvas } from './DrawingCanvas';
 import { FeedbackBanner } from './FeedbackBanner';
 
-const SUCCESS_TONE = '#3E7D5C';
-const ERROR_TONE = '#B03A2E';
-const INFO_TONE = '#C73E2E';
-
 type DrawingPracticeProps = {
   pool: DrawableChar[];
   resetKey: string;
@@ -67,9 +63,21 @@ export function DrawingPractice({ pool, resetKey, title }: DrawingPracticeProps)
       </AppText>
 
       <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={state.stats.correct} accentColor={SUCCESS_TONE} />
-        <StatPill label="Fallidos" value={state.stats.incorrect} accentColor={ERROR_TONE} />
-        <StatPill label="Racha" value={state.stats.streak} accentColor={INFO_TONE} />
+        <StatPill
+          label="Aciertos"
+          value={state.stats.correct}
+          accentColor={activeTheme.colors.success}
+        />
+        <StatPill
+          label="Fallidos"
+          value={state.stats.incorrect}
+          accentColor={activeTheme.colors.error}
+        />
+        <StatPill
+          label="Racha"
+          value={state.stats.streak}
+          accentColor={activeTheme.colors.accent}
+        />
       </View>
 
       <View style={styles.feedbackSlot}>
@@ -99,10 +107,12 @@ export function DrawingPractice({ pool, resetKey, title }: DrawingPracticeProps)
       <View
         style={styles.canvasWrap}
         onLayout={(e) => {
-          const width = Math.round(e.nativeEvent.layout.width);
-          setCanvasSize((current) =>
-            current === width ? current : Math.min(width, 340),
-          );
+          const { width, height } = e.nativeEvent.layout;
+          // Fit the canvas to whatever space is left after the header, stats,
+          // feedback, counter and action buttons, so those stay reachable
+          // without scrolling on short screens.
+          const next = Math.min(Math.round(width), Math.round(height), 340);
+          setCanvasSize((current) => (current === next ? current : next));
         }}
       >
         <DrawingCanvas
@@ -179,6 +189,8 @@ const styles = StyleSheet.create({
     lineHeight: 48,
   },
   canvasWrap: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
     marginBottom: theme.spacing.xs,

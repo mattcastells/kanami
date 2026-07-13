@@ -12,7 +12,7 @@ export function KanjiHubScreen({ navigation }: RootStackScreenProps<'KanjiHub'>)
   const { theme: activeTheme } = useAppTheme();
 
   return (
-    <ScreenBackground scrollable bottomNavActive="home">
+    <ScreenBackground scrollable>
       <ScreenHeader
         title="漢字"
         eyebrow="JLPT N5"

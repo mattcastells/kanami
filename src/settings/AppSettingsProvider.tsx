@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { File, Paths } from 'expo-file-system';
@@ -31,6 +32,9 @@ const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
 
 export function AppSettingsProvider({ children }: PropsWithChildren) {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  // True once the user changes a setting. Guards against the load-vs-write race
+  // and marks which state changes are worth persisting.
+  const userTouchedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,13 +50,13 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
         const fileContents = await settingsFile.text();
         const parsed = JSON.parse(fileContents);
 
-        if (!cancelled) {
+        // If the user already toggled something while we were reading the file,
+        // don't clobber their choice with the stale on-disk value.
+        if (!cancelled && !userTouchedRef.current) {
           setSettings(normalizeSettings(parsed));
         }
       } catch {
-        if (!cancelled) {
-          setSettings(DEFAULT_SETTINGS);
-        }
+        // Keep the in-memory defaults on any read/parse failure.
       }
     };
 
@@ -63,28 +67,30 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
-  const setHapticsEnabled = useCallback((enabled: boolean) => {
-    setSettings((currentSettings) => {
-      const nextSettings = {
-        ...currentSettings,
-        hapticsEnabled: enabled,
-      };
+  // Persist only user-initiated changes; never the default or the value we just
+  // loaded from disk. Runs outside the setState updater so updaters stay pure.
+  useEffect(() => {
+    if (!userTouchedRef.current) {
+      return;
+    }
 
-      void persistSettings(nextSettings);
-      return nextSettings;
-    });
+    void persistSettings(settings);
+  }, [settings]);
+
+  const setHapticsEnabled = useCallback((enabled: boolean) => {
+    userTouchedRef.current = true;
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      hapticsEnabled: enabled,
+    }));
   }, []);
 
   const setThemeMode = useCallback((mode: ThemeMode) => {
-    setSettings((currentSettings) => {
-      const nextSettings = {
-        ...currentSettings,
-        themeMode: mode,
-      };
-
-      void persistSettings(nextSettings);
-      return nextSettings;
-    });
+    userTouchedRef.current = true;
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      themeMode: mode,
+    }));
   }, []);
 
   const value = useMemo(

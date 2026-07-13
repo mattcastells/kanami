@@ -87,3 +87,7 @@ git push origin v0.1.0
 4. Hacé cambios, publicá `v0.1.1` o la versión que siga y buscá updates desde la pantalla de opciones.
 
 La app consulta la última release publicada en GitHub desde la pantalla de opciones y, en Android, descarga e intenta instalar la APK nueva.
+
+## Créditos
+
+- Orden de trazos de kanji/kana derivado de [KanjiVG](https://kanjivg.tagaini.net/), © Ulrich Apel, licencia [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).

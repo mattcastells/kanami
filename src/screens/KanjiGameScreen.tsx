@@ -20,10 +20,7 @@ const MODE_LABELS: Record<string, string> = {
   'reading-to-kanji': 'Lectura → Kanji',
 };
 
-export function KanjiGameScreen({
-  navigation,
-  route,
-}: RootStackScreenProps<'KanjiGame'>) {
+export function KanjiGameScreen({ route }: RootStackScreenProps<'KanjiGame'>) {
   const { mode, categoryIds } = route.params;
   const { theme: activeTheme } = useAppTheme();
 
@@ -51,7 +48,7 @@ export function KanjiGameScreen({
     mode === 'meaning-to-kanji' || mode === 'reading-to-kanji';
 
   return (
-    <ScreenBackground scrollable={false} bottomNavActive="home">
+    <ScreenBackground scrollable={false}>
       <ScreenHeader
         eyebrow="漢字 · JLPT N5"
         title={MODE_LABELS[mode] ?? 'Kanji'}

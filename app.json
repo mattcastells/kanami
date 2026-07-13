@@ -5,11 +5,11 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/kanami.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#060A16"
+      "backgroundColor": "#F7F4EF"
     },
     "ios": {
       "supportsTablet": true

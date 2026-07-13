@@ -40,7 +40,7 @@ export function StudyTopicsScreen({ navigation }: RootStackScreenProps<'StudyTop
   const { theme: activeTheme } = useAppTheme();
 
   return (
-    <ScreenBackground scrollable bottomNavActive="none">
+    <ScreenBackground scrollable>
       <View style={styles.header}>
         <AppText variant="display">Estudiar</AppText>
       </View>

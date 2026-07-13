@@ -3,7 +3,6 @@ import {
   Animated,
   Easing,
   Image,
-  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -58,7 +57,6 @@ export function KyaryScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [pendingAudio, setPendingAudio] = useState<PendingAudio | null>(null);
@@ -67,20 +65,6 @@ export function KyaryScreen() {
   const recordingRef = useRef<Audio.Recording | null>(null);
 
   const canSend = (input.trim().length > 0 || pendingImage || pendingAudio) && !isSending;
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () =>
-      setKeyboardVisible(true),
-    );
-    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
-      setKeyboardVisible(false),
-    );
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   useEffect(() => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
@@ -310,10 +294,7 @@ export function KyaryScreen() {
   const isDark = mode === 'dark';
 
   return (
-    <ScreenBackground
-      scrollable={false}
-      showBottomNav={!keyboardVisible}
-    >
+    <ScreenBackground scrollable={false} showBack={false}>
       <View style={styles.screen}>
         {messages.length > 0 ? (
           <View style={styles.titleRow}>

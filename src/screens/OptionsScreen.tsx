@@ -98,7 +98,7 @@ export function OptionsScreen() {
     }
   };
 
-  const statusTone = getStatusTone(updateState.kind);
+  const statusTone = getStatusTone(updateState.kind, activeTheme.colors);
   const latestVersion =
     updateState.kind === 'available' || updateState.kind === 'installing'
       ? updateState.release.version
@@ -109,7 +109,7 @@ export function OptionsScreen() {
       : null;
 
   return (
-    <ScreenBackground bottomNavActive="options">
+    <ScreenBackground showBack={false}>
       <ScreenHeader title="Opciones" />
 
       <GlassCard contentStyle={styles.cardContent}>
@@ -247,13 +247,6 @@ export function OptionsScreen() {
       >
         {displayInstalledVersion}
       </AppText>
-      <AppText
-        variant="bodySmall"
-        color={activeTheme.colors.textMuted}
-        style={styles.credits}
-      >
-        Orden de trazos: KanjiVG · CC BY-SA 3.0
-      </AppText>
     </ScreenBackground>
   );
 }
@@ -276,20 +269,23 @@ function getStatusLabel(state: UpdateState, installedVersion: string) {
   }
 }
 
-function getStatusTone(kind: UpdateState['kind']) {
+function getStatusTone(
+  kind: UpdateState['kind'],
+  colors: typeof theme.colors,
+) {
   switch (kind) {
     case 'error':
-      return theme.colors.error;
+      return colors.error;
     case 'up-to-date':
-      return theme.colors.success;
+      return colors.success;
     case 'available':
     case 'installing':
-      return theme.colors.accent;
+      return colors.accent;
     case 'checking':
-      return theme.colors.warning;
+      return colors.warning;
     case 'idle':
     default:
-      return theme.colors.textSecondary;
+      return colors.textSecondary;
   }
 }
 
@@ -332,10 +328,5 @@ const styles = StyleSheet.create({
   installedVersion: {
     alignSelf: 'center',
     marginTop: theme.spacing.md,
-  },
-  credits: {
-    alignSelf: 'center',
-    marginTop: theme.spacing.xxs,
-    textAlign: 'center',
   },
 });

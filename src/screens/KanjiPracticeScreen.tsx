@@ -63,7 +63,7 @@ export function KanjiPracticeScreen({
   };
 
   return (
-    <ScreenBackground scrollable bottomNavActive="home">
+    <ScreenBackground scrollable>
       <ScreenHeader
         title="Practicar"
         eyebrow="漢字 · JLPT N5"

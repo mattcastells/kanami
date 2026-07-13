@@ -2,7 +2,6 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
-  Keyboard,
   Platform,
   Pressable,
   StyleProp,
@@ -49,7 +48,6 @@ import {
 } from '../features/game/writingGameEngine';
 import {
   getWordAnswerKind,
-  getWordPromptKind,
   sanitizeWordPracticeInput,
 } from '../features/game/wordGameEngine';
 import { useAppTheme } from '../theme/AppThemeProvider';
@@ -65,7 +63,6 @@ const GAME_INFO_COLOR = '#C73E2E';
 export function GameScreen({
   route,
 }: RootStackScreenProps<'KanaGame'>) {
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const usesTextInput =
     route.params.mode === 'writing' ||
     route.params.mode === 'syllables' ||
@@ -112,24 +109,6 @@ export function GameScreen({
     [route.params.mode, kanaPool],
   );
 
-  useEffect(() => {
-    if (!usesTextInput) {
-      return;
-    }
-
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, [usesTextInput]);
-
   const hasContent =
     route.params.mode === 'syllables' ||
     route.params.mode === 'fill-blank' ||
@@ -170,7 +149,6 @@ export function GameScreen({
     <ScreenBackground
       scrollable={usesTextInput}
       keyboardShouldPersistTaps="handled"
-      showBottomNav={usesTextInput ? !keyboardVisible : true}
       contentContainerStyle={
         usesTextInput ? styles.writingScreenContent : undefined
       }
@@ -1593,11 +1571,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  wordPromptWrap: {
-    minHeight: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   syllablesPromptWrap: {
     minHeight: 160,
     alignItems: 'center',
@@ -1612,11 +1585,6 @@ const styles = StyleSheet.create({
     fontSize: 38,
     lineHeight: 46,
     letterSpacing: 0.8,
-  },
-  wordKanaPrompt: {
-    fontSize: 56,
-    lineHeight: 64,
-    letterSpacing: 0.4,
   },
   wordTranslationPrompt: {
     fontSize: 30,
@@ -1685,51 +1653,6 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: theme.spacing.md,
     minWidth: 180,
-  },
-  drawingReferenceRow: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  drawingReferenceWrap: {
-    alignItems: 'center',
-    gap: 2,
-  },
-  drawingReferenceKana: {
-    fontSize: 36,
-    lineHeight: 42,
-  },
-  drawingReferenceRomaji: {
-    marginTop: 2,
-  },
-  drawingCanvasWrap: {
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: theme.spacing.xs,
-  },
-  drawingStrokeCounter: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  drawingActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  drawingActionButton: {
-    minWidth: 140,
-  },
-  // Speed reading timer bar
-  timerBarTrack: {
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    overflow: 'hidden',
-    marginBottom: theme.spacing.sm,
-  },
-  timerBarFill: {
-    height: 4,
-    borderRadius: 2,
   },
   // Fill-in-the-blank
   fillBlankRow: {
@@ -1810,68 +1733,5 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
-  },
-  // Matching pairs
-  matchingGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.sm,
-  },
-  matchCard: {
-    width: '20%',
-    minWidth: 68,
-    aspectRatio: 1,
-    borderRadius: theme.radii.md,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  matchCardText: {
-    textAlign: 'center',
-    includeFontPadding: false,
-  },
-  matchCardBack: {
-    width: '80%',
-    height: '80%',
-    borderRadius: theme.radii.sm,
-  },
-  // Demonstratives
-  demonstrativesPromptWrap: {
-    minHeight: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.sm,
-  },
-  demonstrativesPromptText: {
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: theme.spacing.xs,
-  },
-  demonstrativesSubtext: {
-    textAlign: 'center',
-    fontSize: 22,
-    lineHeight: 30,
-    marginTop: theme.spacing.xs,
-  },
-  demonstrativesOptionsGrid: {
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.xs,
-  },
-  demonstrativesOption: {
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  demonstrativesOptionText: {
-    textAlign: 'center',
-  },
-  demonstrativesOptionSubtext: {
-    textAlign: 'center',
-    marginTop: 2,
   },
 });

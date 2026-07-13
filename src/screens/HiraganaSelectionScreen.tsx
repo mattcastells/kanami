@@ -634,26 +634,6 @@ const styles = StyleSheet.create({
   modeGrid: {
     gap: theme.spacing.xs,
   },
-  modeAccordionCard: {
-    minHeight: 36,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowOffset: { width: 0, height: 0 },
-  },
-  modeAccordionTrigger: {
-    flex: 1,
-    minHeight: 34,
-    justifyContent: 'center',
-  },
-  modeAccordionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
   modeAccordionIndicator: {
     width: 22,
     height: 22,

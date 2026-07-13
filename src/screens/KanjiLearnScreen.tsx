@@ -75,7 +75,7 @@ export function KanjiLearnScreen({ navigation }: RootStackScreenProps<'KanjiLear
   const { theme: activeTheme } = useAppTheme();
 
   return (
-    <ScreenBackground scrollable bottomNavActive="home">
+    <ScreenBackground scrollable>
       <ScreenHeader
         title="Aprender"
         eyebrow="漢字 · JLPT N5"

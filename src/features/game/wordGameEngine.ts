@@ -8,7 +8,6 @@ export type WordPracticePromptKind = 'translation' | 'kana' | 'syllables';
 export type WordRound = {
   word: WordPracticeEntry;
   promptText: string;
-  promptSegments?: string[];
   answer: string;
   acceptedAnswers: string[];
   roundKey: string;
@@ -20,7 +19,6 @@ export type WordGameSessionState = {
   round: WordRound;
   answerState: AnswerState;
   inputValue: string;
-  submittedValue: string | null;
   stats: GameStats;
 };
 
@@ -99,7 +97,6 @@ export function createWordRound(
   return {
     word,
     promptText,
-    promptSegments: promptKind === 'syllables' ? word.syllables : undefined,
     answer,
     acceptedAnswers:
       answerKind === 'kana'
@@ -123,7 +120,6 @@ export function createInitialWordGameState(
     round: createWordRound(pool, mode, undefined, inverted),
     answerState: 'idle',
     inputValue: '',
-    submittedValue: null,
     stats: {
       correct: 0,
       incorrect: 0,
@@ -170,7 +166,6 @@ export function submitWordAnswer(
   return {
     ...currentState,
     inputValue: '',
-    submittedValue,
     answerState: isCorrect ? 'correct' : 'incorrect',
     stats: {
       correct: currentState.stats.correct + (isCorrect ? 1 : 0),
@@ -192,6 +187,5 @@ export function moveToNextWordRound(
     round: createWordRound(pool, mode, currentState.round.roundKey, inverted),
     answerState: 'idle',
     inputValue: '',
-    submittedValue: null,
   };
 }

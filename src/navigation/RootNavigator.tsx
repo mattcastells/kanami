@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '../components/ui/AppText';
 import { useAppTheme } from '../theme/AppThemeProvider';
@@ -13,7 +14,6 @@ import { KanjiLearnScreen } from '../screens/KanjiLearnScreen';
 import { KanjiPracticeScreen } from '../screens/KanjiPracticeScreen';
 import { KanjiDrawScreen } from '../screens/KanjiDrawScreen';
 import { KyaryScreen } from '../screens/KyaryScreen';
-import { OptionsScreen } from '../screens/OptionsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { StudyTopicScreen } from '../screens/StudyTopicScreen';
 import { StudyTopicsScreen } from '../screens/StudyTopicsScreen';
@@ -69,7 +69,15 @@ function TabGlyph({ glyph, label, focused }: { glyph: string; label: string; foc
       </AppText>
       <AppText
         variant="label"
-        style={{ color, fontSize: 10, lineHeight: 12, textAlign: 'center' }}
+        numberOfLines={1}
+        style={{
+          color,
+          fontSize: 10,
+          lineHeight: 12,
+          letterSpacing: 0,
+          textAlign: 'center',
+          width: 72,
+        }}
       >
         {label}
       </AppText>
@@ -79,6 +87,7 @@ function TabGlyph({ glyph, label, focused }: { glyph: string; label: string; foc
 
 export function RootNavigator() {
   const { theme: activeTheme } = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -89,9 +98,11 @@ export function RootNavigator() {
           backgroundColor: activeTheme.colors.background,
           borderTopColor: activeTheme.colors.line,
           borderTopWidth: 1,
-          height: 84,
+          height: 64 + insets.bottom,
           paddingTop: 8,
+          paddingBottom: insets.bottom + 6,
         },
+        tabBarIconStyle: { flex: 1 },
         sceneStyle: { backgroundColor: activeTheme.colors.background },
       }}
     >
@@ -130,8 +141,3 @@ export function RootNavigator() {
     </Tab.Navigator>
   );
 }
-
-// NOTA: ProfileScreen es nueva (absorbe OptionsScreen: tema, haptics, updater
-// + racha, precisión y grilla de progreso cuando exista el store SRS).
-// Mientras tanto podés apuntar ProfileTab a OptionsScreen para migrar en dos pasos.
-export { OptionsScreen };

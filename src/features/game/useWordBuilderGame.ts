@@ -47,58 +47,56 @@ export function useWordBuilderGame(pool: WordPracticeEntry[], resetKey: string) 
   );
 
   const tapTile = (tileId: string) => {
-    setState((current) => {
-      if (current.answerState !== 'idle') return current;
+    // Side effects (haptics, timers, feedback) must not live inside a setState
+    // updater — updaters have to stay pure. We derive the next state here and
+    // dispatch the pure result.
+    if (state.answerState !== 'idle') return;
 
-      const alreadyPlaced = current.placedTileIds.includes(tileId);
-      if (alreadyPlaced) {
-        return removeTile(current, tileId);
-      }
+    if (state.placedTileIds.includes(tileId)) {
+      setState(removeTile(state, tileId));
+      return;
+    }
 
-      const next = placeTile(current, tileId);
+    const next = placeTile(state, tileId);
 
-      // Auto-submit when all positions filled
-      if (next.placedTileIds.length === next.round.syllableCount) {
-        const submitted = submitWordBuilder(next);
-        const correctAnswer = submitted.round.answer;
+    // Not full yet: just place the tile.
+    if (next.placedTileIds.length !== next.round.syllableCount) {
+      setState(next);
+      return;
+    }
 
-        setLastFeedback({
-          status: submitted.answerState,
-          correctText: correctAnswer,
-        });
-
-        if (hapticsEnabled) {
-          if (submitted.answerState === 'correct') {
-            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          } else {
-            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          }
-        }
-
-        if (submitted.answerState === 'correct') {
-          if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
-          nextRoundTimeoutRef.current = setTimeout(() => {
-            setState((s) => moveToNextWordBuilderRound(s, pool));
-            setLastFeedback({ status: 'idle', correctText: '' });
-            nextRoundTimeoutRef.current = null;
-          }, 700);
-        } else {
-          // Show error then clear tiles for retry
-          if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-          retryTimeoutRef.current = setTimeout(() => {
-            setState((s) => ({
-              ...clearPlacedTiles({ ...s, answerState: 'idle' }),
-            }));
-            setLastFeedback({ status: 'idle', correctText: '' });
-            retryTimeoutRef.current = null;
-          }, 1100);
-        }
-
-        return submitted;
-      }
-
-      return next;
+    // All positions filled -> auto-submit.
+    const submitted = submitWordBuilder(next);
+    setState(submitted);
+    setLastFeedback({
+      status: submitted.answerState,
+      correctText: submitted.round.answer,
     });
+
+    if (hapticsEnabled) {
+      void Haptics.notificationAsync(
+        submitted.answerState === 'correct'
+          ? Haptics.NotificationFeedbackType.Success
+          : Haptics.NotificationFeedbackType.Error,
+      );
+    }
+
+    if (submitted.answerState === 'correct') {
+      if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
+      nextRoundTimeoutRef.current = setTimeout(() => {
+        setState((s) => moveToNextWordBuilderRound(s, pool));
+        setLastFeedback({ status: 'idle', correctText: '' });
+        nextRoundTimeoutRef.current = null;
+      }, 700);
+    } else {
+      // Show error then clear tiles for retry.
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = setTimeout(() => {
+        setState((s) => clearPlacedTiles({ ...s, answerState: 'idle' }));
+        setLastFeedback({ status: 'idle', correctText: '' });
+        retryTimeoutRef.current = null;
+      }, 1100);
+    }
   };
 
   const clear = () => {
