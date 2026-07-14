@@ -128,6 +128,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: '100%',
     minWidth: 0,
+    // minHeight:0 permite que un ScrollView interno (ej. el chat de Kyary) se acote
+    // a la altura disponible en vez de crecer con su contenido y romper el scroll.
+    minHeight: 0,
     overflow: 'hidden',
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.xl,

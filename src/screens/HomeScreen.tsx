@@ -100,6 +100,12 @@ export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
       onPress: () => goToKana('katakana'),
     },
     {
+      glyph: '混',
+      title: 'Hiragana + Katakana',
+      subtitle: 'Ambos silabarios mezclados',
+      onPress: () => goToKana('mixed'),
+    },
+    {
       glyph: '漢',
       title: 'Kanji',
       subtitle: 'Ideogramas',
@@ -108,8 +114,20 @@ export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
     {
       glyph: '語',
       title: 'Vocabulario',
-      subtitle: 'Palabras y frases',
-      onPress: () => goToKana('hiragana'),
+      subtitle: 'Palabra guiada, completar, constructor',
+      onPress: () => navigation.navigate('Vocabulary'),
+    },
+    {
+      glyph: '絵',
+      title: 'Imágenes',
+      subtitle: 'Matcheá palabra con imagen',
+      onPress: () => navigation.navigate('EmojiGame', { script: 'mixed' }),
+    },
+    {
+      glyph: '時',
+      title: 'Horarios',
+      subtitle: 'Leer y escribir la hora',
+      onPress: () => navigation.navigate('TimesGame'),
     },
   ];
 

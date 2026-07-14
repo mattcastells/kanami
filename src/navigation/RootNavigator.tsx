@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '../components/ui/AppText';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { RootStackParamList } from '../types/navigation';
+import { EmojiGameScreen } from '../screens/EmojiGameScreen';
 import { GameScreen } from '../screens/GameScreen';
 import { HiraganaSelectionScreen } from '../screens/HiraganaSelectionScreen';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -17,6 +18,8 @@ import { KyaryScreen } from '../screens/KyaryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { StudyTopicScreen } from '../screens/StudyTopicScreen';
 import { StudyTopicsScreen } from '../screens/StudyTopicsScreen';
+import { TimesGameScreen } from '../screens/TimesGameScreen';
+import { VocabularyScreen } from '../screens/VocabularyScreen';
 
 // Tabs: 練 Practicar · 学 Estudiar · 話 Kyary · 私 Perfil
 // Los stacks de práctica y estudio viven adentro de sus tabs.
@@ -42,6 +45,9 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="KanjiPractice" component={KanjiPracticeScreen} />
       <PracticeStack.Screen name="KanjiDraw" component={KanjiDrawScreen} />
       <PracticeStack.Screen name="KanjiGame" component={KanjiGameScreen} />
+      <PracticeStack.Screen name="Vocabulary" component={VocabularyScreen} />
+      <PracticeStack.Screen name="EmojiGame" component={EmojiGameScreen} />
+      <PracticeStack.Screen name="TimesGame" component={TimesGameScreen} />
     </PracticeStack.Navigator>
   );
 }

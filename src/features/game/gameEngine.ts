@@ -48,9 +48,24 @@ export function createRound(
 
   const prompt = pickRandom(promptPool);
   const optionCount = pool.length >= 4 ? 4 : Math.min(3, pool.length);
-  const distractors = shuffle(
-    pool.filter((character) => character.id !== prompt.id),
-  ).slice(0, optionCount - 1);
+  // Todas las opciones deben mostrar un romaji distinto. Esto cubre dos casos:
+  //  - じ y ぢ (ambos "ji"), ず y づ (ambos "zu"): no deben aparecer juntos.
+  //  - modo mixto (hira+kata): cada romaji aparece 2 veces (あ/ア), así que hay
+  //    que deduplicar para no mostrar botones repetidos.
+  // Si no, tocar la opción visualmente correcta se contaría como error (la
+  // comparación es por id).
+  const usedRomaji = new Set<string>([prompt.romaji]);
+  const distractors: HiraganaCharacter[] = [];
+  for (const character of shuffle(pool)) {
+    if (distractors.length >= optionCount - 1) {
+      break;
+    }
+    if (character.id === prompt.id || usedRomaji.has(character.romaji)) {
+      continue;
+    }
+    usedRomaji.add(character.romaji);
+    distractors.push(character);
+  }
 
   return {
     prompt,

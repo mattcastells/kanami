@@ -69,7 +69,17 @@ export function createNumbersRound(
       : NUMBERS_POOL;
 
   const correct = pickRandom(promptPool);
-  const distractors = shuffle(NUMBERS_POOL.filter((e) => e.id !== correct.id)).slice(0, 3);
+  // Excluimos distractores que muestran el mismo texto que la respuesta correcta
+  // (lectura, número o kanji) para que no colisionen visualmente con el prompt.
+  const distractors = shuffle(
+    NUMBERS_POOL.filter(
+      (e) =>
+        e.id !== correct.id &&
+        e.primaryReading !== correct.primaryReading &&
+        e.num !== correct.num &&
+        e.kanji !== correct.kanji,
+    ),
+  ).slice(0, 3);
   const all = [correct, ...distractors];
 
   switch (mode) {

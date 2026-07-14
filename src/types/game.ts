@@ -7,7 +7,7 @@ export type PracticeMode =
   | 'fill-blank'
   | 'word-builder';
 export type PracticeContentKind = 'kana' | 'romaji';
-export type KanaScript = 'hiragana' | 'katakana';
+export type KanaScript = 'hiragana' | 'katakana' | 'mixed';
 export type WordPracticeCategoryId =
   | 'trabajos'
   | 'comidas'

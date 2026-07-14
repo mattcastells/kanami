@@ -10,6 +10,7 @@ import {
 import * as Application from 'expo-application';
 
 import appConfig from '../../app.json';
+import { ProgressCard } from '../components/progress/ProgressCard';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
@@ -109,8 +110,12 @@ export function OptionsScreen() {
       : null;
 
   return (
-    <ScreenBackground showBack={false}>
-      <ScreenHeader title="Opciones" />
+    <ScreenBackground showBack={false} scrollable>
+      <ScreenHeader title="Perfil" />
+
+      <ProgressCard />
+
+      <View style={styles.optionsSpacer} />
 
       <GlassCard contentStyle={styles.cardContent}>
         <View
@@ -292,6 +297,9 @@ function getStatusTone(
 const styles = StyleSheet.create({
   cardContent: {
     gap: theme.spacing.md,
+  },
+  optionsSpacer: {
+    height: theme.spacing.md,
   },
   settingRow: {
     borderWidth: 1,

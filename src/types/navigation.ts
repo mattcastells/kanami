@@ -18,6 +18,8 @@ export type RootStackParamList = {
     selectedWordCategoryIds: WordPracticeCategoryId[];
     mode: PracticeMode;
     inverted: boolean;
+    // Cantidad de rondas antes del resumen. undefined = sesión infinita (default).
+    sessionLength?: number;
   };
   KanjiHub: undefined;
   KanjiLearn: undefined;
@@ -30,6 +32,11 @@ export type RootStackParamList = {
     mode: KanjiPracticeMode;
     categoryIds: KanjiCategoryId[];
   };
+  Vocabulary: undefined;
+  EmojiGame: {
+    script: KanaScript;
+  };
+  TimesGame: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

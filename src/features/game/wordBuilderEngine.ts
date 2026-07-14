@@ -35,18 +35,20 @@ function pickRandom<T>(items: T[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+// Junta moras en kana de otras palabras como distractores. Deduplica y excluye las
+// moras que ya forman parte de la respuesta, para no ofrecer sílabas repetidas.
 function collectDistractorSyllables(
   pool: WordPracticeEntry[],
   exclude: Set<string>,
   count: number,
 ): string[] {
-  const all: string[] = [];
+  const unique = new Set<string>();
   pool.forEach((entry) => {
-    entry.syllables.forEach((s) => {
-      if (!exclude.has(s)) all.push(s);
+    entry.kanaSyllables.forEach((mora) => {
+      if (!exclude.has(mora)) unique.add(mora);
     });
   });
-  return shuffle(all).slice(0, count);
+  return shuffle(Array.from(unique)).slice(0, count);
 }
 
 export function createWordBuilderRound(
@@ -61,14 +63,15 @@ export function createWordBuilderRound(
   const word = pickRandom(promptPool);
   const primaryTranslation = word.translations[0] ?? '';
 
-  const correctTiles: WordBuilderTile[] = word.syllables.map((kana, i) => ({
+  // Los tiles muestran las moras en kana (き, も, の), no romaji.
+  const correctTiles: WordBuilderTile[] = word.kanaSyllables.map((kana, i) => ({
     id: `correct-${i}-${kana}`,
     kana,
   }));
 
   const distractorKana = collectDistractorSyllables(
     pool,
-    new Set(word.syllables),
+    new Set(word.kanaSyllables),
     2,
   );
   const distractorTiles: WordBuilderTile[] = distractorKana.map((kana, i) => ({
@@ -81,7 +84,7 @@ export function createWordBuilderRound(
     promptText: primaryTranslation,
     tiles: shuffle([...correctTiles, ...distractorTiles]),
     answer: word.kana,
-    syllableCount: word.syllables.length,
+    syllableCount: word.kanaSyllables.length,
     roundKey: word.id,
   };
 }

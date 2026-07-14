@@ -19,11 +19,13 @@ import {
 } from '../components/game/AnswerOptionButton';
 import { DrawingPractice } from '../components/game/DrawingPractice';
 import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { SessionSummary } from '../components/game/SessionSummary';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
+import { SpeakButton } from '../components/ui/SpeakButton';
 import { StatPill } from '../components/ui/StatPill';
 import { getKanaCharactersForGroupIds, getKanaScriptLabel, getKanaWordEntries } from '../data/kana';
 import { useFillBlankGame } from '../features/game/useFillBlankGame';
@@ -38,6 +40,7 @@ import {
   sanitizePhraseInput,
 } from '../features/game/phraseGameEngine';
 import { useHiraganaGame } from '../features/game/useHiraganaGame';
+import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { usePhraseGame } from '../features/game/usePhraseGame';
 import { useWritingHiraganaGame } from '../features/game/useWritingHiraganaGame';
 import { useWordPracticeGame } from '../features/game/useWordPracticeGame';
@@ -58,11 +61,23 @@ import { RootStackScreenProps } from '../types/navigation';
 
 const GAME_SUCCESS_COLOR = '#3E7D5C';
 const GAME_ERROR_COLOR = '#B03A2E';
-const GAME_INFO_COLOR = '#C73E2E';
+// Azul apagado (compañero del bermellón) para la racha.
+const GAME_STREAK_COLOR = '#356E8E';
 
 export function GameScreen({
   route,
+  navigation,
 }: RootStackScreenProps<'KanaGame'>) {
+  // Nonce para reiniciar la sesión desde el resumen (REPETIR) sin salir de la pantalla.
+  const [sessionNonce, setSessionNonce] = useState(0);
+  const repeatSession = () => setSessionNonce((current) => current + 1);
+  const goBack = () => navigation.goBack();
+  const isVocabMode =
+    route.params.mode === 'syllables' ||
+    route.params.mode === 'fill-blank' ||
+    route.params.mode === 'word-builder';
+  // El largo de sesión (resumen al terminar) aplica a los modos de vocabulario.
+  const sessionLength = isVocabMode ? route.params.sessionLength : undefined;
   const usesTextInput =
     route.params.mode === 'writing' ||
     route.params.mode === 'syllables' ||
@@ -98,7 +113,7 @@ export function GameScreen({
         : [],
     [route.params.mode, route.params.script],
   );
-  const resetKey = `${route.params.script}:${route.params.mode}:${route.params.inverted ? 'inverted' : 'default'}:${route.params.selectedGroupIds.join('|')}:${route.params.selectedWordCategoryIds.join('|')}`;
+  const resetKey = `${route.params.script}:${route.params.mode}:${route.params.inverted ? 'inverted' : 'default'}:${route.params.selectedGroupIds.join('|')}:${route.params.selectedWordCategoryIds.join('|')}:${sessionNonce}`;
   const drawablePool = useMemo(
     () =>
       route.params.mode === 'drawing'
@@ -171,6 +186,9 @@ export function GameScreen({
           pool={wordPool}
           resetKey={resetKey}
           scriptLabelLowercase={scriptLabelLowercase}
+          sessionLength={sessionLength}
+          onRepeat={repeatSession}
+          onBack={goBack}
         />
       ) : route.params.mode === 'phrases' ? (
         <PhraseGameView
@@ -183,11 +201,17 @@ export function GameScreen({
         <FillBlankGameView
           pool={wordPool}
           resetKey={resetKey}
+          sessionLength={sessionLength}
+          onRepeat={repeatSession}
+          onBack={goBack}
         />
       ) : route.params.mode === 'word-builder' ? (
         <WordBuilderGameView
           pool={wordPool}
           resetKey={resetKey}
+          sessionLength={sessionLength}
+          onRepeat={repeatSession}
+          onBack={goBack}
         />
       ) : (
         <ReadingGameView
@@ -210,6 +234,7 @@ function ReadingGameView({
   inverted: boolean;
 }) {
   const { state, answer, lastFeedback } = useHiraganaGame(pool, resetKey, inverted);
+  useTrackProgress('reading', state.stats);
   const kanaTransition = useRef(new Animated.Value(1)).current;
   const answersTransition = useRef(new Animated.Value(1)).current;
   const promptText = inverted ? state.round.prompt.romaji : state.round.prompt.kana;
@@ -273,6 +298,7 @@ function ReadingGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
+        <SpeakButton text={state.round.prompt.kana} style={styles.speakCorner} />
         <PromptBoard>
           <View style={styles.kanaWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, kanaTextAnimatedStyle]}>
@@ -319,6 +345,7 @@ function WritingGameView({
     resetKey,
     inverted,
   );
+  useTrackProgress('writing', state.stats);
   const promptTransition = useRef(new Animated.Value(1)).current;
   const inputLineTransition = useRef(new Animated.Value(0)).current;
   const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -440,6 +467,10 @@ function WritingGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
+        <SpeakButton
+          text={state.round.prompts.map((prompt) => prompt.kana).join('')}
+          style={styles.speakCorner}
+        />
         <PromptBoard style={styles.writingPromptBoard}>
           <View style={styles.writingPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
@@ -513,10 +544,16 @@ function WordSyllablesGameView({
   pool,
   resetKey,
   scriptLabelLowercase,
+  sessionLength,
+  onRepeat,
+  onBack,
 }: {
   pool: WordPracticeEntry[];
   resetKey: string;
   scriptLabelLowercase: string;
+  sessionLength?: number;
+  onRepeat: () => void;
+  onBack: () => void;
 }) {
   const { theme: activeTheme } = useAppTheme();
   const { state, setInputValue, submit, lastFeedback } = useWordPracticeGame(
@@ -524,6 +561,7 @@ function WordSyllablesGameView({
     resetKey,
     'syllables',
   );
+  useTrackProgress('syllables', state.stats);
   const promptTransition = useRef(new Animated.Value(1)).current;
   const inputLineTransition = useRef(new Animated.Value(0)).current;
   const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -635,6 +673,18 @@ function WordSyllablesGameView({
     setInputValue(value);
   };
 
+  if (sessionLength && state.stats.answered >= sessionLength) {
+    return (
+      <SessionSummary
+        title="Palabra guiada"
+        correct={state.stats.correct}
+        incorrect={state.stats.incorrect}
+        onRepeat={onRepeat}
+        onBack={onBack}
+      />
+    );
+  }
+
   return (
     <View style={styles.writingScreen}>
       <GameTopBlock
@@ -644,6 +694,7 @@ function WordSyllablesGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
+        <SpeakButton text={state.round.word.kana} style={styles.speakCorner} />
         <PromptBoard style={styles.writingPromptBoard}>
           <View style={styles.syllablesPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
@@ -720,6 +771,7 @@ function PhraseGameView({
     resetKey,
     inverted,
   );
+  useTrackProgress('phrases', state.stats);
   const promptTransition = useRef(new Animated.Value(1)).current;
   const inputLineTransition = useRef(new Animated.Value(0)).current;
   const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -845,6 +897,7 @@ function PhraseGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
+        <SpeakButton text={state.round.phrase.kana} style={styles.speakCorner} />
         <PromptBoard style={styles.writingPromptBoard}>
           <View style={styles.phrasePromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
@@ -861,14 +914,34 @@ function PhraseGameView({
           </View>
         </PromptBoard>
         {showTranslation ? (
-          <View style={styles.phraseTranslationWrap}>
+          <View
+            style={[
+              styles.phraseTranslationCard,
+              {
+                borderColor: hexToRgba(activeTheme.colors.accent, 0.3),
+                backgroundColor: hexToRgba(activeTheme.colors.accent, 0.08),
+              },
+            ]}
+          >
+            <AppText variant="overline" color={activeTheme.colors.textMuted}>
+              SIGNIFICADO
+            </AppText>
             <AppText
-              variant="bodySmall"
-              color={activeTheme.colors.textSecondary}
+              variant="body"
+              color={activeTheme.colors.textPrimary}
               style={styles.phraseTranslationText}
             >
               {lastFeedback.translationText}
             </AppText>
+            {lastFeedback.correctText ? (
+              <AppText
+                variant="bodySmall"
+                color={activeTheme.colors.textSecondary}
+                style={styles.phraseTranslationReading}
+              >
+                {lastFeedback.correctText}
+              </AppText>
+            ) : null}
           </View>
         ) : null}
       </GlassCard>
@@ -935,7 +1008,7 @@ function PhraseGameView({
           <StatPill
             label="Racha"
             value={state.stats.streak}
-            accentColor={GAME_INFO_COLOR}
+            accentColor={GAME_STREAK_COLOR}
           />
         </View>
       </View>
@@ -948,12 +1021,19 @@ function PhraseGameView({
 function FillBlankGameView({
   pool,
   resetKey,
+  sessionLength,
+  onRepeat,
+  onBack,
 }: {
   pool: import('../data/wordVocabulary').WordPracticeEntry[];
   resetKey: string;
+  sessionLength?: number;
+  onRepeat: () => void;
+  onBack: () => void;
 }) {
   const { theme: activeTheme } = useAppTheme();
   const { state, answer, lastFeedback } = useFillBlankGame(pool, resetKey);
+  useTrackProgress('fill-blank', state.stats);
   const promptTransition = useRef(new Animated.Value(1)).current;
   const answersTransition = useRef(new Animated.Value(1)).current;
 
@@ -1009,6 +1089,18 @@ function FillBlankGameView({
   const { syllables, blankIndex } = state.round;
   const translation = state.round.word.translations[0] ?? '';
 
+  if (sessionLength && state.stats.answered >= sessionLength) {
+    return (
+      <SessionSummary
+        title="Completar la palabra"
+        correct={state.stats.correct}
+        incorrect={state.stats.incorrect}
+        onRepeat={onRepeat}
+        onBack={onBack}
+      />
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <GameTopBlock
@@ -1018,6 +1110,7 @@ function FillBlankGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
+        <SpeakButton text={state.round.word.kana} style={styles.speakCorner} />
         <PromptBoard>
           <View style={styles.kanaWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
@@ -1073,13 +1166,25 @@ function FillBlankGameView({
 function WordBuilderGameView({
   pool,
   resetKey,
+  sessionLength,
+  onRepeat,
+  onBack,
 }: {
   pool: import('../data/wordVocabulary').WordPracticeEntry[];
   resetKey: string;
+  sessionLength?: number;
+  onRepeat: () => void;
+  onBack: () => void;
 }) {
   const { theme: activeTheme } = useAppTheme();
-  const { state, tapTile, clear, lastFeedback } = useWordBuilderGame(pool, resetKey);
+  const { state, tapTile, clear, submit, next, lastFeedback } = useWordBuilderGame(
+    pool,
+    resetKey,
+  );
+  useTrackProgress('word-builder', state.stats);
   const promptTransition = useRef(new Animated.Value(1)).current;
+  const allPlaced =
+    state.placedTileIds.length === state.round.syllableCount;
 
   useEffect(() => {
     promptTransition.setValue(0);
@@ -1109,44 +1214,28 @@ function WordBuilderGameView({
     ],
   };
 
-  const placedKana = state.placedTileIds
-    .map((id) => state.round.tiles.find((t) => t.id === id)?.kana ?? '')
-    .join('');
-
-  const feedbackColor =
-    lastFeedback.status === 'correct'
-      ? GAME_SUCCESS_COLOR
-      : lastFeedback.status === 'incorrect'
-        ? GAME_ERROR_COLOR
-        : activeTheme.colors.textPrimary;
+  if (sessionLength && state.stats.answered >= sessionLength) {
+    return (
+      <SessionSummary
+        title="Constructor"
+        correct={state.stats.correct}
+        incorrect={state.stats.incorrect}
+        onRepeat={onRepeat}
+        onBack={onBack}
+      />
+    );
+  }
 
   return (
     <View style={styles.screen}>
-      <View style={styles.topBlock}>
-        <AppText variant="title" style={styles.title}>
-          Constructor
-        </AppText>
-        <View style={styles.statsRow}>
-          <StatPill
-            label="Aciertos"
-            value={state.stats.correct}
-            accentColor={GAME_SUCCESS_COLOR}
-          />
-          <StatPill
-            label="Fallidos"
-            value={state.stats.incorrect}
-            accentColor={GAME_ERROR_COLOR}
-          />
-          <StatPill
-            label="Racha"
-            value={state.stats.streak}
-            accentColor={GAME_INFO_COLOR}
-          />
-        </View>
-        <View style={styles.feedbackSlot} />
-      </View>
+      <GameTopBlock
+        title="Constructor"
+        stats={state.stats}
+        lastFeedback={lastFeedback}
+      />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
+        <SpeakButton text={state.round.word.kana} style={styles.speakCorner} />
         <PromptBoard>
           <View style={styles.wordBuilderPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
@@ -1211,29 +1300,11 @@ function WordBuilderGameView({
         })}
       </View>
 
-      {lastFeedback.status === 'incorrect' ? (
-        <AppText
-          variant="bodySmall"
-          style={[styles.wordBuilderCorrection, { color: GAME_ERROR_COLOR }]}
-        >
-          Correcto: {lastFeedback.correctText}
-        </AppText>
-      ) : lastFeedback.status === 'correct' ? (
-        <AppText
-          variant="bodySmall"
-          style={[styles.wordBuilderCorrection, { color: GAME_SUCCESS_COLOR }]}
-        >
-          ✓ {placedKana}
-        </AppText>
-      ) : (
-        <View style={styles.wordBuilderCorrection} />
-      )}
-
-      {/* Tile pool */}
+      {/* Tile pool — los tiles ya colocados salen del pool (viven en los slots). */}
       <View style={styles.wordBuilderTiles}>
-        {state.round.tiles.map((tile) => {
-          const isPlaced = state.placedTileIds.includes(tile.id);
-          return (
+        {state.round.tiles
+          .filter((tile) => !state.placedTileIds.includes(tile.id))
+          .map((tile) => (
             <Pressable
               key={tile.id}
               onPress={() => tapTile(tile.id)}
@@ -1241,13 +1312,9 @@ function WordBuilderGameView({
               style={({ pressed }) => [
                 styles.wordBuilderTile,
                 {
-                  borderColor: isPlaced
-                    ? hexToRgba(activeTheme.colors.accent, 0.5)
-                    : hexToRgba(activeTheme.colors.textPrimary, 0.28),
-                  backgroundColor: isPlaced
-                    ? hexToRgba(activeTheme.colors.accent, 0.14)
-                    : hexToRgba(activeTheme.colors.textPrimary, 0.05),
-                  opacity: isPlaced ? 0.5 : pressed ? 0.75 : 1,
+                  borderColor: hexToRgba(activeTheme.colors.textPrimary, 0.28),
+                  backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.05),
+                  opacity: pressed ? 0.75 : 1,
                 },
               ]}
             >
@@ -1261,32 +1328,38 @@ function WordBuilderGameView({
                 {tile.kana}
               </AppText>
             </Pressable>
-          );
-        })}
+          ))}
       </View>
 
       <View style={styles.wordBuilderActions}>
-        <Pressable
-          onPress={clear}
-          disabled={state.answerState !== 'idle' || state.placedTileIds.length === 0}
-          style={({ pressed }) => [
-            styles.wordBuilderClearBtn,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.05),
-              opacity:
-                state.answerState !== 'idle' || state.placedTileIds.length === 0
-                  ? 0.4
-                  : pressed
-                    ? 0.7
-                    : 1,
-            },
-          ]}
-        >
-          <AppText variant="label" color={activeTheme.colors.textSecondary}>
-            LIMPIAR
-          </AppText>
-        </Pressable>
+        <PrimaryButton
+          title={state.answerState !== 'idle' ? 'SIGUIENTE' : 'ENVIAR'}
+          variant="primary"
+          size="compact"
+          disabled={state.answerState === 'idle' && !allPlaced}
+          onPress={state.answerState !== 'idle' ? next : submit}
+          style={styles.wordBuilderSubmit}
+        />
+
+        {state.answerState === 'idle' ? (
+          <Pressable
+            onPress={clear}
+            disabled={state.placedTileIds.length === 0}
+            style={({ pressed }) => [
+              styles.wordBuilderClearBtn,
+              {
+                borderColor: activeTheme.colors.line,
+                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.05),
+                opacity:
+                  state.placedTileIds.length === 0 ? 0.4 : pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <AppText variant="label" color={activeTheme.colors.textSecondary}>
+              LIMPIAR
+            </AppText>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -1329,7 +1402,7 @@ function GameTopBlock({
           <StatPill
             label="Racha"
             value={stats.streak}
-            accentColor={GAME_INFO_COLOR}
+            accentColor={GAME_STREAK_COLOR}
           />
         </View>
       )}
@@ -1514,6 +1587,12 @@ const styles = StyleSheet.create({
   questionCard: {
     marginBottom: theme.spacing.sm,
   },
+  speakCorner: {
+    position: 'absolute',
+    top: theme.spacing.xs,
+    right: theme.spacing.xs,
+    zIndex: 2,
+  },
   questionCardContent: {
     padding: theme.spacing.md,
   },
@@ -1611,11 +1690,20 @@ const styles = StyleSheet.create({
     lineHeight: 34,
     letterSpacing: 0.4,
   },
-  phraseTranslationWrap: {
-    marginTop: theme.spacing.sm,
+  phraseTranslationCard: {
+    marginTop: theme.spacing.md,
     alignItems: 'center',
+    gap: 2,
+    borderWidth: 1,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   phraseTranslationText: {
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  phraseTranslationReading: {
     textAlign: 'center',
     fontStyle: 'italic',
     lineHeight: 18,
@@ -1699,11 +1787,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 28,
   },
-  wordBuilderCorrection: {
-    textAlign: 'center',
-    minHeight: 20,
-    marginBottom: theme.spacing.sm,
-  },
   wordBuilderTiles: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1727,6 +1810,11 @@ const styles = StyleSheet.create({
   },
   wordBuilderActions: {
     alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+  },
+  wordBuilderSubmit: {
+    minWidth: 180,
   },
   wordBuilderClearBtn: {
     paddingHorizontal: theme.spacing.lg,

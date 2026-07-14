@@ -54,10 +54,17 @@ export function createKanjiRound(
 
   const correct = pickRandom(promptPool);
   const optionCount = Math.min(4, pool.length);
-  const distractors = shuffle(pool.filter((k) => k.id !== correct.id)).slice(
-    0,
-    optionCount - 1,
-  );
+  // Excluimos distractores que muestran el mismo texto que la respuesta correcta
+  // en cualquiera de los modos (mismo significado o misma lectura); si no, tocar
+  // la opción visualmente correcta contaría como error (comparación por id).
+  const distractors = shuffle(
+    pool.filter(
+      (k) =>
+        k.id !== correct.id &&
+        k.meaning !== correct.meaning &&
+        k.readings[0] !== correct.readings[0],
+    ),
+  ).slice(0, optionCount - 1);
 
   switch (mode) {
     case 'kanji-to-meaning': {

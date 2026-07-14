@@ -7,6 +7,8 @@ export type WordPracticeEntry = {
   script: KanaScript;
   kana: string;
   syllables: string[];
+  // Moras en kana, alineadas 1:1 con `syllables` (romaji): kanaSyllables.join('') === kana.
+  kanaSyllables: string[];
   translations: string[];
   category: WordPracticeCategoryId;
 };
@@ -477,6 +479,42 @@ function buildWordSyllables(script: KanaScript, kana: string) {
   return syllables;
 }
 
+// Igual que buildWordSyllables pero devuelve la mora en kana (no romaji). Mantiene la
+// misma tokenización, así que queda alineado 1:1 con buildWordSyllables. El っ (geminada)
+// se antepone a la mora siguiente y ー se agrega a la mora anterior (misma lógica).
+function buildWordKanaSyllables(script: KanaScript, kana: string) {
+  const { tokens } = getKanaRomajiResources(script);
+  const kanaSyllables: string[] = [];
+  let index = 0;
+  let pendingSmallTsu = '';
+
+  while (index < kana.length) {
+    const currentCharacter = kana[index];
+
+    if (smallTsuChars.has(currentCharacter)) {
+      pendingSmallTsu = currentCharacter;
+      index += 1;
+      continue;
+    }
+
+    if (currentCharacter === 'ー') {
+      if (kanaSyllables.length > 0) {
+        kanaSyllables[kanaSyllables.length - 1] += 'ー';
+      }
+      index += 1;
+      continue;
+    }
+
+    const matchedToken = tokens.find((token) => kana.startsWith(token, index));
+    const resolvedToken = matchedToken ?? currentCharacter;
+    kanaSyllables.push(`${pendingSmallTsu}${resolvedToken}`);
+    pendingSmallTsu = '';
+    index += resolvedToken.length;
+  }
+
+  return kanaSyllables;
+}
+
 function createWordEntry(
   script: KanaScript,
   kana: string,
@@ -488,6 +526,7 @@ function createWordEntry(
     script,
     kana,
     syllables: buildWordSyllables(script, kana),
+    kanaSyllables: buildWordKanaSyllables(script, kana),
     translations,
     category,
   };
@@ -522,7 +561,12 @@ export function getWordPracticeEntries(
   script: KanaScript,
   categoryIds?: WordPracticeCategoryId[],
 ) {
-  const entries = script === 'katakana' ? katakanaWordEntries : hiraganaWordEntries;
+  const entries =
+    script === 'mixed'
+      ? [...hiraganaWordEntries, ...katakanaWordEntries]
+      : script === 'katakana'
+        ? katakanaWordEntries
+        : hiraganaWordEntries;
 
   if (!categoryIds?.length) {
     return entries;
@@ -535,6 +579,20 @@ export function getWordPracticeEntries(
 export function getWordPracticeCategorySummaries(
   script: KanaScript,
 ): WordPracticeCategorySummary[] {
+  if (script === 'mixed') {
+    // Unión de las temáticas de ambos silabarios, sumando los counts por id.
+    const merged = new Map<WordPracticeCategoryId, WordPracticeCategorySummary>();
+    [...hiraganaWordCategories, ...katakanaWordCategories].forEach((category) => {
+      const existing = merged.get(category.id);
+      merged.set(category.id, {
+        id: category.id,
+        label: category.label,
+        count: (existing?.count ?? 0) + category.words.length,
+      });
+    });
+    return Array.from(merged.values());
+  }
+
   return getWordPracticeCategoryDefinitions(script).map((category) => ({
     id: category.id,
     label: category.label,

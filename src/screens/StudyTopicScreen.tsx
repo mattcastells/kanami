@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '../components/ui/AppText';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
+import { SpeakButton } from '../components/ui/SpeakButton';
 import { studyTopics, StudySection } from '../data/studyTopics';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
@@ -43,18 +44,23 @@ function SectionTable({ section }: { section: StudySection }) {
             index > 0 && { borderTopWidth: 1, borderTopColor: activeTheme.colors.line },
           ]}
         >
-          <AppText variant="title" style={styles.rowJp}>
-            {row.jp}
-          </AppText>
-          {row.romaji ? (
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {row.romaji}
+          <View style={styles.rowText}>
+            <AppText variant="title" style={styles.rowJp}>
+              {row.jp}
             </AppText>
-          ) : null}
-          {row.es ? (
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-              {row.es}
-            </AppText>
+            {row.romaji ? (
+              <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+                {row.romaji}
+              </AppText>
+            ) : null}
+            {row.es ? (
+              <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
+                {row.es}
+              </AppText>
+            ) : null}
+          </View>
+          {row.jp ? (
+            <SpeakButton text={row.jp} size={30} iconSize={16} />
           ) : null}
         </View>
       ))}
@@ -142,15 +148,26 @@ export function StudyTopicScreen({ route, navigation }: RootStackScreenProps<'St
       <PrimaryButton
         title="PRACTICAR ESTE TEMA"
         variant="primary"
-        onPress={() =>
-          (navigation.getParent() as any)?.navigate('PracticeTab', {
+        onPress={() => {
+          const parent = navigation.getParent() as any;
+          const practiceMode = topic.practice?.mode ?? 'reading';
+          // Los modos de vocabulario viven en su propia pantalla, no en KanaGroups.
+          if (
+            practiceMode === 'syllables' ||
+            practiceMode === 'fill-blank' ||
+            practiceMode === 'word-builder'
+          ) {
+            parent?.navigate('PracticeTab', { screen: 'Vocabulary' });
+            return;
+          }
+          parent?.navigate('PracticeTab', {
             screen: 'KanaGroups',
             params: {
               script: topic.practice?.script ?? 'hiragana',
-              initialMode: topic.practice?.mode ?? 'reading',
+              initialMode: practiceMode,
             },
-          })
-        }
+          });
+        }}
         style={styles.cta}
       />
     </ScreenBackground>
@@ -195,6 +212,12 @@ const styles = StyleSheet.create({
   tableRow: {
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  rowText: {
+    flex: 1,
     gap: 2,
   },
   rowJp: {

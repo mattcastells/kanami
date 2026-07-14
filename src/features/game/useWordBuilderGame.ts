@@ -21,56 +21,60 @@ export function useWordBuilderGame(pool: WordPracticeEntry[], resetKey: string) 
   const [state, setState] = useState<WordBuilderSessionState>(() =>
     createInitialWordBuilderState(pool),
   );
+  const stateRef = useRef(state);
   const [lastFeedback, setLastFeedback] = useState<{
     status: WordBuilderSessionState['answerState'];
     correctText: string;
-  }>({ status: 'idle', correctText: '' });
-
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    selectedText?: string | null;
+  }>({ status: 'idle', correctText: '', selectedText: null });
 
   useEffect(() => {
-    if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
-    if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-    nextRoundTimeoutRef.current = null;
-    retryTimeoutRef.current = null;
-    setState(createInitialWordBuilderState(pool));
-    setLastFeedback({ status: 'idle', correctText: '' });
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    const initialState = createInitialWordBuilderState(pool);
+    stateRef.current = initialState;
+    setState(initialState);
+    setLastFeedback({ status: 'idle', correctText: '', selectedText: null });
   }, [pool, resetKey]);
 
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
-      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-    },
-    [],
-  );
+  const commit = (nextState: WordBuilderSessionState) => {
+    stateRef.current = nextState;
+    setState(nextState);
+  };
 
   const tapTile = (tileId: string) => {
-    // Side effects (haptics, timers, feedback) must not live inside a setState
-    // updater — updaters have to stay pure. We derive the next state here and
-    // dispatch the pure result.
-    if (state.answerState !== 'idle') return;
+    const current = stateRef.current;
+    if (current.answerState !== 'idle') return;
+    commit(
+      current.placedTileIds.includes(tileId)
+        ? removeTile(current, tileId)
+        : placeTile(current, tileId),
+    );
+  };
 
-    if (state.placedTileIds.includes(tileId)) {
-      setState(removeTile(state, tileId));
+  const clear = () => {
+    commit(clearPlacedTiles(stateRef.current));
+  };
+
+  const submit = () => {
+    const current = stateRef.current;
+    const submitted = submitWordBuilder(current);
+    if (submitted === current) {
+      // No estaba completo o ya se respondió: nada para enviar.
       return;
     }
 
-    const next = placeTile(state, tileId);
+    const placedKana = current.placedTileIds
+      .map((id) => current.round.tiles.find((tile) => tile.id === id)?.kana ?? '')
+      .join('');
 
-    // Not full yet: just place the tile.
-    if (next.placedTileIds.length !== next.round.syllableCount) {
-      setState(next);
-      return;
-    }
-
-    // All positions filled -> auto-submit.
-    const submitted = submitWordBuilder(next);
-    setState(submitted);
+    commit(submitted);
     setLastFeedback({
       status: submitted.answerState,
-      correctText: submitted.round.answer,
+      correctText: submitted.round.word.kana,
+      selectedText: placedKana,
     });
 
     if (hapticsEnabled) {
@@ -80,28 +84,14 @@ export function useWordBuilderGame(pool: WordPracticeEntry[], resetKey: string) 
           : Haptics.NotificationFeedbackType.Error,
       );
     }
-
-    if (submitted.answerState === 'correct') {
-      if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = setTimeout(() => {
-        setState((s) => moveToNextWordBuilderRound(s, pool));
-        setLastFeedback({ status: 'idle', correctText: '' });
-        nextRoundTimeoutRef.current = null;
-      }, 700);
-    } else {
-      // Show error then clear tiles for retry.
-      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = setTimeout(() => {
-        setState((s) => clearPlacedTiles({ ...s, answerState: 'idle' }));
-        setLastFeedback({ status: 'idle', correctText: '' });
-        retryTimeoutRef.current = null;
-      }, 1100);
-    }
   };
 
-  const clear = () => {
-    setState((current) => clearPlacedTiles(current));
+  const next = () => {
+    const current = stateRef.current;
+    if (current.answerState === 'idle') return;
+    commit(moveToNextWordBuilderRound(current, pool));
+    setLastFeedback({ status: 'idle', correctText: '', selectedText: null });
   };
 
-  return { state, tapTile, clear, lastFeedback };
+  return { state, tapTile, clear, submit, next, lastFeedback };
 }

@@ -48,6 +48,8 @@ src/
     game/               UI del loop de práctica (DrawingCanvas, FeedbackBanner, ...)
   features/
     game/               *Engine.ts (lógica PURA) + use*Game.ts (hooks con estado/timers/haptics)
+    progress/           ProgressProvider (progress.json) + useTrackProgress + progressStore
+    speech/             speak.ts (TTS ja-JP con expo-speech; ver SpeakButton en components/ui)
     update/             releaseClient.ts (GitHub Releases) + androidUpdater.ts (instalar APK)
   services/             kyary.ts (cliente Gemini)
   data/                 datasets: kana, kanji, vocabulario, frases, números, strokes
@@ -59,11 +61,24 @@ src/
 4 tabs, sin header nativo (`headerShown: false`), animación `fade`:
 
 - **練 Practicar** (`PracticeTab`) → stack: Home, KanaGroups, KanaGame, KanjiHub, KanjiLearn,
-  KanjiPractice, KanjiDraw, KanjiGame.
+  KanjiPractice, KanjiDraw, KanjiGame, **EmojiGame** (matcheo palabra↔emoji), **TimesGame**
+  (leer/escribir horarios 〜時〜分).
 - **学 Estudiar** (`StudyTab`) → stack: StudyTopics, StudyTopic.
 - **話 Kyary** (`KyaryTab`) → chat con IA.
-- **私 Perfil** (`ProfileTab`) → `ProfileScreen`, que hoy es un wrapper de `OptionsScreen`
-  (tema, haptics, updater). Cruzar de tab con `navigation.getParent()`.
+- **私 Perfil** (`ProfileTab`) → `ProfileScreen` = `OptionsScreen`, que hoy muestra la
+  `ProgressCard` (progreso persistente + export/import) además de tema/haptics/updater.
+  Cruzar de tab con `navigation.getParent()`.
+
+### Kana mixto y progreso
+
+- `KanaScript` incluye `'mixed'` (hiragana+katakana en simultáneo). La facade `src/data/kana.ts`
+  y `wordVocabulary`/`phrases` concatenan ambos silabarios cuando `script === 'mixed'`. En modo
+  mixto los ids de caracteres colisionan entre scripts (あ/ア = `a-a`): los engines de opción
+  múltiple deduplican opciones por texto mostrado para que eso no rompa el matcheo.
+- Progreso: `src/features/progress/` (`ProgressProvider` → `progress.json`, patrón de
+  `AppSettingsProvider`). Las vistas de juego llaman `useTrackProgress(modeKey, stats)` y la
+  sesión se registra al desmontar. Export/import sin deps nuevas: `Share` del core (Android) /
+  clipboard (web) y pegado de JSON para importar.
 
 ### Regla de arquitectura (respetar)
 

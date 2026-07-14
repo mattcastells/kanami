@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleProp,
   StyleSheet,
+  TextStyle,
   ViewStyle,
 } from 'react-native';
 
@@ -24,6 +25,8 @@ type AnswerOptionButtonProps = {
   disabled?: boolean;
   onPress: () => void;
   labelWrapStyle?: StyleProp<ViewStyle>;
+  labelStyle?: StyleProp<TextStyle>;
+  fullWidth?: boolean;
 };
 
 export function AnswerOptionButton({
@@ -32,6 +35,8 @@ export function AnswerOptionButton({
   disabled = false,
   onPress,
   labelWrapStyle,
+  labelStyle,
+  fullWidth = false,
 }: AnswerOptionButtonProps) {
   const { theme: activeTheme, mode } = useAppTheme();
   const isDark = mode === 'dark';
@@ -89,7 +94,11 @@ export function AnswerOptionButton({
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.wrap, pressed && !disabled ? styles.pressed : null]}
+      style={({ pressed }) => [
+        styles.wrap,
+        fullWidth ? styles.wrapFull : null,
+        pressed && !disabled ? styles.pressed : null,
+      ]}
     >
       <Animated.View
         style={[
@@ -123,7 +132,7 @@ export function AnswerOptionButton({
                 ? activeTheme.colors.textMuted
                 : activeTheme.colors.textPrimary
             }
-            style={styles.label}
+            style={[styles.label, labelStyle]}
             numberOfLines={1}
           >
             {label}
@@ -140,6 +149,9 @@ const styles = StyleSheet.create({
     minWidth: 0,
     marginBottom: theme.spacing.sm,
   },
+  wrapFull: {
+    width: '100%',
+  },
   container: {
     minHeight: 64,
     borderRadius: theme.radii.md,
@@ -149,11 +161,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    // Evita que un texto largo (ej. lecturas de horarios) se derrame del botón.
+    overflow: 'hidden',
   },
   label: {
     fontSize: 16,
     lineHeight: 20,
     textAlign: 'center',
+    maxWidth: '100%',
   },
   pressed: {
     opacity: 0.9,

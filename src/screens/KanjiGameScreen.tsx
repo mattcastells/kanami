@@ -9,9 +9,12 @@ import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { StatPill } from '../components/ui/StatPill';
 import { getKanjiByCategories } from '../data/kanji';
 import { useKanjiGame } from '../features/game/useKanjiGame';
+import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
+
+const STREAK_COLOR = '#356E8E';
 
 const MODE_LABELS: Record<string, string> = {
   'kanji-to-meaning': 'Kanji → Significado',
@@ -32,6 +35,7 @@ export function KanjiGameScreen({ route }: RootStackScreenProps<'KanjiGame'>) {
   const resetKey = `${mode}:${categoryIds.join(',')}`;
   const { state, answer, lastFeedback } = useKanjiGame(pool, mode, resetKey);
   const { round, answerState, selectedOptionId, stats } = state;
+  useTrackProgress('kanji', stats);
 
   // Derive option visual states
   const getOptionState = (optionId: string) => {
@@ -69,7 +73,7 @@ export function KanjiGameScreen({ route }: RootStackScreenProps<'KanjiGame'>) {
         <StatPill
           label="🔥"
           value={stats.streak}
-          accentColor={activeTheme.colors.accent}
+          accentColor={STREAK_COLOR}
         />
       </View>
 

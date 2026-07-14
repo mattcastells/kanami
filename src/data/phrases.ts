@@ -107,5 +107,8 @@ const kataPhrases = katakanaPhraseData.map((data, index) =>
 );
 
 export function getPhrases(script: KanaScript): PhraseEntry[] {
+  if (script === 'mixed') {
+    return [...hiraPhrases, ...kataPhrases];
+  }
   return script === 'hiragana' ? hiraPhrases : kataPhrases;
 }
