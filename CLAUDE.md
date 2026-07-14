@@ -125,9 +125,12 @@ src/
 ## Kyary (IA) — `src/services/kyary.ts`
 
 - Cliente de **Gemini `gemini-2.5-flash`** con soporte multimodal (texto/imagen/audio como `inline_data`).
-- ⚠️ **La API key está en `EXPO_PUBLIC_GEMINI_API_KEY`**, y todo `EXPO_PUBLIC_*` se **embebe en el
-  bundle** → es extraíble de la APK publicada. Para producción, mover la llamada detrás de un
-  proxy backend y sacar la key del cliente. `.env` está en `.gitignore` (no la commitees).
+- **API key = BYOK (bring your own key).** `sendKyaryMessage(history, userApiKey)` usa la key que el
+  usuario carga en **Perfil** (persistida en `AppSettingsProvider.geminiApiKey`, solo en el dispositivo).
+  Fallback a `EXPO_PUBLIC_GEMINI_API_KEY` solo para dev local (`.env`, en `.gitignore`). **El APK de
+  release NO trae key embebida** (CI no tiene el secret, a propósito): cada usuario pone la suya. Si no
+  hay ninguna, Kyary tira un error claro pidiendo cargarla.
+- Modo voz (conversación hablada) en `KyaryScreen`: STT continuo (expo-speech-recognition) → Gemini → TTS.
 - Al trabajar sobre Kyary o cualquier cosa LLM, leé la skill **`claude-api`** antes de tocar código.
 
 ## Releases y updater in-app

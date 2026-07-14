@@ -15,17 +15,21 @@ import { ThemeMode } from '../theme/theme';
 type AppSettings = {
   hapticsEnabled: boolean;
   themeMode: ThemeMode;
+  // API key propia de Gemini (BYOK). Si está vacía, Kyary usa la embebida en el bundle.
+  geminiApiKey: string;
 };
 
 type AppSettingsContextValue = {
   settings: AppSettings;
   setHapticsEnabled: (enabled: boolean) => void;
   setThemeMode: (mode: ThemeMode) => void;
+  setGeminiApiKey: (key: string) => void;
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
   hapticsEnabled: false,
   themeMode: 'light',
+  geminiApiKey: '',
 };
 
 const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
@@ -93,13 +97,22 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     }));
   }, []);
 
+  const setGeminiApiKey = useCallback((key: string) => {
+    userTouchedRef.current = true;
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      geminiApiKey: key,
+    }));
+  }, []);
+
   const value = useMemo(
     () => ({
       settings,
       setHapticsEnabled,
       setThemeMode,
+      setGeminiApiKey,
     }),
-    [setHapticsEnabled, setThemeMode, settings],
+    [setGeminiApiKey, setHapticsEnabled, setThemeMode, settings],
   );
 
   return (
@@ -130,12 +143,13 @@ function normalizeSettings(value: unknown): AppSettings {
 
   const candidate = value as Partial<AppSettings>;
 
+  const record = candidate as Record<string, unknown>;
+
   return {
     hapticsEnabled: candidate.hapticsEnabled === true,
-    themeMode:
-      (candidate as Record<string, unknown>).themeMode === 'dark'
-        ? 'dark'
-        : 'light',
+    themeMode: record.themeMode === 'dark' ? 'dark' : 'light',
+    geminiApiKey:
+      typeof record.geminiApiKey === 'string' ? record.geminiApiKey : '',
   };
 }
 

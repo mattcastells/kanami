@@ -1,12 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
   Platform,
+  Pressable,
   StyleSheet,
   Switch,
+  TextInput,
   View,
 } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Application from 'expo-application';
 
 import appConfig from '../../app.json';
@@ -37,10 +40,20 @@ type UpdateState =
 export function OptionsScreen() {
   const { theme: activeTheme, mode } = useAppTheme();
   const {
-    settings: { hapticsEnabled },
+    settings: { hapticsEnabled, geminiApiKey },
     setHapticsEnabled,
     setThemeMode,
+    setGeminiApiKey,
   } = useAppSettings();
+  const [keyDraft, setKeyDraft] = useState(geminiApiKey);
+  const [showKey, setShowKey] = useState(false);
+  const [keySaved, setKeySaved] = useState(false);
+  const keyDirty = keyDraft.trim() !== geminiApiKey;
+
+  // Sincroniza el campo cuando la key llega del disco (carga async) o cambia.
+  useEffect(() => {
+    setKeyDraft(geminiApiKey);
+  }, [geminiApiKey]);
   const installedVersion = useMemo(
     () => Application.nativeApplicationVersion ?? appConfig.expo.version,
     [],
@@ -245,6 +258,102 @@ export function OptionsScreen() {
         ) : null}
       </GlassCard>
 
+      <View style={styles.optionsSpacer} />
+
+      <GlassCard contentStyle={styles.cardContent}>
+        <View style={styles.keyHeader}>
+          <AppText variant="title">Kyary (IA)</AppText>
+          <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+            Kyary usa Gemini. Poné tu propia API key (gratis) para usar el chat.
+            Se guarda solo en este dispositivo.
+          </AppText>
+        </View>
+
+        <View
+          style={[
+            styles.keyInputRow,
+            {
+              borderColor: activeTheme.colors.line,
+              backgroundColor: hexToRgba(
+                activeTheme.colors.backgroundSecondary,
+                0.6,
+              ),
+            },
+          ]}
+        >
+          <TextInput
+            value={keyDraft}
+            onChangeText={(value) => {
+              setKeyDraft(value);
+              setKeySaved(false);
+            }}
+            placeholder="Pegá tu API key de Gemini"
+            placeholderTextColor={activeTheme.colors.textMuted}
+            secureTextEntry={!showKey}
+            autoCapitalize="none"
+            autoCorrect={false}
+            selectionColor={activeTheme.colors.accent}
+            style={[styles.keyInput, { color: activeTheme.colors.textPrimary }]}
+          />
+          <Pressable onPress={() => setShowKey((current) => !current)} hitSlop={8}>
+            <MaterialCommunityIcons
+              name={showKey ? 'eye-off-outline' : 'eye-outline'}
+              size={20}
+              color={activeTheme.colors.textMuted}
+            />
+          </Pressable>
+        </View>
+
+        {keySaved ? (
+          <AppText variant="bodySmall" color={activeTheme.colors.success}>
+            Key guardada. Ya podés hablar con Kyary.
+          </AppText>
+        ) : geminiApiKey ? (
+          <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+            Hay una key guardada en este dispositivo.
+          </AppText>
+        ) : (
+          <AppText variant="bodySmall" color={activeTheme.colors.warning}>
+            Sin key, Kyary no puede responder.
+          </AppText>
+        )}
+
+        <View style={styles.keyActions}>
+          <PrimaryButton
+            title="GUARDAR"
+            size="compact"
+            disabled={!keyDirty}
+            onPress={() => {
+              setGeminiApiKey(keyDraft.trim());
+              setKeySaved(true);
+            }}
+            style={styles.keyActionFlex}
+          />
+          {geminiApiKey ? (
+            <PrimaryButton
+              title="BORRAR"
+              variant="ghost"
+              size="compact"
+              onPress={() => {
+                setGeminiApiKey('');
+                setKeyDraft('');
+                setKeySaved(false);
+              }}
+              style={styles.keyActionFlex}
+            />
+          ) : null}
+        </View>
+
+        <PrimaryButton
+          title="CONSEGUIR UNA API KEY"
+          variant="secondary"
+          size="compact"
+          onPress={() => {
+            void Linking.openURL('https://aistudio.google.com/apikey');
+          }}
+        />
+      </GlassCard>
+
       <AppText
         variant="bodySmall"
         color={activeTheme.colors.textMuted}
@@ -336,5 +445,31 @@ const styles = StyleSheet.create({
   installedVersion: {
     alignSelf: 'center',
     marginTop: theme.spacing.md,
+  },
+  keyHeader: {
+    gap: theme.spacing.xxs,
+  },
+  keyInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    borderWidth: 1,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  keyInput: {
+    flex: 1,
+    fontFamily: 'ZenKakuGothicNew_400Regular',
+    fontSize: 14,
+    paddingVertical: 0,
+    minHeight: 24,
+  },
+  keyActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  keyActionFlex: {
+    flex: 1,
   },
 });

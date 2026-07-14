@@ -78,7 +78,17 @@ const extractOutputText = (payload: Record<string, unknown>): string => {
 
 export async function sendKyaryMessage(
   history: KyaryHistoryMessage[],
+  userApiKey?: string,
 ): Promise<KyaryReply> {
+  // Prioridad: la key propia del usuario (Perfil) sobre la embebida en el bundle.
+  const apiKey = (userApiKey ?? '').trim() || GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      'Falta la API key de Gemini. Cargá la tuya en Perfil para usar a Kyary.',
+    );
+  }
+
   const normalizedHistory = history
     .map((message) => ({
       role: message.role,
@@ -133,7 +143,7 @@ export async function sendKyaryMessage(
 
   try {
     response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -26,6 +26,7 @@ import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { speak, stopSpeaking } from '../features/speech/speak';
 import { sendKyaryMessage, KyaryHistoryMessage } from '../services/kyary';
+import { useAppSettings } from '../settings/AppSettingsProvider';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
 
@@ -66,6 +67,9 @@ const kyaryAvatarLight = require('../../assets/kyary-avatar-light.png');
 
 export function KyaryScreen() {
   const { theme: activeTheme, mode } = useAppTheme();
+  const {
+    settings: { geminiApiKey },
+  } = useAppSettings();
   const kyaryAvatar = mode === 'dark' ? kyaryAvatarDark : kyaryAvatarLight;
   const scrollRef = useRef<ScrollView | null>(null);
   const inputRef = useRef<TextInput>(null);
@@ -306,7 +310,7 @@ export function KyaryScreen() {
     setIsSending(true);
 
     try {
-      const reply = await sendKyaryMessage(history);
+      const reply = await sendKyaryMessage(history, geminiApiKey);
       setMessages((current) => [
         ...current.filter((m) => m.id !== pendingAssistantId),
         { id: createLocalId('assistant'), role: 'assistant', text: reply.text },
