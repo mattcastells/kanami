@@ -8,6 +8,9 @@ export type RootStackParamList = {
   Home: undefined;
   StudyTopics: undefined;
   StudyTopic: { topicId: string };
+  ClassNotes: undefined;
+  ClassNote: { classNumber: number };
+  QuickReview: undefined;
   KanaGroups: {
     script: KanaScript;
     initialMode?: PracticeMode;

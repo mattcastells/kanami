@@ -1,49 +1,85 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AnimatedRow } from '../components/ui/AnimatedRow';
 import { AppText } from '../components/ui/AppText';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
+import { CLASS_NOTES } from '../data/classNotes.generated';
 import { studyTopics } from '../data/studyTopics';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { theme } from '../theme/theme';
+import { hexToRgba, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
-
-// Entrada escalonada: fade + translateY 8->0, 120ms, stagger 30ms por fila.
-function AnimatedRow({ index, children }: { index: number; children: React.ReactNode }) {
-  const enter = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(enter, {
-      toValue: 1,
-      duration: 120,
-      delay: index * 30,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [enter, index]);
-
-  return (
-    <Animated.View
-      style={{
-        opacity: enter,
-        transform: [
-          { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) },
-        ],
-      }}
-    >
-      {children}
-    </Animated.View>
-  );
-}
 
 export function StudyTopicsScreen({ navigation }: RootStackScreenProps<'StudyTopics'>) {
   const { theme: activeTheme } = useAppTheme();
+  const lastClass = CLASS_NOTES[CLASS_NOTES.length - 1];
 
   return (
     <ScreenBackground scrollable>
       <View style={styles.header}>
         <AppText variant="display">Estudiar</AppText>
       </View>
+
+      <View style={styles.shortcuts}>
+        <Pressable
+          onPress={() => navigation.navigate('QuickReview')}
+          style={({ pressed }) => [
+            styles.shortcutCard,
+            {
+              borderColor: activeTheme.colors.accent,
+              backgroundColor: hexToRgba(activeTheme.colors.accent, 0.08),
+            },
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppText
+            variant="headline"
+            style={[styles.shortcutGlyph, { color: activeTheme.colors.accent }]}
+          >
+            要
+          </AppText>
+          <View style={styles.rowText}>
+            <AppText variant="bodyStrong">Repaso rápido</AppText>
+            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+              Lo esencial de todas las clases
+            </AppText>
+          </View>
+          <AppText variant="body" color={activeTheme.colors.textMuted}>
+            ›
+          </AppText>
+        </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate('ClassNotes')}
+          style={({ pressed }) => [
+            styles.shortcutCard,
+            {
+              borderColor: activeTheme.colors.line,
+              backgroundColor: activeTheme.colors.backgroundSecondary,
+            },
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppText
+            variant="headline"
+            style={[styles.shortcutGlyph, { color: activeTheme.colors.accent }]}
+          >
+            授
+          </AppText>
+          <View style={styles.rowText}>
+            <AppText variant="bodyStrong">Mis clases</AppText>
+            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+              {CLASS_NOTES.length} apuntes · última: Kurasu {lastClass?.number}
+            </AppText>
+          </View>
+          <AppText variant="body" color={activeTheme.colors.textMuted}>
+            ›
+          </AppText>
+        </Pressable>
+      </View>
+
+      <AppText variant="overline" color={activeTheme.colors.textMuted} style={styles.sectionLabel}>
+        POR TEMA
+      </AppText>
 
       <View>
         {studyTopics.map((topic, index) => (
@@ -88,6 +124,27 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xxs,
     marginBottom: theme.spacing.lg,
     paddingTop: theme.spacing.md,
+  },
+  shortcuts: {
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.xl,
+  },
+  shortcutCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    borderWidth: 1,
+    borderRadius: theme.radii.md,
+    padding: theme.spacing.lg,
+  },
+  shortcutGlyph: {
+    width: 32,
+    fontSize: 24,
+    lineHeight: 30,
+    textAlign: 'center',
+  },
+  sectionLabel: {
+    marginBottom: theme.spacing.xs,
   },
   row: {
     flexDirection: 'row',

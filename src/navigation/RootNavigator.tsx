@@ -5,6 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '../components/ui/AppText';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { RootStackParamList } from '../types/navigation';
+import { ClassNoteScreen } from '../screens/ClassNoteScreen';
+import { ClassNotesScreen } from '../screens/ClassNotesScreen';
 import { DictationGameScreen } from '../screens/DictationGameScreen';
 import { EmojiGameScreen } from '../screens/EmojiGameScreen';
 import { GameScreen } from '../screens/GameScreen';
@@ -19,6 +21,7 @@ import { KanjiPracticeScreen } from '../screens/KanjiPracticeScreen';
 import { KanjiDrawScreen } from '../screens/KanjiDrawScreen';
 import { KyaryScreen } from '../screens/KyaryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { QuickReviewScreen } from '../screens/QuickReviewScreen';
 import { StudyTopicScreen } from '../screens/StudyTopicScreen';
 import { StudyTopicsScreen } from '../screens/StudyTopicsScreen';
 import { TimesGameScreen } from '../screens/TimesGameScreen';
@@ -63,6 +66,9 @@ function StudyNavigator() {
     <StudyStack.Navigator initialRouteName="StudyTopics" screenOptions={stackScreenOptions}>
       <StudyStack.Screen name="StudyTopics" component={StudyTopicsScreen} />
       <StudyStack.Screen name="StudyTopic" component={StudyTopicScreen} />
+      <StudyStack.Screen name="ClassNotes" component={ClassNotesScreen} />
+      <StudyStack.Screen name="ClassNote" component={ClassNoteScreen} />
+      <StudyStack.Screen name="QuickReview" component={QuickReviewScreen} />
     </StudyStack.Navigator>
   );
 }

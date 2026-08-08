@@ -23,6 +23,7 @@ Gemini) y una sección de estudio con teoría. Español rioplatense en toda la U
 ```bash
 npm start              # Expo dev server
 npm run web            # validación primaria (web-first)
+npm run clases:generate# content/clases/*.md + content/repaso.md -> src/data/classNotes.generated.ts
 npm run android        # dev build nativo Android
 npm run android:release# APK release local (firma propia, no la de GitHub)
 npm run ios            # iOS
@@ -37,6 +38,9 @@ No hay linter ni test runner en el repo. El único gate automático es `tsc`.
 ```
 App.tsx                 Fonts (Zen) + providers + NavigationContainer + ajustes web
 index.ts                registerRootComponent
+content/                FUENTE editable de los apuntes (markdown, no se bundlea directo)
+  clases/kurasu-NN.md   transcripción de cada clase real (1-6, 8-16; la 7 no existió)
+  repaso.md             hoja de repaso consolidada — se mantiene al día clase a clase
 src/
   navigation/           RootNavigator: bottom tabs + stacks
   theme/                theme.ts (tokens light/dark) + AppThemeProvider
@@ -46,8 +50,10 @@ src/
     ui/                 primitives reutilizables (ScreenBackground, GlassCard, AppText, ...)
     practice/           cards de selección de grupos/modos
     game/               UI del loop de práctica (DrawingCanvas, FeedbackBanner, ...)
+    study/              ClassBlockView: renderer de los bloques de apuntes
   features/
     game/               *Engine.ts (lógica PURA) + use*Game.ts (hooks con estado/timers/haptics)
+    classes/            classNotes.ts: helpers puros sobre los apuntes (fecha, orden, búsqueda)
     progress/           ProgressProvider (progress.json) + useTrackProgress + progressStore.
                         Incluye racha diaria + meta (daily) — StreakCard en Home.
     srs/                SrsProvider (srs.json) + srsStore: repaso espaciado Leitner
@@ -69,7 +75,10 @@ src/
 - **練 Practicar** (`PracticeTab`) → stack: Home, KanaGroups, KanaGame, KanjiHub, KanjiLearn,
   KanjiPractice, KanjiDraw, KanjiGame, **EmojiGame** (matcheo palabra↔emoji), **TimesGame**
   (leer/escribir horarios 〜時〜分).
-- **学 Estudiar** (`StudyTab`) → stack: StudyTopics, StudyTopic.
+- **学 Estudiar** (`StudyTab`) → stack: StudyTopics, StudyTopic, **ClassNotes** (Mis clases),
+  **ClassNote** (apunte de una clase), **QuickReview** (Repaso rápido). Los apuntes y el repaso
+  se generan desde `content/*.md` con `npm run clases:generate` → `src/data/classNotes.generated.ts`
+  (nunca editar el generado). Ver skill `kanami-clases`.
 - **話 Kyary** (`KyaryTab`) → chat con IA.
 - **私 Perfil** (`ProfileTab`) → `ProfileScreen` = `OptionsScreen`, que hoy muestra la
   `ProgressCard` (progreso persistente + export/import) además de tema/haptics/updater.
@@ -155,21 +164,39 @@ src/
 - No dejar `console.*` ni imports/estilos sin usar.
 - Web-first: validá en `npm run web`; no corras builds nativos salvo pedido explícito.
 
-## Skills útiles en este repo
+## Skills del proyecto (`.claude/skills/`)
 
-- **`/run`** — levantar la app para ver un cambio funcionando (web/Android).
-- **`/verify`** — verificar end-to-end que un cambio hace lo que dice antes de commitear.
-- **`/code-review`** — revisar el diff actual por bugs y limpieza.
-- **`/simplify`** — limpieza de reuso/simplificación sobre el código cambiado.
-- **`claude-api`** — referencia obligatoria antes de tocar Kyary / LLM.
+Específicas de este repo. Empezá por `kanami-arquitectura` si no sabés dónde va algo.
 
-## Deuda técnica conocida (a limpiar)
+- **`kanami-arquitectura`** — mapa del proyecto, capas e invariantes. Contexto base.
+- **`kanami-modo-practica`** — agregar/modificar un modo de juego (engine + hook + pantalla).
+- **`kanami-ui`** — paleta, tokens, primitives, dark mode.
+- **`kanami-contenido`** — datasets de japonés y temas de Estudiar.
+- **`kanami-clases`** — apuntes de clase y hoja de repaso (`content/*.md` → dataset generado).
+- **`kanami-persistencia`** — providers, stores, normalize, versionado.
+- **`kanami-kyary`** — Gemini/BYOK, modo voz, integraciones externas.
+- **`kanami-validar`** — checklist de cierre. **Usala siempre antes de dar algo por terminado.**
+- **`kanami-revisar`** — revisión de diff con los anti-patrones reales del repo.
+- **`kanami-release`** — tags, versionCode, CI, updater.
+- **`clase-a-notion`** / **`apuntes-notion-estilo`** — workflow de apuntes de clase en Notion.
 
-- `handoff/` es un spec de rediseño **ya aplicado**; genera errores de `tsc` y no lo importa
-  nada de `src/`. Archivar/eliminar o excluir del `tsconfig`.
-- `guidelines.md` desactualizado (ver nota del inicio).
-- Deps sin uso: `@expo-google-fonts/sora`, `@expo-google-fonts/manrope`, `expo-blur`,
-  `expo-keep-awake`, `expo-linear-gradient`.
-- `app.json`: `userInterfaceStyle: "dark"` y `splash.backgroundColor` navy no matchean la paleta
-  actual; `package: com.anonymous.Kanami` es el default anónimo (cambiar antes de release real).
+Documentación de apoyo: `.claude/docs/arquitectura.md` y `.claude/docs/estado-y-deuda.md`.
+
+Skills genéricas útiles: `/run`, `/code-review`, `/simplify`, y **`claude-api`**
+(obligatoria antes de tocar Kyary / LLM).
+
+## Deuda técnica conocida
+
+Lista completa y priorizada en **`.claude/docs/estado-y-deuda.md`** (auditada el 2026-08-08).
+Los ítems más relevantes al escribir código:
+
+- **Colores de estado hardcodeados** (`#3E7D5C`/`#B03A2E`/`#356E8E`) en 9 archivos: rompen el
+  dark mode. Usá `activeTheme.colors.success/.error/.accent`. No sumes uno más.
+- **`GameScreen.tsx` tiene 1825 líneas** y multiplexa 6 modos de kana. Es legacy: los modos
+  nuevos van a pantalla propia.
+- `shuffle`/`pickRandom` duplicados 20 veces.
+- `app.json`: `package: com.anonymous.Kanami` es el default anónimo (cambiar antes de una
+  distribución real).
+- El **código muerto ya fue eliminado** (2026-08-08): modo Números, `accentColor` de los
+  grupos de kana, exports huérfanos, props no-op de `GlassCard` y `guidelines.md`.
 </content>

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { StreakCard } from '../components/progress/StreakCard';
+import { AnimatedRow } from '../components/ui/AnimatedRow';
 import { AppText } from '../components/ui/AppText';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { KANJI_LIST } from '../data/kanji';
@@ -41,34 +42,6 @@ function japaneseDateTime(date: Date): string {
   const hour12 = hours % 12 === 0 ? 12 : hours % 12;
   const minutes = date.getMinutes();
   return `${day}・${period}${hour12}時${minutes}分`;
-}
-
-// Entrada escalonada: fade + translateY 8->0, 120ms, stagger 30ms por fila.
-function AnimatedRow({ index, children }: { index: number; children: React.ReactNode }) {
-  const enter = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(enter, {
-      toValue: 1,
-      duration: 120,
-      delay: index * 30,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [enter, index]);
-
-  return (
-    <Animated.View
-      style={{
-        opacity: enter,
-        transform: [
-          { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) },
-        ],
-      }}
-    >
-      {children}
-    </Animated.View>
-  );
 }
 
 export function HomeScreen({ navigation }: RootStackScreenProps<'Home'>) {
