@@ -115,10 +115,6 @@ export const KANJI_LIST: KanjiEntry[] = [
   { id: 'k086', kanji: '黒', readings: ['くろ'], meaning: 'negro', category: 'adjetivos', example: '黒い (kuroi)' },
 ];
 
-export function getKanjiByCategory(categoryId: KanjiCategoryId): KanjiEntry[] {
-  return KANJI_LIST.filter((k) => k.category === categoryId);
-}
-
 export function getKanjiByCategories(categoryIds: KanjiCategoryId[]): KanjiEntry[] {
   if (categoryIds.length === 0) return KANJI_LIST;
   return KANJI_LIST.filter((k) => categoryIds.includes(k.category));

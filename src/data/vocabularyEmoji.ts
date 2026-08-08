@@ -159,7 +159,7 @@ function normalizeMeaning(value: string): string {
     .trim();
 }
 
-export function getEmojiForMeaning(translation: string): string | undefined {
+function getEmojiForMeaning(translation: string): string | undefined {
   return EMOJI_BY_MEANING[normalizeMeaning(translation)];
 }
 

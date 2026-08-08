@@ -6,7 +6,7 @@ export type PronunciationResult = 'correct' | 'close' | 'wrong';
 
 // Convierte katakana a hiragana (mismo bloque, offset 0x60) y descarta todo lo que no
 // sea kana o marca de vocal larga, para ignorar kanji/puntuación del reconocedor.
-export function toHiraganaOnly(value: string): string {
+function toHiraganaOnly(value: string): string {
   let result = '';
   for (const char of value) {
     const code = char.codePointAt(0) ?? 0;

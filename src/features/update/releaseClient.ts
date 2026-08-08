@@ -53,7 +53,7 @@ export async function fetchLatestRelease(): Promise<AppRelease> {
   };
 }
 
-export function normalizeVersion(input: string) {
+function normalizeVersion(input: string) {
   return input.trim().replace(/^v/i, '');
 }
 

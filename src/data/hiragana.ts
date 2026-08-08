@@ -20,117 +20,115 @@ const createGroup = (
   id: HiraganaGroupId,
   section: HiraganaGroup['section'],
   title: string,
-  accentColor: string,
   entries: Array<[kana: string, romaji: string]>,
 ): HiraganaGroup => ({
   id,
   section,
   title,
-  accentColor,
   romajiPreview: entries.map(([, romaji]) => romaji).join(', '),
   kanaPreview: entries.map(([kana]) => kana).join(''),
   characters: createCharacters(id, entries),
 });
 
-export const baseHiraganaGroups: HiraganaGroup[] = [
-  createGroup('vowels', 'base', 'Vocales', '#66D4FF', [
+const baseHiraganaGroups: HiraganaGroup[] = [
+  createGroup('vowels', 'base', 'Vocales', [
     ['あ', 'a'],
     ['い', 'i'],
     ['う', 'u'],
     ['え', 'e'],
     ['お', 'o'],
   ]),
-  createGroup('k', 'base', 'K', '#7CE8FF', [
+  createGroup('k', 'base', 'K', [
     ['か', 'ka'],
     ['き', 'ki'],
     ['く', 'ku'],
     ['け', 'ke'],
     ['こ', 'ko'],
   ]),
-  createGroup('s', 'base', 'S', '#49C0FF', [
+  createGroup('s', 'base', 'S', [
     ['さ', 'sa'],
     ['し', 'shi'],
     ['す', 'su'],
     ['せ', 'se'],
     ['そ', 'so'],
   ]),
-  createGroup('t', 'base', 'T', '#FFB86B', [
+  createGroup('t', 'base', 'T', [
     ['た', 'ta'],
     ['ち', 'chi'],
     ['つ', 'tsu'],
     ['て', 'te'],
     ['と', 'to'],
   ]),
-  createGroup('n', 'base', 'N', '#7CF3BC', [
+  createGroup('n', 'base', 'N', [
     ['な', 'na'],
     ['に', 'ni'],
     ['ぬ', 'nu'],
     ['ね', 'ne'],
     ['の', 'no'],
   ]),
-  createGroup('h', 'base', 'H', '#FF78C8', [
+  createGroup('h', 'base', 'H', [
     ['は', 'ha'],
     ['ひ', 'hi'],
     ['ふ', 'fu'],
     ['へ', 'he'],
     ['ほ', 'ho'],
   ]),
-  createGroup('m', 'base', 'M', '#73B1FF', [
+  createGroup('m', 'base', 'M', [
     ['ま', 'ma'],
     ['み', 'mi'],
     ['む', 'mu'],
     ['め', 'me'],
     ['も', 'mo'],
   ]),
-  createGroup('y', 'base', 'Y', '#6EE7D5', [
+  createGroup('y', 'base', 'Y', [
     ['や', 'ya'],
     ['ゆ', 'yu'],
     ['よ', 'yo'],
   ]),
-  createGroup('r', 'base', 'R', '#9B8CFF', [
+  createGroup('r', 'base', 'R', [
     ['ら', 'ra'],
     ['り', 'ri'],
     ['る', 'ru'],
     ['れ', 're'],
     ['ろ', 'ro'],
   ]),
-  createGroup('w', 'base', 'W', '#FF8E8E', [
+  createGroup('w', 'base', 'W', [
     ['わ', 'wa'],
     ['を', 'wo'],
     ['ん', 'n'],
   ]),
 ];
 
-export const alteredHiraganaGroups: HiraganaGroup[] = [
-  createGroup('g', 'alternatives', 'G', '#58CCFF', [
+const alteredHiraganaGroups: HiraganaGroup[] = [
+  createGroup('g', 'alternatives', 'G', [
     ['が', 'ga'],
     ['ぎ', 'gi'],
     ['ぐ', 'gu'],
     ['げ', 'ge'],
     ['ご', 'go'],
   ]),
-  createGroup('z', 'alternatives', 'Z', '#44C8FF', [
+  createGroup('z', 'alternatives', 'Z', [
     ['ざ', 'za'],
     ['じ', 'ji'],
     ['ず', 'zu'],
     ['ぜ', 'ze'],
     ['ぞ', 'zo'],
   ]),
-  createGroup('d', 'alternatives', 'D', '#36B6FF', [
+  createGroup('d', 'alternatives', 'D', [
     ['だ', 'da'],
     ['ぢ', 'ji'],
     ['づ', 'zu'],
     ['で', 'de'],
     ['ど', 'do'],
   ]),
-  createGroup('b', 'alternatives', 'B', '#FF87C3', [
+  createGroup('b', 'alternatives', 'B', [
     ['ば', 'ba'],
     ['び', 'bi'],
     ['ぶ', 'bu'],
     ['べ', 'be'],
     ['ぼ', 'bo'],
   ]),
-  createGroup('p', 'alternatives', 'P', '#FFC36B', [
+  createGroup('p', 'alternatives', 'P', [
     ['ぱ', 'pa'],
     ['ぴ', 'pi'],
     ['ぷ', 'pu'],
@@ -139,58 +137,58 @@ export const alteredHiraganaGroups: HiraganaGroup[] = [
   ]),
 ];
 
-export const comboHiraganaGroups: HiraganaGroup[] = [
-  createGroup('kya', 'combos', 'Kya', '#64D8FF', [
+const comboHiraganaGroups: HiraganaGroup[] = [
+  createGroup('kya', 'combos', 'Kya', [
     ['きゃ', 'kya'],
     ['きゅ', 'kyu'],
     ['きょ', 'kyo'],
   ]),
-  createGroup('sha', 'combos', 'Sha', '#59C5FF', [
+  createGroup('sha', 'combos', 'Sha', [
     ['しゃ', 'sha'],
     ['しゅ', 'shu'],
     ['しょ', 'sho'],
   ]),
-  createGroup('cha', 'combos', 'Cha', '#FFB57A', [
+  createGroup('cha', 'combos', 'Cha', [
     ['ちゃ', 'cha'],
     ['ちゅ', 'chu'],
     ['ちょ', 'cho'],
   ]),
-  createGroup('nya', 'combos', 'Nya', '#7FEFC6', [
+  createGroup('nya', 'combos', 'Nya', [
     ['にゃ', 'nya'],
     ['にゅ', 'nyu'],
     ['にょ', 'nyo'],
   ]),
-  createGroup('hya', 'combos', 'Hya', '#FF85CF', [
+  createGroup('hya', 'combos', 'Hya', [
     ['ひゃ', 'hya'],
     ['ひゅ', 'hyu'],
     ['ひょ', 'hyo'],
   ]),
-  createGroup('mya', 'combos', 'Mya', '#76B6FF', [
+  createGroup('mya', 'combos', 'Mya', [
     ['みゃ', 'mya'],
     ['みゅ', 'myu'],
     ['みょ', 'myo'],
   ]),
-  createGroup('rya', 'combos', 'Rya', '#A894FF', [
+  createGroup('rya', 'combos', 'Rya', [
     ['りゃ', 'rya'],
     ['りゅ', 'ryu'],
     ['りょ', 'ryo'],
   ]),
-  createGroup('gya', 'combos', 'Gya', '#3FB7FF', [
+  createGroup('gya', 'combos', 'Gya', [
     ['ぎゃ', 'gya'],
     ['ぎゅ', 'gyu'],
     ['ぎょ', 'gyo'],
   ]),
-  createGroup('ja', 'combos', 'Ja', '#35AFFF', [
+  createGroup('ja', 'combos', 'Ja', [
     ['じゃ', 'ja'],
     ['じゅ', 'ju'],
     ['じょ', 'jo'],
   ]),
-  createGroup('bya', 'combos', 'Bya', '#FF96D0', [
+  createGroup('bya', 'combos', 'Bya', [
     ['びゃ', 'bya'],
     ['びゅ', 'byu'],
     ['びょ', 'byo'],
   ]),
-  createGroup('pya', 'combos', 'Pya', '#FFD080', [
+  createGroup('pya', 'combos', 'Pya', [
     ['ぴゃ', 'pya'],
     ['ぴゅ', 'pyu'],
     ['ぴょ', 'pyo'],
@@ -223,10 +221,6 @@ export const hiraganaSections: HiraganaSection[] = [
     groups: comboHiraganaGroups,
   },
 ];
-
-export const hiraganaBaseCharacters = hiraganaGroups.flatMap(
-  (group) => group.characters,
-);
 
 export function getCharactersForGroupIds(groupIds: HiraganaGroupId[]) {
   return hiraganaGroups

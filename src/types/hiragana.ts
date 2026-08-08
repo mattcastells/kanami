@@ -41,7 +41,6 @@ export type HiraganaGroup = {
   title: string;
   romajiPreview: string;
   kanaPreview: string;
-  accentColor: string;
   characters: HiraganaCharacter[];
 };
 

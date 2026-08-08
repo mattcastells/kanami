@@ -28,7 +28,3 @@ export function getStrokeGuide(character: string): CharacterStroke[] | null {
 /**
  * Get the expected stroke count for a character.
  */
-export function getExpectedStrokeCount(character: string): number | null {
-  const guide = getStrokeGuide(character);
-  return guide ? guide.length : null;
-}

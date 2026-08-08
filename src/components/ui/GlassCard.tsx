@@ -8,9 +8,6 @@ type GlassCardProps = {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
-  // Retained for call-site compatibility; no longer used in the flat design.
-  glowColor?: string;
-  intensity?: number;
 };
 
 export function GlassCard({ children, style, contentStyle }: GlassCardProps) {

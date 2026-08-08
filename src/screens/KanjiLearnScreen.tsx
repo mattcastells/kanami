@@ -86,11 +86,7 @@ export function KanjiLearnScreen({ navigation }: RootStackScreenProps<'KanjiLear
           const entries = KANJI_LIST.filter((k) => k.category === cat.id);
           const accent = CATEGORY_ACCENT[cat.id] ?? activeTheme.colors.accent;
           return (
-            <GlassCard
-              key={cat.id}
-              glowColor={accent}
-              contentStyle={styles.cardContent}
-            >
+            <GlassCard key={cat.id} contentStyle={styles.cardContent}>
               <AppText variant="overline" color={accent}>
                 {cat.label}
               </AppText>

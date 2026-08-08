@@ -98,7 +98,6 @@ export const PROGRESS_MODE_LABELS: Record<string, string> = {
   'word-builder': 'Constructor',
   phrases: 'Frases',
   kanji: 'Kanji',
-  numbers: 'Números',
   times: 'Horarios',
   emoji: 'Imágenes',
   dictation: 'Dictado',
