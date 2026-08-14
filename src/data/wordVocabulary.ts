@@ -515,14 +515,25 @@ function buildWordKanaSyllables(script: KanaScript, kana: string) {
   return kanaSyllables;
 }
 
-function createWordEntry(
-  script: KanaScript,
-  kana: string,
-  translations: string[],
-  category: WordPracticeCategoryId,
-): WordPracticeEntry {
+// Construye una entry derivando las moras (romaji y kana) a partir del kana crudo.
+// El `id` es explícito porque hay más de un dataset que produce entries (el vocabulario
+// genérico de acá y el de las clases en `classVocabulary.ts`), y los ids no pueden
+// colisionar: `progress.json` guarda `word:<entry.id>`.
+export function buildWordPracticeEntry({
+  id,
+  script,
+  kana,
+  translations,
+  category,
+}: {
+  id: string;
+  script: KanaScript;
+  kana: string;
+  translations: string[];
+  category: WordPracticeCategoryId;
+}): WordPracticeEntry {
   return {
-    id: `${script}-${kana}`,
+    id,
     script,
     kana,
     syllables: buildWordSyllables(script, kana),
@@ -530,6 +541,21 @@ function createWordEntry(
     translations,
     category,
   };
+}
+
+function createWordEntry(
+  script: KanaScript,
+  kana: string,
+  translations: string[],
+  category: WordPracticeCategoryId,
+): WordPracticeEntry {
+  return buildWordPracticeEntry({
+    id: `${script}-${kana}`,
+    script,
+    kana,
+    translations,
+    category,
+  });
 }
 
 function createEntriesFromCategories(

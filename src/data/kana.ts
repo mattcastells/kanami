@@ -5,6 +5,10 @@ import {
 } from './hiragana';
 import { katakanaGroups, katakanaSections, getKatakanaCharactersForGroupIds } from './katakana';
 import {
+  getClassWordCategorySummaries,
+  getClassWordPracticeEntries,
+} from './classVocabulary';
+import {
   getWordPracticeCategorySummaries,
   getWordPracticeEntries,
 } from './wordVocabulary';
@@ -42,13 +46,42 @@ export function getKanaCharactersForGroupIds(
     : getHiraganaCharactersForGroupIds(groupIds);
 }
 
+// El pool de práctica son DOS mazos que conviven: el vocabulario genérico de
+// `wordVocabulary.ts` (drill de kana, y el único que alimenta el SRS) y el de la cursada
+// en `classVocabulary.ts`. La unión se hace acá, en el facade, justamente para que
+// `srsStore` —que importa `wordVocabulary` directo— siga viendo solo el genérico.
 export function getKanaWordEntries(
   script: KanaScript,
   categoryIds?: WordPracticeCategoryId[],
 ) {
-  return getWordPracticeEntries(script, categoryIds);
+  return [
+    ...getWordPracticeEntries(script, categoryIds),
+    ...getClassWordPracticeEntries(script, categoryIds),
+  ];
 }
 
 export function getKanaWordCategorySummaries(script: KanaScript) {
-  return getWordPracticeCategorySummaries(script);
+  return [
+    ...getClassWordCategorySummaries(script),
+    ...getWordPracticeCategorySummaries(script),
+  ];
+}
+
+// Las categorías agrupadas por mazo, para que la pantalla de vocabulario pueda
+// distinguir "lo de tus clases" de "lo general".
+export function getKanaWordCategoryGroups(script: KanaScript) {
+  return [
+    {
+      id: 'clase' as const,
+      title: 'De tus clases',
+      note: 'Lo que viste en las clases 1 a 16',
+      categories: getClassWordCategorySummaries(script),
+    },
+    {
+      id: 'general' as const,
+      title: 'General',
+      note: 'Vocabulario extra para practicar kana',
+      categories: getWordPracticeCategorySummaries(script),
+    },
+  ].filter((group) => group.categories.length > 0);
 }

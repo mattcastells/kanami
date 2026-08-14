@@ -1,5 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import { ClassVocabCategoryId } from '../data/classVocabulary';
 import { HiraganaGroupId } from './hiragana';
 import { KanaScript, PracticeMode, WordPracticeCategoryId } from './game';
 import { KanjiCategoryId, KanjiPracticeMode } from './kanji';
@@ -11,6 +12,9 @@ export type RootStackParamList = {
   ClassNotes: undefined;
   ClassNote: { classNumber: number };
   QuickReview: undefined;
+  // Vocabulario de la cursada, de consulta (pestaña Estudiar). No confundir con
+  // `Vocabulary`, que es el lanzador de juegos de vocabulario (pestaña Practicar).
+  VocabularyList: { categoryId?: ClassVocabCategoryId } | undefined;
   KanaGroups: {
     script: KanaScript;
     initialMode?: PracticeMode;

@@ -7,7 +7,7 @@ import { AppText } from '../components/ui/AppText';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
-import { getKanaWordCategorySummaries } from '../data/kana';
+import { getKanaWordCategoryGroups } from '../data/kana';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
 import { PracticeMode, WordPracticeCategoryId } from '../types/game';
@@ -46,18 +46,29 @@ export function VocabularyScreen({
 }: RootStackScreenProps<'Vocabulary'>) {
   const { theme: activeTheme } = useAppTheme();
 
+  const groups = useMemo(() => getKanaWordCategoryGroups(VOCAB_SCRIPT), []);
   const categories = useMemo(
-    () => getKanaWordCategorySummaries(VOCAB_SCRIPT),
-    [],
+    () => groups.flatMap((group) => group.categories),
+    [groups],
   );
   const allCategoryIds = useMemo(
     () => categories.map((category) => category.id),
     [categories],
   );
 
+  // Por defecto arranca con el vocabulario de la cursada: es lo que se está estudiando.
+  // El mazo genérico queda a un toque de distancia para drillear kana.
+  const defaultCategoryIds = useMemo(
+    () =>
+      (groups.find((group) => group.id === 'clase')?.categories ?? categories).map(
+        (category) => category.id,
+      ),
+    [groups, categories],
+  );
+
   const [selectedGame, setSelectedGame] = useState<PracticeMode>('syllables');
   const [selectedCategoryIds, setSelectedCategoryIds] =
-    useState<WordPracticeCategoryId[]>(allCategoryIds);
+    useState<WordPracticeCategoryId[]>(defaultCategoryIds);
   const [sessionLength, setSessionLength] = useState<number | undefined>(10);
 
   const allSelected = selectedCategoryIds.length === categories.length;
@@ -153,17 +164,25 @@ export function VocabularyScreen({
             </AppText>
           </Pressable>
         </View>
-        <View style={styles.list}>
-          {categories.map((category) => (
-            <WordCategoryCard
-              key={category.id}
-              title={category.label}
-              count={category.count}
-              selected={selectedCategoryIds.includes(category.id)}
-              onPress={() => toggleCategory(category.id)}
-            />
-          ))}
-        </View>
+        {groups.map((group) => (
+          <View key={group.id} style={styles.group}>
+            <AppText variant="bodyStrong">{group.title}</AppText>
+            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+              {group.note}
+            </AppText>
+            <View style={styles.list}>
+              {group.categories.map((category) => (
+                <WordCategoryCard
+                  key={category.id}
+                  title={category.label}
+                  count={category.count}
+                  selected={selectedCategoryIds.includes(category.id)}
+                  onPress={() => toggleCategory(category.id)}
+                />
+              ))}
+            </View>
+          </View>
+        ))}
       </View>
 
       <View style={styles.section}>
@@ -244,6 +263,10 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.pill,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xxs,
+  },
+  group: {
+    marginTop: theme.spacing.md,
+    gap: 2,
   },
   list: {
     marginTop: theme.spacing.xs,

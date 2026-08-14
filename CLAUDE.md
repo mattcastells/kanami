@@ -76,13 +76,29 @@ src/
   KanjiPractice, KanjiDraw, KanjiGame, **EmojiGame** (matcheo palabra↔emoji), **TimesGame**
   (leer/escribir horarios 〜時〜分).
 - **学 Estudiar** (`StudyTab`) → stack: StudyTopics, StudyTopic, **ClassNotes** (Mis clases),
-  **ClassNote** (apunte de una clase), **QuickReview** (Repaso rápido). Los apuntes y el repaso
-  se generan desde `content/*.md` con `npm run clases:generate` → `src/data/classNotes.generated.ts`
-  (nunca editar el generado). Ver skill `kanami-clases`.
+  **ClassNote** (apunte de una clase), **QuickReview** (Repaso rápido), **VocabularyList**
+  (Vocabulario de consulta). Los apuntes y el repaso se generan desde `content/*.md` con
+  `npm run clases:generate` → `src/data/classNotes.generated.ts` (nunca editar el generado).
+  Ver skill `kanami-clases`.
 - **話 Kyary** (`KyaryTab`) → chat con IA.
 - **私 Perfil** (`ProfileTab`) → `ProfileScreen` = `OptionsScreen`, que hoy muestra la
   `ProgressCard` (progreso persistente + export/import) además de tema/haptics/updater.
   Cruzar de tab con `navigation.getParent()`.
+
+### Los dos mazos de vocabulario (no mezclarlos)
+
+- `wordVocabulary.ts` — vocabulario **genérico** para drillear kana (~200). Es el único que
+  alimenta el mazo de repaso espaciado: `buildSrsDeck()` lo importa **directo**.
+- `classVocabulary.ts` — vocabulario **de la cursada** (~300): lo visto en las clases 1–16 más
+  la sección Vocabulario de Notion. Trae kanji, romaji, nota y `classes` (trazabilidad).
+  Pantalla de consulta: `VocabularyList` en Estudiar.
+- La unión de ambos para práctica se hace en el facade `kana.ts` (`getKanaWordEntries`,
+  `getKanaWordCategoryGroups`). **Esa es la razón de que el SRS no se contamine**: si algún día
+  querés que el vocabulario de clase entre al repaso espaciado, el cambio va en `srsStore`, no acá.
+- Las categorías de clase van prefijadas `clase-*` en `WordPracticeCategoryId` porque varios
+  nombres se repiten entre mazos (objetos, lugares, personas, hobbies).
+- Solo entra a práctica lo que es una palabra de un solo silabario y de 2 a 6 moras: las frases
+  (ありがとうございます), los sufijos (〜ご) y lo mixto (スペインご) quedan solo en la consulta.
 
 ### Kana mixto y progreso
 

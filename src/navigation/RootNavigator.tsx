@@ -25,6 +25,7 @@ import { QuickReviewScreen } from '../screens/QuickReviewScreen';
 import { StudyTopicScreen } from '../screens/StudyTopicScreen';
 import { StudyTopicsScreen } from '../screens/StudyTopicsScreen';
 import { TimesGameScreen } from '../screens/TimesGameScreen';
+import { VocabularyListScreen } from '../screens/VocabularyListScreen';
 import { VocabularyScreen } from '../screens/VocabularyScreen';
 
 // Tabs: 練 Practicar · 学 Estudiar · 話 Kyary · 私 Perfil
@@ -69,6 +70,7 @@ function StudyNavigator() {
       <StudyStack.Screen name="ClassNotes" component={ClassNotesScreen} />
       <StudyStack.Screen name="ClassNote" component={ClassNoteScreen} />
       <StudyStack.Screen name="QuickReview" component={QuickReviewScreen} />
+      <StudyStack.Screen name="VocabularyList" component={VocabularyListScreen} />
     </StudyStack.Navigator>
   );
 }

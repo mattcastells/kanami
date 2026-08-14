@@ -4,6 +4,7 @@ import { AnimatedRow } from '../components/ui/AnimatedRow';
 import { AppText } from '../components/ui/AppText';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { CLASS_NOTES } from '../data/classNotes.generated';
+import { classVocabTotal } from '../data/classVocabulary';
 import { studyTopics } from '../data/studyTopics';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
@@ -41,6 +42,34 @@ export function StudyTopicsScreen({ navigation }: RootStackScreenProps<'StudyTop
             <AppText variant="bodyStrong">Repaso rápido</AppText>
             <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
               Lo esencial de todas las clases
+            </AppText>
+          </View>
+          <AppText variant="body" color={activeTheme.colors.textMuted}>
+            ›
+          </AppText>
+        </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate('VocabularyList')}
+          style={({ pressed }) => [
+            styles.shortcutCard,
+            {
+              borderColor: activeTheme.colors.line,
+              backgroundColor: activeTheme.colors.backgroundSecondary,
+            },
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppText
+            variant="headline"
+            style={[styles.shortcutGlyph, { color: activeTheme.colors.accent }]}
+          >
+            語
+          </AppText>
+          <View style={styles.rowText}>
+            <AppText variant="bodyStrong">Vocabulario</AppText>
+            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+              {classVocabTotal} palabras de todas las clases
             </AppText>
           </View>
           <AppText variant="body" color={activeTheme.colors.textMuted}>
