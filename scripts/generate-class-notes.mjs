@@ -14,15 +14,22 @@
 //   > cita                            (ejemplo o estructura gramatical)
 //   - item                            (lista)
 //   ⚠️ / 💡 / 📝 texto                (nota destacada)
+//   ![epígrafe](archivo.png)          (imagen; el archivo va en assets/clases/)
 //   texto suelto                      (párrafo)
 
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const SOURCE_DIR = 'content/clases';
-const REVIEW_FILE = 'content/repaso.md';
 const OUTPUT_FILE = 'src/data/classNotes.generated.ts';
+const IMAGES_DIR = 'assets/clases';
+const IMAGES_OUTPUT_FILE = 'src/data/classImages.generated.ts';
 const NOTE_PREFIXES = ['⚠️', '💡', '📝'];
+// ![epígrafe](archivo.png) — el epígrafe es opcional.
+const IMAGE_PATTERN = /^!\[([^\]]*)\]\(([^)\s]+)\)$/;
+
+// Nombres de archivo usados por los apuntes: alimentan el mapa de require() estáticos.
+const usedImages = new Set();
 
 function parseHeading(line) {
   // "Título | japonés" -> { title, titleJp }
@@ -192,6 +199,23 @@ function parseClassFile(filePath) {
       continue;
     }
 
+    // Imagen. Se valida acá y no en runtime: si el archivo falta, es mejor romper
+    // la generación que publicar un apunte con un hueco silencioso.
+    const imageMatch = trimmed.match(IMAGE_PATTERN);
+    if (imageMatch) {
+      flush();
+      const [, alt, source] = imageMatch;
+      if (!existsSync(path.join(IMAGES_DIR, source))) {
+        throw new Error(
+          `${filePath}: la imagen "${source}" no existe en ${IMAGES_DIR}/.`,
+        );
+      }
+      usedImages.add(source);
+      section.blocks.push({ kind: 'image', source, alt: alt.trim() });
+      index += 1;
+      continue;
+    }
+
     // Nota destacada (⚠️ trampa, 💡 dato, 📝 tarea).
     const notePrefix = NOTE_PREFIXES.find((prefix) => trimmed.startsWith(prefix));
     if (notePrefix) {
@@ -228,20 +252,43 @@ function parseClassNote(filePath) {
   return note;
 }
 
-function serialize(notes, review) {
+function serialize(notes) {
   return `// GENERADO — no editar a mano.
-// Fuentes: ${SOURCE_DIR}/kurasu-NN.md · ${REVIEW_FILE}
+// Fuente: ${SOURCE_DIR}/kurasu-NN.md
 // Regenerar con: npm run clases:generate
 //
-// Los apuntes de clase son la transcripción de las clases reales (Notion 日本語 | Nihongo
-// > Clases) y la hoja de repaso es su resumen consolidado. Editá el markdown y volvé a
-// correr el script; nunca este archivo.
+// Los apuntes son la transcripción de las clases reales (Notion 日本語 | Nihongo > Clases).
+// Editá el markdown y volvé a correr el script; nunca este archivo.
+//
+// La hoja de repaso global se quitó el 2026-08-16: el repaso ahora es por clase
+// (ClassQuizScreen, armado con el vocabulario de esa clase).
 
 import { ClassNote } from '../types/classNotes';
 
 export const CLASS_NOTES: ClassNote[] = ${JSON.stringify(notes, null, 2)};
+`;
+}
 
-export const QUICK_REVIEW: ClassNote = ${JSON.stringify(review, null, 2)};
+// Metro resuelve los assets en tiempo de build: el require() tiene que ser un literal.
+// Por eso el mapa se genera en vez de armarse con una ruta dinámica.
+function serializeImages(sources) {
+  const entries = [...sources]
+    .sort()
+    .map((source) => `  '${source}': require('../../${IMAGES_DIR}/${source}'),`)
+    .join('\n');
+
+  return `// GENERADO — no editar a mano.
+// Fuente: los \`![epígrafe](archivo.png)\` de ${SOURCE_DIR}/*.md.
+// Regenerar con: npm run clases:generate
+//
+// Los archivos viven en ${IMAGES_DIR}/. Metro necesita un require() literal por imagen,
+// así que el mapa se genera en vez de construir la ruta en runtime.
+
+import { ImageSourcePropType } from 'react-native';
+
+export const CLASS_IMAGES: Record<string, ImageSourcePropType> = {
+${entries}
+};
 `;
 }
 
@@ -254,9 +301,8 @@ function main() {
     .map((name) => parseClassNote(path.join(SOURCE_DIR, name)))
     .sort((a, b) => a.number - b.number);
 
-  const review = parseClassFile(REVIEW_FILE);
-
-  writeFileSync(OUTPUT_FILE, serialize(notes, review), 'utf8');
+  writeFileSync(OUTPUT_FILE, serialize(notes), 'utf8');
+  writeFileSync(IMAGES_OUTPUT_FILE, serializeImages(usedImages), 'utf8');
 
   const blocks = notes.reduce(
     (total, note) => total + note.sections.reduce((n, s) => n + s.blocks.length, 0),
@@ -266,7 +312,7 @@ function main() {
     `Escritas ${notes.length} clases (${notes.map((n) => n.number).join(', ')}) — ` +
       `${notes.reduce((n, note) => n + note.sections.length, 0)} secciones, ${blocks} bloques.`,
   );
-  console.log(`Hoja de repaso: ${review.sections.length} secciones.`);
+  console.log(`Imágenes referenciadas: ${usedImages.size}.`);
 }
 
 main();

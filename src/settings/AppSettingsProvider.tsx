@@ -20,6 +20,9 @@ type AppSettings = {
   // Recordatorio diario (notificación local).
   reminderEnabled: boolean;
   reminderHour: number; // 0-23
+  // Mostrar la traducción debajo del prompt en los modos de vocabulario. Es una ayuda:
+  // se persiste para no tener que volver a activarla en cada partida.
+  wordHintEnabled: boolean;
 };
 
 type AppSettingsContextValue = {
@@ -29,6 +32,7 @@ type AppSettingsContextValue = {
   setGeminiApiKey: (key: string) => void;
   setReminderEnabled: (enabled: boolean) => void;
   setReminderHour: (hour: number) => void;
+  setWordHintEnabled: (enabled: boolean) => void;
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -37,6 +41,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   geminiApiKey: '',
   reminderEnabled: false,
   reminderHour: 20,
+  wordHintEnabled: false,
 };
 
 const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
@@ -128,6 +133,14 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     }));
   }, []);
 
+  const setWordHintEnabled = useCallback((enabled: boolean) => {
+    userTouchedRef.current = true;
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      wordHintEnabled: enabled,
+    }));
+  }, []);
+
   const value = useMemo(
     () => ({
       settings,
@@ -136,6 +149,7 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
       setGeminiApiKey,
       setReminderEnabled,
       setReminderHour,
+      setWordHintEnabled,
     }),
     [
       setGeminiApiKey,
@@ -143,6 +157,7 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
       setReminderEnabled,
       setReminderHour,
       setThemeMode,
+      setWordHintEnabled,
       settings,
     ],
   );
@@ -191,6 +206,7 @@ function normalizeSettings(value: unknown): AppSettings {
       typeof record.geminiApiKey === 'string' ? record.geminiApiKey : '',
     reminderEnabled: record.reminderEnabled === true,
     reminderHour,
+    wordHintEnabled: record.wordHintEnabled === true,
   };
 }
 

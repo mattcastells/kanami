@@ -10,6 +10,9 @@ type AppTextProps = {
   color?: string;
   style?: StyleProp<TextStyle>;
   numberOfLines?: number;
+  // Ponelo en false donde el alto del contenedor es fijo y el escalado de fuente
+  // del sistema recortaría el texto (por ejemplo, la barra de tabs).
+  allowFontScaling?: boolean;
 };
 
 const variantStyles = StyleSheet.create(theme.typography);
@@ -20,12 +23,14 @@ export function AppText({
   color,
   style,
   numberOfLines,
+  allowFontScaling,
 }: AppTextProps) {
   const { theme: activeTheme } = useAppTheme();
 
   return (
     <Text
       numberOfLines={numberOfLines}
+      allowFontScaling={allowFontScaling}
       style={[
         variantStyles[variant],
         { color: color ?? activeTheme.colors.textPrimary },

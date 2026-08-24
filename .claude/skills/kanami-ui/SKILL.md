@@ -98,7 +98,7 @@ ajustar el tamaño de un variant, pasá `style={{ fontSize: ... }}` sobre `AppTe
 - Estilos dependientes del theme van inline en el array de `style`, no en el `StyleSheet`.
 - Nada de `console.*`, imports sin usar ni estilos huérfanos.
 - Animaciones: `Animated` de RN con `useNativeDriver: true` cuando se pueda, duraciones cortas
-  (120-260ms), `Easing.out(Easing.cubic)`. Ver `HomeScreen.tsx:47-72` (entrada escalonada).
+  (120-260ms), `Easing.out(Easing.cubic)`. Ver `AnimatedRow` (entrada escalonada), usado por `PracticeScreen` y `StudyTopicsScreen`.
 
 ## Errores a evitar
 

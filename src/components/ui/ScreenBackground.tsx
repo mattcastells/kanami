@@ -1,5 +1,6 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import {
+  LayoutChangeEvent,
   Pressable,
   ScrollView,
   StyleProp,
@@ -37,13 +38,25 @@ export function ScreenBackground({
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const canGoBack = showBack && navigation.canGoBack();
+  // El overlay se mide en vez de asumir un alto fijo: una barra con resumen mide
+  // bastante más que una sin él, y un valor fijo tapaba la última fila.
+  const [overlayHeight, setOverlayHeight] = useState(96);
 
   // Top inset keeps content clear of the status bar / notch. The bottom is
   // owned by the tab bar (every screen lives inside a tab), so we don't add a
   // bottom safe-area inset here — doing so left a dead band that clipped the
   // last card.
   const topPadding = insets.top + (canGoBack ? 52 : theme.spacing.sm);
-  const bottomOverlayPadding = bottomOverlay ? 82 + Math.max(insets.bottom, 6) : 0;
+  const bottomOverlayPadding = bottomOverlay
+    ? overlayHeight + theme.spacing.md
+    : 0;
+
+  const handleOverlayLayout = (event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    if (height > 0 && Math.abs(height - overlayHeight) > 1) {
+      setOverlayHeight(height);
+    }
+  };
 
   const contentStyle = [
     styles.content,
@@ -96,7 +109,11 @@ export function ScreenBackground({
       )}
 
       {bottomOverlay ? (
-        <View pointerEvents="box-none" style={styles.bottomOverlayWrap}>
+        <View
+          pointerEvents="box-none"
+          onLayout={handleOverlayLayout}
+          style={styles.bottomOverlayWrap}
+        >
           {bottomOverlay}
         </View>
       ) : null}
@@ -135,7 +152,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.xl,
   },
+  // Anclado abajo y no a pantalla completa: así el onLayout devuelve el alto real
+  // del overlay y no el de la pantalla.
   bottomOverlayWrap: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });

@@ -19,16 +19,18 @@ const HOUR_READINGS: Record<number, string> = {
 };
 
 // Lecturas de los minutos (〜分) para el set cubierto, con los cambios ぷん/ふん.
-const MINUTE_READINGS: Record<number, string> = {
-  0: '',
-  5: 'ごふん',
-  10: 'じゅっぷん',
-  15: 'じゅうごふん',
-  20: 'にじゅっぷん',
-  30: 'さんじゅっぷん',
-  40: 'よんじゅっぷん',
-  45: 'よんじゅうごふん',
-  50: 'ごじゅっぷん',
+// Los :30 tienen DOS lecturas igual de válidas: 〜さんじゅっぷん y 〜はん ("y media").
+// Por eso el valor es una lista: la primera es la canónica, el resto son equivalentes.
+const MINUTE_READINGS: Record<number, string[]> = {
+  0: [''],
+  5: ['ごふん'],
+  10: ['じゅっぷん'],
+  15: ['じゅうごふん'],
+  20: ['にじゅっぷん'],
+  30: ['さんじゅっぷん', 'はん'],
+  40: ['よんじゅっぷん'],
+  45: ['よんじゅうごふん'],
+  50: ['ごじゅっぷん'],
 };
 
 const HOURS = Object.keys(HOUR_READINGS).map(Number);
@@ -39,11 +41,14 @@ export type TimeEntry = {
   hour: number;
   minute: number;
   display: string;
-  reading: string;
+  // Todas las lecturas válidas de esta hora; `readings[0]` es la canónica.
+  readings: string[];
 };
 
-function buildReading(hour: number, minute: number): string {
-  return HOUR_READINGS[hour] + (minute === 0 ? '' : MINUTE_READINGS[minute]);
+function buildReadings(hour: number, minute: number): string[] {
+  return MINUTE_READINGS[minute].map(
+    (minuteReading) => HOUR_READINGS[hour] + minuteReading,
+  );
 }
 
 function buildDisplay(hour: number, minute: number): string {
@@ -56,7 +61,7 @@ export const TIMES_POOL: TimeEntry[] = HOURS.flatMap((hour) =>
     hour,
     minute,
     display: buildDisplay(hour, minute),
-    reading: buildReading(hour, minute),
+    readings: buildReadings(hour, minute),
   })),
 );
 
@@ -69,7 +74,10 @@ export type TimesRound = {
   options: TimesOption[];
   correctOptionId: string;
   display: string;
+  // La lectura que le tocó a esta ronda (para :30 puede ser la de 〜ぷん o la de 〜はん).
   reading: string;
+  // Las otras lecturas válidas de la misma hora, para mostrarlas al responder.
+  alternateReadings: string[];
 };
 
 export type TimesSessionState = {
@@ -103,11 +111,15 @@ export function createTimesRound(
 
   const correct = pickRandom(promptPool);
   const optionsAreReading = mode === 'time-to-reading';
-  // Distractores que no muestren el mismo texto que la respuesta correcta.
+  // Para :30 sale a veces 〜さんじゅっぷん y a veces 〜はん: las dos hay que saberlas.
+  const correctReading = pickRandom(correct.readings);
+
+  // Los distractores no pueden compartir NINGUNA lectura con la correcta: si no, en
+  // un :30 podría aparecer la forma equivalente como opción "incorrecta".
   const distractors = shuffle(
     TIMES_POOL.filter((entry) =>
       optionsAreReading
-        ? entry.reading !== correct.reading
+        ? !entry.readings.some((reading) => correct.readings.includes(reading))
         : entry.display !== correct.display,
     ),
   ).slice(0, 3);
@@ -115,18 +127,25 @@ export function createTimesRound(
   const options: TimesOption[] = shuffle([correct, ...distractors]).map(
     (entry) => ({
       id: entry.id,
-      text: optionsAreReading ? entry.reading : entry.display,
+      text: optionsAreReading
+        ? entry.id === correct.id
+          ? correctReading
+          : entry.readings[0]
+        : entry.display,
     }),
   );
 
   return {
     entryId: correct.id,
-    promptText: optionsAreReading ? correct.display : correct.reading,
+    promptText: optionsAreReading ? correct.display : correctReading,
     promptIsReading: !optionsAreReading,
     options,
     correctOptionId: correct.id,
     display: correct.display,
-    reading: correct.reading,
+    reading: correctReading,
+    alternateReadings: correct.readings.filter(
+      (reading) => reading !== correctReading,
+    ),
   };
 }
 

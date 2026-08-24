@@ -7,7 +7,10 @@ export type ClassBlock =
   | { kind: 'list'; items: string[] }
   | { kind: 'quote'; lines: string[] }
   | { kind: 'note'; tone: string; text: string }
-  | { kind: 'table'; headers: string[]; rows: string[][] };
+  | { kind: 'table'; headers: string[]; rows: string[][] }
+  // `source` es el nombre de archivo dentro de assets/clases/. El require() estático
+  // que Metro necesita se genera en src/data/classImages.generated.ts.
+  | { kind: 'image'; source: string; alt: string };
 
 export type ClassSection = {
   id: string;

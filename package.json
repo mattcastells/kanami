@@ -11,6 +11,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "clases:generate": "node ./scripts/generate-class-notes.mjs",
+    "kanji:generate": "node ./scripts/generate-kanji-links.mjs",
+    "kanji:strokes": "node ./scripts/generate-kana-strokes.mjs --only=kanji",
     "release:set-version": "node ./scripts/set-release-version.mjs",
     "release:prepare-android": "node ./scripts/configure-android-release.mjs"
   },

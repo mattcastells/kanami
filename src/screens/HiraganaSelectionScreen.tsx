@@ -1,95 +1,181 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
-import { GroupSelectorCard } from '../components/practice/GroupSelectorCard';
-import { ModeSelectorCard } from '../components/practice/ModeSelectorCard';
-import { PracticeVariantCard } from '../components/practice/PracticeVariantCard';
+import { CheckRow } from '../components/practice/CheckRow';
+import { ModeTile } from '../components/practice/ModeTile';
+import { SelectChip } from '../components/practice/SelectChip';
+import { StartBar } from '../components/practice/StartBar';
 import { AnimatedCollapsible } from '../components/ui/AnimatedCollapsible';
 import { AppText } from '../components/ui/AppText';
-import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
-import { getKanaGroups, getKanaScriptLabel, getKanaSections } from '../data/kana';
+import {
+  getKanaCharactersForGroupIds,
+  getKanaGroups,
+  getKanaScriptLabel,
+  getKanaSections,
+} from '../data/kana';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
-import { PracticeMode } from '../types/game';
+import { KanaScript, PracticeMode } from '../types/game';
 import { HiraganaGroupId, HiraganaSectionId } from '../types/hiragana';
 import { RootStackScreenProps } from '../types/navigation';
 
+const SCRIPTS: { script: KanaScript; label: string }[] = [
+  { script: 'hiragana', label: 'Hiragana' },
+  { script: 'katakana', label: 'Katakana' },
+  { script: 'mixed', label: 'Mixto' },
+];
+
+type ModeMeta = {
+  mode: PracticeMode;
+  glyph: string;
+  title: string;
+  cta: string;
+  ctaInverted?: string;
+  note: string;
+  // Descripción del switch invertido; ausente = el modo no lo soporta.
+  invertedNote?: (scriptLabel: string) => string;
+};
+
+const MODES: ModeMeta[] = [
+  {
+    mode: 'reading',
+    glyph: '読',
+    title: 'Lectura',
+    cta: 'COMENZAR LECTURA',
+    ctaInverted: 'COMENZAR LECTURA INVERSA',
+    note: 'Ves el carácter y elegís cómo se lee.',
+    invertedNote: (script) => `Muestra el romaji y elegís el ${script}.`,
+  },
+  {
+    mode: 'writing',
+    glyph: '書',
+    title: 'Escritura',
+    cta: 'COMENZAR ESCRITURA',
+    ctaInverted: 'COMENZAR ESCRITURA INVERSA',
+    note: 'Ves el carácter y escribís su lectura.',
+    invertedNote: (script) => `Muestra el romaji y escribís el ${script}.`,
+  },
+  {
+    mode: 'drawing',
+    glyph: '描',
+    title: 'Dibujo',
+    cta: 'COMENZAR DIBUJO',
+    note: 'Dibujás el carácter en el pizarrón siguiendo el orden de trazos.',
+  },
+  {
+    mode: 'phrases',
+    glyph: '文',
+    title: 'Frases',
+    cta: 'COMENZAR FRASES',
+    ctaInverted: 'COMENZAR FRASES INVERSAS',
+    note: 'Leés una frase entera y escribís su transcripción. No usa los grupos.',
+    invertedNote: (script) => `Muestra la frase en romaji y la escribís en ${script}.`,
+  },
+];
+
 // Esta pantalla practica el silabario (kana): lectura, escritura, dibujo y frases.
 // El vocabulario (palabra guiada / completar / constructor) vive en VocabularyScreen.
+//
+// El orden es deliberado: primero el modo, después el contenido. El contenido arranca
+// entero seleccionado para que el botón de arranque nunca esté muerto.
 export function HiraganaSelectionScreen({
   navigation,
   route,
 }: RootStackScreenProps<'KanaGroups'>) {
-  const scriptLabel = getKanaScriptLabel(route.params.script);
+  const { theme: activeTheme } = useAppTheme();
+  // El silabario se elige ACÁ, no en la pantalla anterior. "Mixto" era un tile suelto en
+  // la grilla de práctica, pero no es otro modo: es la misma práctica con los dos
+  // silabarios juntos. Como variante vive mejor adentro que ocupando un lugar afuera.
+  const [script, setScript] = useState<KanaScript>(route.params.script);
+  const scriptLabel = getKanaScriptLabel(script);
   const scriptLabelLowercase = scriptLabel.toLowerCase();
-  const availableSections = getKanaSections(route.params.script);
-  const availableGroups = getKanaGroups(route.params.script);
-  const initialExpandedSections = useMemo(
+
+  const availableSections = getKanaSections(script);
+  const availableGroups = getKanaGroups(script);
+  const allGroupIds = useMemo(
+    () => availableGroups.map((group) => group.id),
+    [availableGroups],
+  );
+  const baseGroupIds = useMemo(
     () =>
-      availableSections.reduce(
-        (accumulator, section) => ({
-          ...accumulator,
-          [section.id]: section.defaultExpanded,
-        }),
-        {} as Record<HiraganaSectionId, boolean>,
-      ),
+      availableSections
+        .find((section) => section.id === 'base')
+        ?.groups.map((group) => group.id) ?? [],
     [availableSections],
   );
-  const [selectedGroupIds, setSelectedGroupIds] = useState<HiraganaGroupId[]>([]);
+
+  const [selectedGroupIds, setSelectedGroupIds] =
+    useState<HiraganaGroupId[]>(allGroupIds);
   const [selectedMode, setSelectedMode] = useState<PracticeMode>(
     route.params.initialMode ?? 'reading',
   );
   const [invertedMode, setInvertedMode] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Record<HiraganaSectionId, boolean>>(
-    initialExpandedSections,
-  );
-  const { theme: activeTheme, mode } = useAppTheme();
-  const isDark = mode === 'dark';
-  const isDrawingMode = selectedMode === 'drawing';
-  const isMixedScript = route.params.script === 'mixed';
-  const supportsInvertedMode =
-    selectedMode === 'reading' ||
-    // En mixto, escritura invertida (romaji→kana) sería ambigua: no se sabe qué
-    // silabario escribir. Se permite en un solo silabario.
-    (selectedMode === 'writing' && !isMixedScript) ||
-    selectedMode === 'phrases';
-  const allSelected = selectedGroupIds.length === availableGroups.length;
-  const canStartPractice =
-    selectedMode === 'phrases' ? true : selectedGroupIds.length > 0;
+  const [expandedSections, setExpandedSections] = useState<
+    Record<HiraganaSectionId, boolean>
+  >({ base: false, alternatives: false, combos: false });
 
+  const isMixedScript = script === 'mixed';
+  const modeMeta =
+    MODES.find((item) => item.mode === selectedMode) ?? MODES[0];
+  // En mixto, escritura invertida (romaji→kana) sería ambigua: no se sabe qué
+  // silabario escribir. Se permite en un solo silabario.
+  const supportsInvertedMode = Boolean(
+    modeMeta.invertedNote && !(selectedMode === 'writing' && isMixedScript),
+  );
+  const usesGroups = selectedMode !== 'phrases';
+  const canStart = !usesGroups || selectedGroupIds.length > 0;
+
+  const selectedCharacterCount = useMemo(
+    () => getKanaCharactersForGroupIds(script, selectedGroupIds).length,
+    [script, selectedGroupIds],
+  );
+
+  // Cambiar de silabario cambia los grupos disponibles, así que la selección vuelve a
+  // cero. También apaga el modo invertido: en mixto no siempre está permitido.
   useEffect(() => {
-    setSelectedGroupIds([]);
+    setSelectedGroupIds(allGroupIds);
     setSelectedMode(route.params.initialMode ?? 'reading');
     setInvertedMode(false);
-    setExpandedSections(initialExpandedSections);
-  }, [initialExpandedSections, route.params.initialMode, route.params.script]);
+    setExpandedSections({ base: false, alternatives: false, combos: false });
+  }, [allGroupIds, route.params.initialMode, script]);
 
   const toggleGroup = (groupId: HiraganaGroupId) => {
-    setSelectedGroupIds((currentGroupIds) =>
-      currentGroupIds.includes(groupId)
-        ? currentGroupIds.filter((currentGroupId) => currentGroupId !== groupId)
-        : [...currentGroupIds, groupId],
+    setSelectedGroupIds((current) =>
+      current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId],
     );
+  };
+
+  const toggleSectionSelection = (groupIds: HiraganaGroupId[]) => {
+    setSelectedGroupIds((current) => {
+      const allSelected = groupIds.every((id) => current.includes(id));
+      if (allSelected) {
+        return current.filter((id) => !groupIds.includes(id));
+      }
+      const next = [...current];
+      groupIds.forEach((id) => {
+        if (!next.includes(id)) next.push(id);
+      });
+      return next;
+    });
   };
 
   const selectMode = (nextMode: PracticeMode) => {
     setSelectedMode(nextMode);
-
-    if (nextMode !== 'reading' && nextMode !== 'writing' && nextMode !== 'phrases') {
+    const next = MODES.find((item) => item.mode === nextMode);
+    if (!next?.invertedNote) {
       setInvertedMode(false);
     }
   };
 
   const startPractice = () => {
-    if (!canStartPractice) {
-      return;
-    }
-
+    if (!canStart) return;
     navigation.navigate('KanaGame', {
-      script: route.params.script,
+      script,
       selectedGroupIds,
       selectedWordCategoryIds: [],
       mode: selectedMode,
@@ -97,432 +183,325 @@ export function HiraganaSelectionScreen({
     });
   };
 
-  const toggleSection = (sectionId: HiraganaSectionId) => {
-    setExpandedSections((currentSections) => ({
-      ...currentSections,
-      [sectionId]: !currentSections[sectionId],
-    }));
-  };
-
-  const toggleSectionSelection = (groupIds: HiraganaGroupId[]) => {
-    setSelectedGroupIds((currentGroupIds) => {
-      const areAllSelected = groupIds.every((groupId) =>
-        currentGroupIds.includes(groupId),
-      );
-
-      if (areAllSelected) {
-        return currentGroupIds.filter((groupId) => !groupIds.includes(groupId));
-      }
-
-      const nextGroupIds = [...currentGroupIds];
-
-      groupIds.forEach((groupId) => {
-        if (!nextGroupIds.includes(groupId)) {
-          nextGroupIds.push(groupId);
-        }
-      });
-
-      return nextGroupIds;
-    });
-  };
+  const invertedActive = supportsInvertedMode && invertedMode;
+  const presetIsAll = selectedGroupIds.length === allGroupIds.length;
+  const presetIsBase =
+    selectedGroupIds.length === baseGroupIds.length &&
+    baseGroupIds.every((id) => selectedGroupIds.includes(id));
 
   return (
-    <ScreenBackground>
-      <ScreenHeader eyebrow={scriptLabel} title="Elegi los grupos" />
-
-      <View style={styles.quickActions}>
-        <Pressable
-          onPress={() =>
-            setSelectedGroupIds(
-              allSelected ? [] : availableGroups.map((group) => group.id),
-            )
+    <ScreenBackground
+      scrollable
+      bottomOverlay={
+        <StartBar
+          title={
+            canStart
+              ? (invertedActive ? modeMeta.ctaInverted : modeMeta.cta) ?? modeMeta.cta
+              : 'ELEGÍ AL MENOS UN GRUPO'
           }
+          summary={
+            usesGroups
+              ? `${selectedCharacterCount} ${selectedCharacterCount === 1 ? 'carácter' : 'caracteres'} en juego`
+              : undefined
+          }
+          disabled={!canStart}
+          onPress={startPractice}
+        />
+      }
+    >
+      <ScreenHeader eyebrow="かな" title={scriptLabel} />
+
+      <View style={styles.scriptRow}>
+        {SCRIPTS.map((option) => (
+          <SelectChip
+            key={option.script}
+            label={option.label}
+            grow
+            selected={script === option.script}
+            onPress={() => setScript(option.script)}
+          />
+        ))}
+      </View>
+
+      <Step title="Qué querés hacer" />
+
+      <View style={styles.modeGrid}>
+        {MODES.map((item) => (
+          <ModeTile
+            key={item.mode}
+            glyph={item.glyph}
+            title={item.title}
+            selected={selectedMode === item.mode}
+            onPress={() => selectMode(item.mode)}
+          />
+        ))}
+      </View>
+
+      <AppText
+        variant="bodySmall"
+        color={activeTheme.colors.textMuted}
+        style={styles.modeNote}
+      >
+        {invertedActive && modeMeta.invertedNote
+          ? modeMeta.invertedNote(scriptLabelLowercase)
+          : modeMeta.note}
+      </AppText>
+
+      {supportsInvertedMode ? (
+        <Pressable
+          onPress={() => setInvertedMode((current) => !current)}
           style={({ pressed }) => [
-            styles.compactAction,
-            styles.focusReset,
+            styles.invertRow,
             {
-              borderColor: allSelected
+              borderColor: invertedMode
                 ? activeTheme.colors.accent
                 : activeTheme.colors.line,
-              backgroundColor: allSelected
+              backgroundColor: invertedMode
                 ? hexToRgba(activeTheme.colors.accent, 0.1)
-                : Platform.OS === 'android'
-                  ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
-                  : hexToRgba(activeTheme.colors.black, 0.14),
+                : activeTheme.colors.backgroundSecondary,
             },
-            pressed ? styles.actionPressed : null,
+            pressed && styles.pressed,
           ]}
         >
+          <MaterialCommunityIcons
+            name="swap-horizontal"
+            size={18}
+            color={
+              invertedMode
+                ? activeTheme.colors.accent
+                : activeTheme.colors.textMuted
+            }
+          />
+          <AppText
+            variant="label"
+            style={styles.invertLabel}
+            color={invertedMode ? activeTheme.colors.accent : undefined}
+          >
+            Modo invertido
+          </AppText>
           <View
             style={[
-              styles.actionCheck,
+              styles.invertDot,
               {
-                borderColor: allSelected
+                borderColor: invertedMode
                   ? activeTheme.colors.accent
-                  : isDark
-                    ? hexToRgba(activeTheme.colors.white, 0.16)
-                    : hexToRgba(activeTheme.colors.black, 0.12),
-                backgroundColor: allSelected
-                  ? hexToRgba(activeTheme.colors.accent, 0.14)
+                  : activeTheme.colors.lineStrong,
+                backgroundColor: invertedMode
+                  ? activeTheme.colors.accent
                   : 'transparent',
               },
             ]}
-          >
-            <MaterialCommunityIcons
-              name={allSelected ? 'check' : 'checkbox-blank-outline'}
-              size={allSelected ? 14 : 13}
-              color={
-                allSelected
-                  ? activeTheme.colors.accent
-                  : activeTheme.colors.textMuted
-              }
+          />
+        </Pressable>
+      ) : null}
+
+      {usesGroups ? (
+        <>
+          <Step title="Con qué" />
+
+          <View style={styles.presets}>
+            <SelectChip
+              label="Todo"
+              grow
+              selected={presetIsAll}
+              onPress={() => setSelectedGroupIds(allGroupIds)}
+            />
+            <SelectChip
+              label="Solo básico"
+              grow
+              selected={presetIsBase}
+              onPress={() => setSelectedGroupIds(baseGroupIds)}
+            />
+            <SelectChip
+              label="Limpiar"
+              grow
+              selected={false}
+              onPress={() => setSelectedGroupIds([])}
             />
           </View>
-          <AppText
-            variant="label"
-            color={
-              allSelected
-                ? activeTheme.colors.accent
-                : activeTheme.colors.textSecondary
-            }
-          >
-            Todo
-          </AppText>
-        </Pressable>
 
-        <Pressable
-          onPress={() => setSelectedGroupIds([])}
-          style={({ pressed }) => [
-            styles.compactAction,
-            styles.focusReset,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor:
-                Platform.OS === 'android'
-                  ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
-                  : hexToRgba(activeTheme.colors.black, 0.14),
-            },
-            pressed ? styles.actionPressed : null,
-          ]}
-        >
           <View
             style={[
-              styles.actionCheck,
-              { borderColor: isDark
-                  ? hexToRgba(activeTheme.colors.white, 0.16)
-                  : hexToRgba(activeTheme.colors.black, 0.12) },
-            ]}
-          >
-            <MaterialCommunityIcons
-              name="close"
-              size={12}
-              color={activeTheme.colors.textMuted}
-            />
-          </View>
-          <AppText variant="label" color={activeTheme.colors.textSecondary}>
-            Limpiar
-          </AppText>
-        </Pressable>
-      </View>
-
-      {availableSections.map((section) => {
-        const isExpanded = expandedSections[section.id];
-        const sectionGroupIds = section.groups.map((group) => group.id);
-        const selectedCount = sectionGroupIds.filter((groupId) =>
-          selectedGroupIds.includes(groupId),
-        ).length;
-        const allSectionSelected = selectedCount === sectionGroupIds.length;
-        const someSectionSelected = selectedCount > 0 && !allSectionSelected;
-
-        return (
-          <View key={section.id} style={styles.sectionBlock}>
-            <View style={styles.sectionToggleRow}>
-              <Pressable
-                onPress={() => toggleSection(section.id)}
-                style={({ pressed }) => [
-                  styles.sectionToggle,
-                  styles.focusReset,
-                  {
-                    borderColor: hexToRgba(activeTheme.colors.accent, 0.2),
-                    backgroundColor:
-                      Platform.OS === 'android'
-                        ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.9)
-                        : hexToRgba(activeTheme.colors.black, 0.16),
-                  },
-                  pressed ? styles.actionPressed : null,
-                ]}
-              >
-                <View style={styles.sectionToggleLeft}>
-                  <MaterialCommunityIcons
-                    name={isExpanded ? 'chevron-down' : 'chevron-right'}
-                    size={16}
-                    color={activeTheme.colors.textPrimary}
-                  />
-                  <AppText variant="label" color={activeTheme.colors.textPrimary}>
-                    {section.title}
-                  </AppText>
-                </View>
-              </Pressable>
-
-              <Pressable
-                onPress={() => toggleSectionSelection(sectionGroupIds)}
-                hitSlop={8}
-                style={({ pressed }) => [
-                  styles.sectionSelectAll,
-                  styles.focusReset,
-                  {
-                    borderColor: allSectionSelected || someSectionSelected
-                      ? activeTheme.colors.accent
-                      : hexToRgba(activeTheme.colors.white, 0.16),
-                    backgroundColor: allSectionSelected
-                      ? hexToRgba(activeTheme.colors.accent, 0.14)
-                      : Platform.OS === 'android'
-                        ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
-                        : hexToRgba(activeTheme.colors.black, 0.12),
-                  },
-                  pressed ? styles.actionPressed : null,
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name={
-                    allSectionSelected
-                      ? 'check'
-                      : someSectionSelected
-                        ? 'minus'
-                        : 'checkbox-blank-outline'
-                  }
-                  size={allSectionSelected || someSectionSelected ? 14 : 13}
-                  color={
-                    allSectionSelected || someSectionSelected
-                      ? activeTheme.colors.accent
-                      : activeTheme.colors.textMuted
-                  }
-                />
-              </Pressable>
-            </View>
-
-            <AnimatedCollapsible expanded={isExpanded} style={styles.collapsible}>
-              <View style={styles.list}>
-                {section.groups.map((group) => (
-                  <GroupSelectorCard
-                    key={group.id}
-                    group={group}
-                    selected={selectedGroupIds.includes(group.id)}
-                    onPress={() => toggleGroup(group.id)}
-                  />
-                ))}
-              </View>
-            </AnimatedCollapsible>
-          </View>
-        );
-      })}
-
-      <View style={styles.modeSection}>
-        <AppText variant="title" style={styles.modeTitle}>
-          Modo
-        </AppText>
-
-        <View style={styles.modeGrid}>
-          <ModeSelectorCard
-            title="Lectura"
-            selected={selectedMode === 'reading'}
-            onPress={() => selectMode('reading')}
-          />
-          <ModeSelectorCard
-            title="Escritura"
-            selected={selectedMode === 'writing'}
-            onPress={() => selectMode('writing')}
-          />
-          <ModeSelectorCard
-            title="Dibujo"
-            selected={selectedMode === 'drawing'}
-            onPress={() => selectMode('drawing')}
-          />
-          <ModeSelectorCard
-            title="Frases"
-            selected={selectedMode === 'phrases'}
-            onPress={() => selectMode('phrases')}
-          />
-        </View>
-
-        {supportsInvertedMode ? (
-          <View style={styles.variantWrap}>
-            <PracticeVariantCard
-              title="Modo invertido"
-              description={
-                selectedMode === 'reading'
-                  ? `Muestra la silaba en romaji y elegis el ${scriptLabelLowercase}.`
-                  : selectedMode === 'writing'
-                    ? `Muestra las silabas en romaji y escribis el ${scriptLabelLowercase}.`
-                    : `Muestra la frase en romaji y escribis en ${scriptLabelLowercase}.`
-              }
-              selected={invertedMode}
-              onPress={() => setInvertedMode((currentValue) => !currentValue)}
-            />
-          </View>
-        ) : null}
-
-        {isDrawingMode ? (
-          <View
-            style={[
-              styles.modeNoteCard,
+              styles.sections,
               {
                 borderColor: activeTheme.colors.line,
-                backgroundColor:
-                  Platform.OS === 'android'
-                    ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.9)
-                    : hexToRgba(activeTheme.colors.black, 0.16),
+                backgroundColor: activeTheme.colors.backgroundSecondary,
               },
             ]}
           >
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              Dibuja los caracteres en el pizarron siguiendo el orden de trazos
-              correcto. El numero de trazos es lo que cuenta.
-            </AppText>
-          </View>
-        ) : selectedMode === 'phrases' ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textMuted}
-            style={styles.modeNote}
-          >
-            Lee una frase completa y escribi su transcripcion. Usa el modo invertido
-            para practicar a la inversa. No depende de los grupos elegidos.
-          </AppText>
-        ) : null}
-      </View>
+            {availableSections.map((section, sectionIndex) => {
+              const groupIds = section.groups.map((group) => group.id);
+              const selectedCount = groupIds.filter((id) =>
+                selectedGroupIds.includes(id),
+              ).length;
+              const expanded = expandedSections[section.id];
 
-      <View style={styles.footer}>
-        <PrimaryButton
-          title={
-            canStartPractice
-              ? selectedMode === 'reading'
-                ? invertedMode
-                  ? 'COMENZAR LECTURA INVERSA'
-                  : 'COMENZAR LECTURA'
-                : selectedMode === 'writing'
-                  ? invertedMode
-                    ? 'COMENZAR ESCRITURA INVERSA'
-                    : 'COMENZAR ESCRITURA'
-                  : selectedMode === 'drawing'
-                    ? 'COMENZAR DIBUJO'
-                    : invertedMode
-                      ? 'COMENZAR FRASES INVERSAS'
-                      : 'COMENZAR FRASES'
-              : selectedMode === 'phrases'
-                ? 'COMENZAR'
-                : 'ELEGI UN GRUPO'
-          }
-          variant="primary"
-          size="compact"
-          disabled={!canStartPractice}
-          onPress={startPractice}
-        />
-      </View>
+              return (
+                <View
+                  key={section.id}
+                  style={[
+                    styles.section,
+                    sectionIndex > 0 && {
+                      borderTopWidth: 1,
+                      borderTopColor: activeTheme.colors.line,
+                    },
+                  ]}
+                >
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionCheck}>
+                      <CheckRow
+                        title={section.title}
+                        state={
+                          selectedCount === 0
+                            ? 'off'
+                            : selectedCount === groupIds.length
+                              ? 'on'
+                              : 'partial'
+                        }
+                        onPress={() => toggleSectionSelection(groupIds)}
+                      />
+                    </View>
+                    <Pressable
+                      onPress={() =>
+                        setExpandedSections((current) => ({
+                          ...current,
+                          [section.id]: !current[section.id],
+                        }))
+                      }
+                      hitSlop={8}
+                      style={({ pressed }) => [
+                        styles.chevron,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name={expanded ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color={activeTheme.colors.textMuted}
+                      />
+                    </Pressable>
+                  </View>
+
+                  <AnimatedCollapsible expanded={expanded}>
+                    <View
+                      style={[
+                        styles.groupList,
+                        { borderTopColor: activeTheme.colors.line },
+                      ]}
+                    >
+                      {section.groups.map((group) => (
+                        <CheckRow
+                          key={group.id}
+                          compact
+                          title={group.romajiPreview}
+                          hint={group.kanaPreview}
+                          state={
+                            selectedGroupIds.includes(group.id) ? 'on' : 'off'
+                          }
+                          onPress={() => toggleGroup(group.id)}
+                        />
+                      ))}
+                    </View>
+                  </AnimatedCollapsible>
+                </View>
+              );
+            })}
+          </View>
+        </>
+      ) : null}
     </ScreenBackground>
   );
 }
 
+function Step({ title }: { title: string }) {
+
+  return (
+    <View style={styles.step}>
+      <AppText variant="title">{title}</AppText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  quickActions: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
-  compactAction: {
+  step: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    minHeight: 34,
-    borderRadius: theme.radii.pill,
-    borderWidth: 1,
-  },
-  actionCheck: {
-    width: 18,
-    height: 18,
-    borderRadius: 6,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionPressed: {
-    opacity: 0.88,
-  },
-  focusReset: {
-    outlineWidth: 0,
-    outlineColor: 'transparent',
-  },
-  list: {
     marginBottom: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
+    marginTop: theme.spacing.lg,
   },
-  collapsible: {
-    width: '100%',
-  },
-  modeSection: {
-    marginTop: theme.spacing.md,
-  },
-  modeTitle: {
-    marginBottom: theme.spacing.sm,
-    textAlign: 'center',
+  scriptRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.xxs,
+    marginBottom: theme.spacing.xs,
   },
   modeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: theme.spacing.xs,
-  },
-  variantWrap: {
-    marginTop: theme.spacing.sm,
   },
   modeNote: {
     marginTop: theme.spacing.sm,
-    textAlign: 'center',
     lineHeight: 18,
   },
-  modeNoteCard: {
+  invertRow: {
     marginTop: theme.spacing.sm,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
-    overflow: 'hidden',
-  },
-  footer: {
-    marginTop: theme.spacing.lg,
-  },
-  sectionBlock: {
-    marginBottom: theme.spacing.xs,
-  },
-  sectionToggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
+    minHeight: 46,
+    paddingHorizontal: theme.spacing.md,
+    borderWidth: 1,
+    borderRadius: theme.radii.md,
+    outlineWidth: 0,
+    outlineColor: 'transparent',
   },
-  sectionToggle: {
+  invertLabel: {
     flex: 1,
-    minHeight: 36,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowOffset: { width: 0, height: 0 },
+    minWidth: 0,
   },
-  sectionToggleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  sectionSelectAll: {
-    width: 28,
-    height: 28,
+  invertDot: {
+    width: 16,
+    height: 16,
     borderRadius: 8,
     borderWidth: 1,
+    flexShrink: 0,
+  },
+  presets: {
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
+  },
+  sections: {
+    borderWidth: 1,
+    borderRadius: theme.radii.md,
+    overflow: 'hidden',
+  },
+  section: {
+    paddingHorizontal: theme.spacing.sm,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  sectionCheck: {
+    flex: 1,
+    minWidth: 0,
+  },
+  chevron: {
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    shadowOffset: { width: 0, height: 0 },
+  },
+  groupList: {
+    borderTopWidth: 1,
+    paddingVertical: theme.spacing.xxs,
+    paddingLeft: theme.spacing.lg,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

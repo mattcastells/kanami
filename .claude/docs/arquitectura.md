@@ -1,5 +1,10 @@
 # Arquitectura real de Kanami
 
+> Actualizado el **2026-08-24**: sistema de kanji completo (dataset único con fichas,
+> sección Kanji en Estudiar, Kanji Grind en Practicar) y reordenamiento de la navegación —
+> **Estudiar pasó a ser la pantalla de entrada** y Practicar quedó como grilla pareja de
+> juegos, reemplazando al mosaico bento asimétrico.
+>
 > Documento de referencia verificado contra el código el **2026-08-08** (commit `97ac8e6`).
 > Describe cómo está implementado el proyecto **hoy**, no cómo debería estar.
 > Si cambiás algo estructural, actualizá este archivo en el mismo commit.
@@ -16,7 +21,7 @@
 | Test runner | **No hay** |
 | Único gate automático | `npx tsc --noEmit` — **hoy pasa limpio (exit 0)** |
 | Validación primaria | `npm run web` (web-first) |
-| Generadores | `npm run clases:generate` (apuntes) · `scripts/generate-kana-strokes.mjs` (trazos) |
+| Generadores | `npm run clases:generate` (apuntes) · `npm run kanji:generate` (procedencia de kanji) · `npm run kanji:strokes` (trazos) |
 | Target de release | Android APK `arm64-v8a` por GitHub Actions |
 | Node local | v24.14.1 |
 
@@ -30,11 +35,13 @@ El orden importa: `AppThemeProvider` lee de `AppSettingsProvider`, así que no s
 ```
 GestureHandlerRootView
 └── SafeAreaProvider
-    └── AppSettingsProvider      ← app-settings.json (tema, haptics, API key, recordatorio)
-        └── AppThemeProvider     ← deriva el theme del settings.themeMode
-            └── ProgressProvider ← progress.json (stats por modo + racha diaria)
-                └── SrsProvider  ← srs.json (cajas Leitner)
-                    └── AppShell → NavigationContainer → RootNavigator
+    └── AppSettingsProvider          ← app-settings.json (tema, haptics, API key, recordatorio)
+        └── AppThemeProvider         ← deriva el theme del settings.themeMode
+            └── ProgressProvider     ← progress.json (stats por modo)
+                └── SrsProvider      ← srs.json (cajas Leitner)
+                    └── WeakProvider ← weak-items.json (lo que venís fallando)
+                        └── KanjiProgressProvider ← kanji-progress.json (qué sabés de cada kanji)
+                            └── AppShell → NavigationContainer → RootNavigator
 ```
 
 `AppShell` también inyecta el theme de React Navigation y, **solo en web**, fuerza
@@ -49,10 +56,12 @@ Las fuentes Zen se cargan con `useFonts` y la app renderiza `null` hasta que est
 dibujados con `TabGlyph`).
 
 ```
-PracticeTab (練)  → PracticeStack: Home · KanaGroups · KanaGame · KanjiHub · KanjiLearn
-                    · KanjiPractice · KanjiDraw · KanjiGame · Vocabulary · EmojiGame
-                    · TimesGame · DictationGame · PronunciationGame · Review
-StudyTab    (学)  → StudyStack: StudyTopics · StudyTopic · ClassNotes · ClassNote · QuickReview
+StudyTab    (学)  → PANTALLA DE ENTRADA. StudyStack: StudyTopics (la home: saludo +
+                    clases/kanji/vocabulario + temas) · StudyTopic · ClassNotes · ClassNote
+                    · ClassQuiz · VocabularyList · KanjiList · KanjiDetail
+PracticeTab (練)  → PracticeStack: Practice (grilla pareja de juegos) · KanaGroups · KanaGame
+                    · KanjiGrind · KanjiGrindGame · KanjiDraw · Vocabulary · EmojiGame
+                    · TimesGame · DictationGame · PronunciationGame · TranslationGame · Review
 KyaryTab    (話)  → KyaryScreen (sin stack)
 ProfileTab  (私)  → ProfileScreen (= OptionsScreen, `src/screens/ProfileScreen.tsx` es un alias de 7 líneas)
 ```
@@ -74,14 +83,15 @@ src/
   screens/      1 archivo por pantalla
   components/
     ui/         primitives: ScreenBackground, GlassCard, AppText, PrimaryButton,
-                ScreenHeader, StatPill, SpeakButton, AnimatedCollapsible
+                ScreenHeader, StatPill, SpeakButton, AnimatedCollapsible, AnimatedRow
     game/       AnswerOptionButton, FeedbackBanner, SessionSummary,
                 DrawingCanvas, DrawingPractice
-    practice/   GroupSelectorCard, ModeSelectorCard, PracticeVariantCard, WordCategoryCard
-    progress/   ProgressCard, StreakCard
+    practice/   ModeTile, SelectChip, CheckRow, StartBar
+    progress/   ProgressCard
+    study/      ClassBlockView, ClassImage
   features/
     game/       *Engine.ts (lógica PURA, sin React) + use*Game.ts (estado/timers/haptics)
-    progress/   ProgressProvider + progressStore (puro) + useTrackProgress
+    progress/   ProgressProvider + progressStore (puro) + useTrackProgress (solo byMode)
     srs/        SrsProvider + srsStore (puro)
     speech/     speak.ts (TTS expo-speech)
     notifications/ reminders.ts (expo-notifications, solo nativo)
@@ -112,7 +122,7 @@ Trío `engine + hook + screen`, uno por archivo. Referencia limpia: **Horarios**
 | Hook | `src/features/game/useTimesGame.ts` | `useState` del estado, `lastFeedback`, haptics, timeout de auto-avance, limpieza en unmount |
 | Screen | `src/screens/TimesGameScreen.tsx` | `ScreenBackground` + `ScreenHeader` + `StatPill`×3 + `GlassCard` + `FeedbackBanner` + `AnswerOptionButton`×N |
 
-Otros ejemplos del mismo trío: `emoji`, `dictation`, `kanji`, `fill-blank`, `word-builder`.
+Otros ejemplos del mismo trío: `emoji`, `dictation`, `kanjiGrind`, `fill-blank`, `word-builder`.
 
 ### 5.2 Modos de kana dentro de `GameScreen.tsx` — **legacy, 1825 líneas**
 
@@ -142,7 +152,7 @@ la partida, incluido un nonce para el botón REPETIR. Ver `GameScreen.tsx:116`.
 
 ## 6. Estado y persistencia
 
-Tres archivos JSON en `Paths.document` vía la API **nueva** de `expo-file-system`
+Cinco archivos JSON en `Paths.document` vía la API **nueva** de `expo-file-system`
 (`new File(Paths.document, '...')`):
 
 | Provider | Archivo | Store puro |
@@ -150,8 +160,10 @@ Tres archivos JSON en `Paths.document` vía la API **nueva** de `expo-file-syste
 | `AppSettingsProvider` | `app-settings.json` | (normalización inline) |
 | `ProgressProvider` | `progress.json` | `progressStore.ts` |
 | `SrsProvider` | `srs.json` | `srsStore.ts` |
+| `WeakProvider` | `weak-items.json` | `weakStore.ts` |
+| `KanjiProgressProvider` | `kanji-progress.json` | `kanjiProgressStore.ts` |
 
-Los tres siguen **el mismo patrón anti-race**, y es deliberado:
+Los cinco siguen **el mismo patrón anti-race**, y es deliberado:
 
 ```ts
 const dirtyRef = useRef(false);      // el usuario ya generó datos → no pisar con el disco
@@ -165,14 +177,18 @@ useEffect(() => { if (!hydratedRef.current) return; void persist(data); }, [data
 
 Otras invariantes:
 
-- **Todo JSON que entra se normaliza**: `normalizeProgress`, `normalizeSrs`, `normalizeSettings`.
-  Nunca se confía en la forma del archivo (puede venir de un import manual del usuario).
-- Los datos tienen `version: 1` (`PROGRESS_VERSION`, `SRS_VERSION`) para migraciones futuras.
+- **Todo JSON que entra se normaliza**: `normalizeProgress`, `normalizeSrs`, `normalizeSettings`,
+  `normalizeWeak`, `normalizeKanjiProgress`. Nunca se confía en la forma del archivo (puede
+  venir de un import manual del usuario).
+- Los datos tienen `version: 1` (`PROGRESS_VERSION`, `SRS_VERSION`, `WEAK_VERSION`,
+  `KANJI_PROGRESS_VERSION`) para migraciones futuras.
 - Los fallos de lectura/escritura se **tragan en silencio** y se conserva el estado en memoria.
   Es intencional: la app nunca debe romperse por el disco.
 - El progreso se registra al **desmontar** la pantalla, vía `useTrackProgress(modeKey, stats)`
-  (`useTrackProgress.ts:28-35`), acumulando el máximo streak visto.
-- La racha diaria (`applyDailyActivity`) solo incrementa **una vez por día local**.
+  (`useTrackProgress.ts:28-35`), acumulando el máximo streak visto **dentro de la sesión**.
+- **No hay racha diaria ni meta** (se quitaron el 2026-08-16): `ProgressData` es `byMode` +
+  `updatedAt`. `normalizeProgress` reconstruye el objeto desde cero, así que el `daily` de los
+  archivos viejos se descarta solo. `localDayString` queda porque lo usa el SRS.
 - Export/import de progreso sin dependencias nuevas: `Share` del core en Android, clipboard en web.
 
 ## 7. Sistema visual
@@ -234,18 +250,28 @@ La pestaña **学 Estudiar** tiene **dos vistas del mismo material**, y conviene
 ```
 content/clases/kurasu-NN.md  ─┐
 content/repaso.md            ─┴─> scripts/generate-class-notes.mjs
-                                  └─> src/data/classNotes.generated.ts
-                                      ├─ CLASS_NOTES  (15 clases: 1-6, 8-16)
-                                      └─ QUICK_REVIEW (hoja de repaso)
+                                  ├─> src/data/classNotes.generated.ts
+                                  │   ├─ CLASS_NOTES  (15 clases: 1-6, 8-16)
+                                  │   └─ QUICK_REVIEW (hoja de repaso)
+                                  └─> src/data/classImages.generated.ts
+                                      └─ CLASS_IMAGES (require() por imagen)
+                                         ↑ archivos en assets/clases/
 ```
+
+Los apuntes aceptan imágenes con `![epígrafe](archivo.png)`. El generador **falla** si el
+archivo no está en `assets/clases/`, en vez de dejar un hueco mudo en el apunte. El mapa de
+`require()` se genera porque Metro resuelve assets en build y exige rutas literales.
+Render: `src/components/study/ClassImage.tsx` (aspect ratio real + zoom a pantalla completa).
 
 Son la transcripción de las clases reales de Notion, una por una, sin reordenar. El markdown
 es la fuente editable; el `.generated.ts` **no se toca a mano**. Regenerar con
 `npm run clases:generate`. Detalle completo en la skill `kanami-clases`.
 
-Pantallas: `ClassNotesScreen` (lista + buscador) · `ClassNoteScreen` (detalle) ·
-`QuickReviewScreen` (repaso). Renderer compartido: `src/components/study/ClassBlockView.tsx`.
-Helpers puros: `src/features/classes/classNotes.ts`.
+Pantallas: `ClassNotesScreen` (lista + buscador) · `ClassNoteScreen` (detalle, con los kanji
+de esa clase y el acceso al quiz) · `ClassQuizScreen`. Renderer compartido:
+`src/components/study/ClassBlockView.tsx`. Helpers puros: `src/features/classes/classNotes.ts`.
+
+La hoja de repaso global (`QuickReviewScreen`) se quitó el 2026-08-16: el repaso es por clase.
 
 **No existe Kurasu 7**: esa clase nunca se dictó.
 

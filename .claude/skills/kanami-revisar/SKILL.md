@@ -81,7 +81,7 @@ Ese archivo ya tiene 1825 líneas y es legacy. Los modos nuevos van a pantalla p
 
 Un modo nuevo tiene 6 puntos de integración. Chequealos todos:
 ruta tipada · registrada en `RootNavigator` · `useTrackProgress` · `modeKey` en
-`PROGRESS_MODE_LABELS` · fila en `HomeScreen` · engine + hook separados.
+`PROGRESS_MODE_LABELS` · card en `PracticeScreen` · engine + hook separados.
 
 ## Higiene
 

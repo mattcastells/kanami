@@ -42,6 +42,21 @@ const darkColors: typeof lightColors = {
   white: '#FFFFFF',
 };
 
+// Opacidad de las marcas de agua (el kanji grande detrás de los tiles). En sumi el
+// bermellón sobre fondo oscuro rinde mucho menos que la tinta sobre papel, así que
+// necesita bastante más alpha para leerse igual. No unificar en un solo valor.
+const lightOpacity = {
+  watermarkSoft: 0.14,
+  watermarkStrong: 0.2,
+  glyphMuted: 0.35,
+};
+
+const darkOpacity: typeof lightOpacity = {
+  watermarkSoft: 0.34,
+  watermarkStrong: 0.46,
+  glyphMuted: 0.55,
+};
+
 const sharedTheme = {
   spacing: {
     xxs: 4,
@@ -121,6 +136,7 @@ const sharedTheme = {
 export const theme = {
   ...sharedTheme,
   colors: lightColors,
+  opacity: lightOpacity,
 };
 
 export type AppTheme = typeof theme & { mode: ThemeMode };
@@ -130,6 +146,7 @@ export function createTheme(mode: ThemeMode = 'light'): AppTheme {
   return {
     ...sharedTheme,
     colors: mode === 'dark' ? darkColors : lightColors,
+    opacity: mode === 'dark' ? darkOpacity : lightOpacity,
     mode,
   };
 }

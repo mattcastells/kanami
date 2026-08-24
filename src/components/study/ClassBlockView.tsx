@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '../ui/AppText';
 import { SpeakButton } from '../ui/SpeakButton';
+import { ClassImage } from './ClassImage';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../../theme/theme';
 import { ClassBlock } from '../../types/classNotes';
@@ -221,6 +222,9 @@ export function ClassBlockView({ block }: { block: ClassBlock }) {
       ) : (
         <GridTable headers={block.headers} rows={block.rows} />
       );
+
+    case 'image':
+      return <ClassImage source={block.source} alt={block.alt} />;
 
     default:
       return null;

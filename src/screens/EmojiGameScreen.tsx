@@ -13,13 +13,10 @@ import { getEmojiVocabulary } from '../data/vocabularyEmoji';
 import { EmojiGameMode } from '../features/game/emojiGameEngine';
 import { useEmojiGame } from '../features/game/useEmojiGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
+import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
-
-const SUCCESS_COLOR = '#3E7D5C';
-const ERROR_COLOR = '#B03A2E';
-const STREAK_COLOR = '#356E8E';
 
 export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
   const { script } = route.params;
@@ -30,6 +27,18 @@ export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
   const resetKey = `emoji:${script}:${mode}`;
   const { state, answer, lastFeedback } = useEmojiGame(pool, mode, resetKey);
   useTrackProgress('emoji', state.stats);
+  // Va antes del early return de abajo: los hooks no pueden quedar condicionados.
+  useTrackWeakItem('emoji', state.answerState, {
+    itemId: `${state.round.entryId}:${mode}`,
+    format: 'choice',
+    prompt: state.round.promptText,
+    answer:
+      state.round.options.find(
+        (option) => option.id === state.round.correctOptionId,
+      )?.text ?? '',
+    options: state.round.options.map((option) => option.text),
+    speakText: state.round.kana,
+  });
 
   const toggleMode = () =>
     setMode((current) =>
@@ -68,9 +77,9 @@ export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
       />
 
       <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={stats.correct} accentColor={SUCCESS_COLOR} />
-        <StatPill label="Fallidos" value={stats.incorrect} accentColor={ERROR_COLOR} />
-        <StatPill label="Racha" value={stats.streak} accentColor={STREAK_COLOR} />
+        <StatPill label="Aciertos" value={stats.correct} accentColor={activeTheme.colors.success} />
+        <StatPill label="Fallidos" value={stats.incorrect} accentColor={activeTheme.colors.error} />
+        <StatPill label="Racha" value={stats.streak} accentColor={activeTheme.colors.warning} />
       </View>
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
@@ -163,7 +172,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   feedbackSlot: {
-    minHeight: 44,
+    minHeight: 56,
     marginBottom: theme.spacing.xs,
   },
   answersGrid: {

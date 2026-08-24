@@ -23,7 +23,6 @@ import {
   requestReminderPermission,
   syncDailyReminder,
 } from '../features/notifications/reminders';
-import { useProgress } from '../features/progress/ProgressProvider';
 import { downloadAndInstallRelease } from '../features/update/androidUpdater';
 import {
   compareVersions,
@@ -35,7 +34,6 @@ import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
 
 const REMINDER_HOURS = [8, 13, 18, 20, 21];
-const GOAL_OPTIONS = [10, 20, 30, 50];
 
 type UpdateState =
   | { kind: 'idle' }
@@ -55,8 +53,6 @@ export function OptionsScreen() {
     setReminderEnabled,
     setReminderHour,
   } = useAppSettings();
-  const { data: progressData, setDailyGoal } = useProgress();
-  const dailyGoal = progressData.daily.dailyGoal;
   const [reminderError, setReminderError] = useState<string | null>(null);
 
   const handleToggleReminder = async (enabled: boolean) => {
@@ -305,60 +301,6 @@ export function OptionsScreen() {
             {reminderError}
           </AppText>
         ) : null}
-
-        <View
-          style={[
-            styles.settingRow,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor:
-                Platform.OS === 'android'
-                  ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
-                  : hexToRgba(activeTheme.colors.black, 0.14),
-            },
-          ]}
-        >
-          <View style={styles.settingCopy}>
-            <AppText variant="bodyStrong">Meta diaria</AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {dailyGoal} rondas por día
-            </AppText>
-          </View>
-        </View>
-
-        <View style={styles.chipRow}>
-          {GOAL_OPTIONS.map((goal) => {
-            const selected = dailyGoal === goal;
-            return (
-              <Pressable
-                key={goal}
-                onPress={() => setDailyGoal(goal)}
-                style={[
-                  styles.chip,
-                  {
-                    borderColor: selected
-                      ? activeTheme.colors.accent
-                      : activeTheme.colors.line,
-                    backgroundColor: selected
-                      ? hexToRgba(activeTheme.colors.accent, 0.1)
-                      : 'transparent',
-                  },
-                ]}
-              >
-                <AppText
-                  variant="label"
-                  color={
-                    selected
-                      ? activeTheme.colors.accent
-                      : activeTheme.colors.textSecondary
-                  }
-                >
-                  {goal}
-                </AppText>
-              </Pressable>
-            );
-          })}
-        </View>
 
         {updateState.kind !== 'idle' ? (
           <View style={styles.section}>

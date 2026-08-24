@@ -1035,14 +1035,20 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     minHeight: 36,
   },
+  // Fila de acciones del composer. Antes era `space-between` con los adjuntos a la
+  // izquierda (3 × 36 + gaps = 124px) y ENVIAR con `minWidth: 130`, sin que ninguno de
+  // los dos pudiera encogerse: en pantallas angostas —o con la fuente del sistema
+  // agrandada, que ensancha el botón— la suma pasaba el ancho disponible y ENVIAR se
+  // salía de la tarjeta. Ahora los adjuntos no se encogen y ENVIAR ocupa lo que sobra.
   composerActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: theme.spacing.xs,
   },
   attachButtons: {
     flexDirection: 'row',
     gap: theme.spacing.xs,
+    flexShrink: 0,
   },
   attachButton: {
     width: 36,
@@ -1053,7 +1059,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendButton: {
-    minWidth: 130,
+    flex: 1,
+    // Sin esto, `flex: 1` no alcanza: el contenido del botón fija un ancho mínimo y el
+    // desborde vuelve. Con minWidth 0 puede achicarse y su texto elipsa (el título ya
+    // va con numberOfLines={1}).
+    minWidth: 0,
   },
   messageImage: {
     width: 180,

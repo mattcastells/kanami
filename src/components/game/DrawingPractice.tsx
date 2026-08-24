@@ -3,6 +3,7 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { DrawableChar } from '../../features/game/drawingGameEngine';
 import { useDrawingGame } from '../../features/game/useDrawingGame';
+import { useTrackWeakItem } from '../../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
@@ -15,16 +16,45 @@ type DrawingPracticeProps = {
   pool: DrawableChar[];
   resetKey: string;
   title: string;
+  // Oculta título y contadores: el Repaso los muestra por su cuenta.
+  compact?: boolean;
+  // Avisa el veredicto de cada ronda. OJO: el registro de errores lo hace este
+  // componente (es el dueño de la ronda), así que quien reciba esto NO debe volver
+  // a reportar el ítem o se contaría dos veces.
+  onRoundResolved?: (correct: boolean) => void;
 };
 
-export function DrawingPractice({ pool, resetKey, title }: DrawingPracticeProps) {
+export function DrawingPractice({
+  pool,
+  resetKey,
+  title,
+  compact = false,
+  onRoundResolved,
+}: DrawingPracticeProps) {
   const { theme: activeTheme } = useAppTheme();
   const { state, commitStroke, undo, clear, submit, lastFeedback } = useDrawingGame(
     pool,
     resetKey,
   );
+  useTrackWeakItem('drawing', state.answerState, {
+    itemId: state.round.character.id,
+    format: 'draw',
+    prompt: state.round.character.char,
+    // En dibujo la "respuesta" es el propio carácter; el sub (lectura) va como pista.
+    answer: state.round.character.sub ?? state.round.character.char,
+    speakText: state.round.character.char,
+  });
   const promptTransition = useRef(new Animated.Value(1)).current;
   const [canvasSize, setCanvasSize] = useState(280);
+
+  // Avisa el veredicto una sola vez por ronda, en la transición desde 'idle'.
+  const resolvedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (state.answerState === 'idle') return;
+    if (resolvedRef.current === state.round.roundKey) return;
+    resolvedRef.current = state.round.roundKey;
+    onRoundResolved?.(state.answerState === 'correct');
+  }, [onRoundResolved, state.answerState, state.round.roundKey]);
 
   useEffect(() => {
     promptTransition.setValue(0);
@@ -58,27 +88,31 @@ export function DrawingPractice({ pool, resetKey, title }: DrawingPracticeProps)
 
   return (
     <View style={styles.screen}>
-      <AppText variant="title" style={styles.title}>
-        {title}
-      </AppText>
+      {compact ? null : (
+        <>
+          <AppText variant="title" style={styles.title}>
+            {title}
+          </AppText>
 
-      <View style={styles.statsRow}>
-        <StatPill
-          label="Aciertos"
-          value={state.stats.correct}
-          accentColor={activeTheme.colors.success}
-        />
-        <StatPill
-          label="Fallidos"
-          value={state.stats.incorrect}
-          accentColor={activeTheme.colors.error}
-        />
-        <StatPill
-          label="Racha"
-          value={state.stats.streak}
-          accentColor={activeTheme.colors.accent}
-        />
-      </View>
+          <View style={styles.statsRow}>
+            <StatPill
+              label="Aciertos"
+              value={state.stats.correct}
+              accentColor={activeTheme.colors.success}
+            />
+            <StatPill
+              label="Fallidos"
+              value={state.stats.incorrect}
+              accentColor={activeTheme.colors.error}
+            />
+            <StatPill
+              label="Racha"
+              value={state.stats.streak}
+              accentColor={activeTheme.colors.accent}
+            />
+          </View>
+        </>
+      )}
 
       <View style={styles.feedbackSlot}>
         <FeedbackBanner
@@ -176,7 +210,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   feedbackSlot: {
-    minHeight: 44,
+    minHeight: 56,
     marginBottom: theme.spacing.xs,
   },
   reference: {

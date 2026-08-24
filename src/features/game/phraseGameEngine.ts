@@ -1,5 +1,6 @@
 import { PhraseEntry } from '../../data/phrases';
 import { AnswerState, GameStats } from './gameEngine';
+import { compareRomaji, normalizeRomaji, RomajiVerdict } from './romajiAnswer';
 
 export type PhraseAnswerKind = 'kana' | 'romaji';
 
@@ -17,6 +18,9 @@ export type PhraseGameSessionState = {
   answerState: AnswerState;
   inputValue: string;
   stats: GameStats;
+  // 'typo' = acertaste salvo por un carácter. Cuenta como acierto, pero la UI muestra la
+  // forma correcta para que no se te fije mal.
+  lastVerdict: RomajiVerdict;
 };
 
 function pickRandom<T>(items: T[]) {
@@ -35,9 +39,11 @@ export function sanitizePhraseInput(
   value: string,
   answerKind: PhraseAnswerKind = 'romaji',
 ): string {
-  const trimmedValue = value.trim().replace(/\s+/g, '');
-
-  return answerKind === 'romaji' ? trimmedValue.toLowerCase() : trimmedValue;
+  // En romaji se usa el normalizador compartido: acepta を como "wo" u "o" y las tres
+  // formas de escribir una vocal larga (ou / ō / oo). Ver `romajiAnswer.ts`.
+  if (answerKind === 'romaji') return normalizeRomaji(value);
+  // En kana no se toca nada más que los espacios: acá el kana ES la respuesta.
+  return value.trim().replace(/\s+/g, '');
 }
 
 function sanitizeAnswer(value: string, answerKind: PhraseAnswerKind): string {
@@ -78,6 +84,7 @@ export function createInitialPhraseGameState(
     round: createPhraseRound(pool, undefined, inverted),
     answerState: 'idle',
     inputValue: '',
+    lastVerdict: 'exact',
     stats: {
       correct: 0,
       incorrect: 0,
@@ -110,20 +117,28 @@ export function submitPhraseAnswer(
     return currentState;
   }
 
-  const submittedValue = sanitizePhraseInput(
-    rawInput ?? currentState.inputValue,
-    answerKind,
-  );
+  const raw = rawInput ?? currentState.inputValue;
+  const submittedValue = sanitizePhraseInput(raw, answerKind);
 
   if (!submittedValue) {
     return currentState;
   }
 
-  const isCorrect = submittedValue === currentState.round.answer;
+  // En romaji, una frase larga con un solo carácter mal es un error de tipeo y no de
+  // conocimiento: se acepta y se muestra la forma correcta. En kana la comparación sigue
+  // siendo exacta — ahí cada carácter ES la respuesta.
+  const verdict: RomajiVerdict =
+    answerKind === 'romaji'
+      ? compareRomaji(raw, currentState.round.displayAnswer)
+      : submittedValue === currentState.round.answer
+        ? 'exact'
+        : 'wrong';
+  const isCorrect = verdict !== 'wrong';
 
   return {
     ...currentState,
     inputValue: '',
+    lastVerdict: verdict,
     answerState: isCorrect ? 'correct' : 'incorrect',
     stats: {
       correct: currentState.stats.correct + (isCorrect ? 1 : 0),
@@ -144,5 +159,6 @@ export function moveToNextPhraseRound(
     round: createPhraseRound(pool, currentState.round.roundKey, inverted),
     answerState: 'idle',
     inputValue: '',
+    lastVerdict: 'exact',
   };
 }

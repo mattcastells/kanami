@@ -91,7 +91,9 @@ export function createWordRound(
       ? word.kana
       : promptKind === 'translation'
         ? primaryTranslation
-        : word.syllables.join(' ');
+        : // La palabra va escrita entera ("kuruma"), no cortada en moras ("ku ru ma"):
+          // separarla ya resolvía media consigna.
+          word.syllables.join('');
   const answer = answerKind === 'kana' ? word.kana : primaryTranslation;
 
   return {

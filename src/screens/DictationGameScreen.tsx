@@ -13,14 +13,11 @@ import { getKanaWordEntries } from '../data/kana';
 import { normalizeDictationInput } from '../features/game/dictationGameEngine';
 import { useDictationGame } from '../features/game/useDictationGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
+import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { speakJapanese } from '../features/speech/speak';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
-
-const SUCCESS_COLOR = '#3E7D5C';
-const ERROR_COLOR = '#B03A2E';
-const STREAK_COLOR = '#356E8E';
 
 export function DictationGameScreen(_: RootStackScreenProps<'DictationGame'>) {
   const { theme: activeTheme } = useAppTheme();
@@ -31,6 +28,13 @@ export function DictationGameScreen(_: RootStackScreenProps<'DictationGame'>) {
     resetKey,
   );
   useTrackProgress('dictation', state.stats);
+  useTrackWeakItem('dictation', state.answerState, {
+    itemId: state.round.word.id,
+    format: 'listen',
+    prompt: state.round.word.translations[0] ?? state.round.word.kana,
+    answer: state.round.word.syllables.join(''),
+    speakText: state.round.word.kana,
+  });
   const inputRef = useRef<TextInput>(null);
 
   // Reproduce la palabra al entrar a cada ronda y enfoca el input.
@@ -49,9 +53,9 @@ export function DictationGameScreen(_: RootStackScreenProps<'DictationGame'>) {
       <ScreenHeader eyebrow="聴 · Dictado" title="Escuchá y escribí" />
 
       <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={state.stats.correct} accentColor={SUCCESS_COLOR} />
-        <StatPill label="Fallidos" value={state.stats.incorrect} accentColor={ERROR_COLOR} />
-        <StatPill label="Racha" value={state.stats.streak} accentColor={STREAK_COLOR} />
+        <StatPill label="Aciertos" value={state.stats.correct} accentColor={activeTheme.colors.success} />
+        <StatPill label="Fallidos" value={state.stats.incorrect} accentColor={activeTheme.colors.error} />
+        <StatPill label="Racha" value={state.stats.streak} accentColor={activeTheme.colors.warning} />
       </View>
 
       <GlassCard style={styles.card} contentStyle={styles.cardContent}>
@@ -75,6 +79,22 @@ export function DictationGameScreen(_: RootStackScreenProps<'DictationGame'>) {
         <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
           {answered ? 'Escuchá de nuevo' : 'Tocá para escuchar'}
         </AppText>
+
+        {/* El audio no distingue silabario: sin esta pista, escribir la palabra en
+            kana es adivinar si va en hiragana o katakana. */}
+        <View
+          style={[
+            styles.scriptBadge,
+            {
+              borderColor: hexToRgba(activeTheme.colors.accent, 0.35),
+              backgroundColor: hexToRgba(activeTheme.colors.accent, 0.08),
+            },
+          ]}
+        >
+          <AppText variant="label" color={activeTheme.colors.accent}>
+            {state.round.word.script === 'katakana' ? 'カタカナ' : 'ひらがな'}
+          </AppText>
+        </View>
 
         {answered ? (
           <View style={styles.revealBlock}>
@@ -159,6 +179,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  scriptBadge: {
+    borderWidth: 1,
+    borderRadius: theme.radii.pill,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 3,
+  },
   revealBlock: {
     alignItems: 'center',
     gap: 2,
@@ -169,7 +195,7 @@ const styles = StyleSheet.create({
     lineHeight: 50,
   },
   feedbackSlot: {
-    minHeight: 44,
+    minHeight: 56,
     marginBottom: theme.spacing.xs,
   },
   inputSection: {

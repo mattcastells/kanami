@@ -33,6 +33,7 @@ export function usePhraseGame(
     correctText: string;
     selectedText?: string | null;
     translationText?: string;
+    nearMiss?: boolean;
   }>({
     status: 'idle',
     promptText: '',
@@ -88,6 +89,7 @@ export function usePhraseGame(
       correctText: currentState.round.displayAnswer,
       selectedText,
       translationText: currentState.round.translation,
+      nearMiss: updatedState.lastVerdict === 'typo',
     });
 
     if (hapticsEnabled) {

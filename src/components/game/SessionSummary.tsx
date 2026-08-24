@@ -7,10 +7,6 @@ import { GlassCard } from '../ui/GlassCard';
 import { PrimaryButton } from '../ui/PrimaryButton';
 import { StatPill } from '../ui/StatPill';
 
-const SUCCESS_COLOR = '#3E7D5C';
-const ERROR_COLOR = '#B03A2E';
-const INFO_COLOR = '#C73E2E';
-
 export function SessionSummary({
   title = 'Sesión terminada',
   correct,
@@ -58,9 +54,9 @@ export function SessionSummary({
         </AppText>
 
         <View style={styles.statsRow}>
-          <StatPill label="Aciertos" value={correct} accentColor={SUCCESS_COLOR} />
-          <StatPill label="Fallidos" value={incorrect} accentColor={ERROR_COLOR} />
-          <StatPill label="Total" value={total} accentColor={INFO_COLOR} />
+          <StatPill label="Aciertos" value={correct} accentColor={activeTheme.colors.success} />
+          <StatPill label="Fallidos" value={incorrect} accentColor={activeTheme.colors.error} />
+          <StatPill label="Total" value={total} accentColor={activeTheme.colors.accent} />
         </View>
 
         <View style={styles.actions}>

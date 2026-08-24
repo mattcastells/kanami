@@ -1,6 +1,6 @@
 ---
 name: kanami-modo-practica
-description: Agregar o modificar un modo de práctica/juego en Kanami (engine puro + hook + pantalla + ruta + progreso + entrada en Home). Usala cuando el pedido sea "agregá un modo/juego/ejercicio nuevo", "que se pueda practicar X", o cuando toques la lógica de un modo existente.
+description: Agregar o modificar un modo de práctica/juego en Kanami (engine puro + hook + pantalla + ruta + progreso + card en la grilla de Practicar). Usala cuando el pedido sea "agregá un modo/juego/ejercicio nuevo", "que se pueda practicar X", o cuando toques la lógica de un modo existente.
 ---
 
 # Agregar o modificar un modo de práctica
@@ -23,7 +23,8 @@ Leé el trío de **Horarios**, que es la referencia más limpia y corta:
 
 Otros tríos del mismo patrón, por si tu caso se parece más a alguno:
 `emojiGameEngine` (matcheo con imagen), `dictationGameEngine` (escuchar y escribir),
-`kanjiGameEngine` (4 sub-modos), `fillBlankEngine`, `wordBuilderEngine`.
+`kanjiGrindEngine` (sesión por lote con fase de presentación), `fillBlankEngine`,
+`wordBuilderEngine`.
 
 ## Regla de ubicación
 
@@ -96,7 +97,7 @@ Composición estándar, en este orden:
 
 - El `feedbackSlot` lleva `minHeight` fijo para que la UI no salte cuando aparece el banner.
 - Los colores de los `StatPill`: **leelos de `activeTheme.colors`**
-  (`.success`, `.error`, `.accent`), como hace `KanjiGameScreen.tsx:66-71`.
+  (`.success`, `.error`, `.warning`, `.accent`), como hace `KanjiGrindGameScreen`.
   **No** copies el `const SUCCESS_COLOR = '#3E7D5C'` que aparece en otras pantallas: es la
   deuda D2 y rompe el dark mode.
 - Si el contenido es japonés, poné un `<SpeakButton text={...} />`.
@@ -115,17 +116,20 @@ Composición estándar, en este orden:
 - En la pantalla: `useTrackProgress('<modeKey>', state.stats);`
   Registra la sesión al desmontar y acumula el mejor streak solo.
 
-### 6. Entrada en Home
+### 6. Entrada en la grilla de Practicar
 
-`src/screens/HomeScreen.tsx` → agregá un objeto al array `rows` (líneas 90-151):
+`src/screens/PracticeScreen.tsx` → agregá un objeto al array `cards`:
 
 ```ts
-{ glyph: '時', title: 'Horarios', subtitle: 'Leer y escribir la hora',
-  onPress: () => navigation.navigate('TimesGame') },
+{ glyph: '時', title: 'Horarios', onPress: () => navigation.navigate('TimesGame') },
 ```
 
-El `glyph` es un kanji temático de un carácter. Si el modo no está en Home, no existe para
-el usuario.
+El `glyph` es un kanji temático de un carácter. **No lleva subtítulo**: la grilla es pareja
+a propósito (2 columnas, todas las cards iguales) y el único destacado es el Repaso. El
+mosaico bento asimétrico con subtítulos sueltos se quitó el 2026-08-24 porque cortaba los
+títulos largos y no aportaba jerarquía real.
+
+Si el modo no está en esa grilla, no existe para el usuario.
 
 ## Checklist de cierre
 
@@ -136,7 +140,7 @@ el usuario.
 - [ ] Los colores salen de `activeTheme.colors`, no de constantes hex locales
 - [ ] La ruta está tipada en `RootStackParamList`
 - [ ] El `modeKey` está en `PROGRESS_MODE_LABELS`
-- [ ] Hay una fila en `HomeScreen`
+- [ ] Hay una card en `PracticeScreen`
 - [ ] `npx tsc --noEmit` pasa
 
 ## Cómo validar

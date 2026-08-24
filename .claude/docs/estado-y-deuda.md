@@ -4,6 +4,119 @@
 > contra el código, no inferido del stack.
 > Al arreglar un ítem, tachalo o borralo — no dejes deuda fantasma como pasó con la lista vieja.
 
+## Auditoría de UI del 2026-08-16
+
+Pasada de producto, no de deuda. Lo que cambió:
+
+- **Racha y meta diaria: eliminadas** por decisión de producto (no se quiere que el usuario
+  trackee eso). Se borró `StreakCard`, el modelo `daily` de `progressStore`, `setDailyGoal`
+  del provider y el bloque "Meta diaria" de Perfil. El recordatorio diario **queda**, pero su
+  copy ya no habla de racha.
+- **Kanji del día: eliminado** de la Home.
+- **Home rediseñada**: dejó de ser una lista de 10 filas; ahora es un mosaico bento asimétrico
+  con el kanji de cada modo como marca de agua.
+- **Barra de tabs arreglada**: el glifo y la etiqueta se apilaban dentro de `tabBarIcon`, y con
+  el font-scaling del sistema la etiqueta se recortaba. Ahora van en `tabBarIcon` +
+  `tabBarLabel` con `allowFontScaling={false}`.
+- **Pantallas de selección rediseñadas** (kana, vocabulario, kanji) al flujo "modo primero →
+  contenido", todo preseleccionado y con `StartBar` fija. Se borraron los 4 cards viejos y se
+  crearon `ModeTile`, `SelectChip`, `CheckRow`, `StartBar`.
+- **`ScreenBackground.bottomOverlay` ahora se mide** con `onLayout` en vez de reservar 82px
+  fijos: la barra con resumen mide ~99px y tapaba la última fila. El wrapper del overlay dejó
+  de ser `absoluteFill` para poder medirlo.
+- **Los apuntes de clase aceptan imágenes.** Pipeline completo (sintaxis, validación, mapa de
+  `require()`, renderer con zoom). **Notion no tiene ninguna imagen hoy**: se revisaron las
+  páginas Kurasu y son texto y tablas puras, así que `assets/clases/` arranca vacía.
+
+## Segunda pasada — 2026-08-16 (misma auditoría)
+
+- **El Repaso pasó a ser por errores** (`src/features/weak/`), no flashcards. Ver `CLAUDE.md`.
+  El SRS quedó relegado a relleno; si algún día el usuario tiene errores de sobra, el mazo
+  Leitner deja de aparecer y habría que decidir si se borra.
+- **Se quitó la hoja de repaso global** y se reemplazó por un quiz por clase (`ClassQuizScreen`)
+  al final de cada apunte. `content/repaso.md` quedó sin consumir.
+- **Horarios acepta 〜半**: `TimeEntry.readings` es una lista y los distractores filtran por
+  todas las lecturas del ítem, para que la forma equivalente no salga como opción incorrecta.
+- **Dictado muestra el silabario** (ひらがな / カタカナ): el audio no lo distingue y escribir en
+  kana era adivinar.
+- **`VocabularyListScreen`**: la fila de chips horizontal se reemplazó por bloques plegables.
+- **Opacidades de marca de agua tokenizadas** (`theme.opacity`), porque el mismo alpha no
+  sirve en papel y en sumi.
+- **Safe area endurecido**: `initialWindowMetrics` + piso del inset inferior en la tab bar.
+- **Segmentación de frases** (`phraseSegmentation.ts`): alinea kana↔romaji para cortar por
+  palabra, y **se verifica sola** (si no reconstruye la frase exacta, devuelve null y cae a
+  moras). Medido: 100% de las frases multi-palabra, el resto son de una sola palabra.
+
+## Tercera pasada — 2026-08-17
+
+- **Los 14 modos reportan al Repaso.** Se sumaron los formatos `draw` y `speak` para que
+  dibujo y pronunciación se repitan con su propia herramienta en vez de degradarse a
+  "elegí una opción", que sería otro ejercicio.
+- **`PronunciationRound` extraído** de `PronunciationGameScreen`: la lógica de micrófono y
+  veredicto ahora la comparten la pantalla y el Repaso. La pantalla quedó en ~100 líneas.
+- **Palabra guiada muestra la palabra entera** (`kuruma`), no cortada en moras (`ku ru ma`):
+  separarla ya resolvía media consigna.
+- **Ayuda de traducción en Palabra guiada**: `HintToggle` (componente nuevo en
+  `components/game/`) en la esquina izquierda de la tarjeta, en espejo con el `SpeakButton`.
+  El estado se persiste en `AppSettingsProvider.wordHintEnabled` para no tener que
+  reactivarlo en cada partida. Está listo para reusarse en Completar si hace falta.
+- **Los textos de los tiles de la Home van arriba a la izquierda** y reservan el ancho del
+  glifo; antes se encimaban con la marca de agua.
+
+## Cuarta pasada — 2026-08-24 · sistema de kanji
+
+Auditoría específica de kanji. Lo que se encontró y lo que cambió:
+
+- **Los kanji estaban en 5 lugares sin ninguna relación entre sí**: `KANJI_LIST` (86, modelo
+  plano: `readings` mezclaba on'yomi y kun'yomi, `example` era un string libre), el campo
+  `kanji` de `classVocabulary` (183 entradas, 203 caracteres distintos), el texto de los
+  apuntes (49), los trazos generados y algunas tablas de `studyTopics`. Ninguno duplicado como
+  *entidad*, pero tampoco relacionado: nadie sabía que 日 sale en la clase 1.
+- **Dataset único** `src/data/kanji.ts`: 92 fichas completas (80 `n5-core` + 12 `n5-extra`),
+  con on/kun separados, ejemplos con kana+romaji+español, uso, mnemotecnia y categoría.
+  **El id es el carácter**, no un correlativo.
+- **La procedencia se deriva**, no se escribe: `scripts/generate-kanji-links.mjs` escanea los
+  apuntes y `classVocabulary` → `kanjiClasses.generated.ts`. Ese script además **valida** el
+  dataset y falla con el detalle (duplicados, `order` repetido, on'yomi que no es katakana,
+  ejemplos que no contienen su kanji).
+- **Progreso por kanji y por destreza** (`kanji-progress.json`): `meaning` / `reading` /
+  `recognition`, con estados nuevo → estudiando → practicando → dominado. Invariante: el
+  contenido nunca mueve el estado.
+- **Kanji Grind**: sesiones por lote con tarjeta de presentación para lo nuevo, 5 tipos de
+  ronda (incluido "qué kanji falta en esta palabra", derivado de los ejemplos).
+- Bugs encontrados por la verificación automática del engine, ya arreglados: con un mazo de un
+  solo kanji (el botón "practicar este kanji" de la ficha) las rondas salían con **una sola
+  opción** o la sesión quedaba vacía. Los distractores ahora salen siempre del catálogo
+  completo y toda ronda con menos de 2 opciones se descarta.
+- **`KanjiLearnScreen` estaba visualmente roto** y nadie lo había notado: `CATEGORY_ACCENT`
+  conservaba la paleta cyan/rosa del diseño viejo y `cardTitle` tenía
+  `color: 'rgba(255,255,255,0.5)'` — texto blanco sobre papel blanco. Se borró junto con el
+  resto de las pantallas viejas de kanji.
+- **Dos skills estaban desactualizadas** y se corrigieron: `kanami-clases` documentaba
+  `QuickReviewScreen`/`QUICK_REVIEW` (borrados el 2026-08-16) y `kanami-persistencia` hablaba
+  de "racha diaria" en el progreso y listaba 3 providers cuando ya eran 4 (ahora 5).
+
+## Quinta pasada — 2026-08-24 · interfaz y contexto de kanji
+
+Feedback de producto sobre la primera versión del sistema de kanji. Lo que cambió:
+
+- **La app abre en 学 Estudiar, no en Practicar.** La separación es ahora explícita:
+  Estudiar = contenido para aprender (clases, fichas de kanji, vocabulario, temas);
+  Practicar = solo juegos. Antes la "Home" era la raíz de Practicar y mezclaba las dos cosas.
+- **El mosaico bento se reemplazó por una grilla pareja de 2 columnas** (`PracticeScreen`).
+  El bento tenía tiles de cinco tamaños distintos, subtítulos en algunos sí y otros no, y
+  **cortaba los títulos largos** ("Hirag...", "Katak...", "Pronunciac..."). La jerarquía de
+  tamaños no significaba nada. Ahora el único destacado es el Repaso, que sí es distinto.
+- **El tile "Mixto" desapareció**: el silabario se elige adentro de `KanaGroups` con un
+  selector hiragana/katakana/mixto. Mixto no era otro modo, era una variante.
+- **Cada kanji tiene una oración de ejemplo** (92 escritas a mano). Nota importante para el
+  futuro: **no se pudieron derivar de los apuntes** porque el corpus de clase está escrito
+  casi todo en kana — solo 49 kanji distintos en 15 clases, y 5 clases sin ninguno.
+- **Kanji Grind pasó de 5 tipos de ronda a 4** y ganó `sentence-recognition`. Se quitaron las
+  direcciones inversas (significado→kanji, lectura→kanji): preguntaban lo mismo al revés.
+- **La sesión se partió en dos fases**: presentar todo el lote nuevo primero, practicar
+  después. Antes la tarjeta de presentación caía en el medio del drill.
+
 ## Veredicto
 
 El proyecto está **sano**. `tsc --noEmit` pasa limpio, la separación engine/hook/screen es real

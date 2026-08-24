@@ -1,4 +1,3 @@
-import { Dispatch, SetStateAction, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
@@ -10,6 +9,9 @@ type FeedbackBannerProps = {
   promptText?: string;
   correctText: string;
   selectedText?: string | null;
+  // Acertaste salvo por un carácter: cuenta como acierto pero se marca distinto para que
+  // veas la forma correcta en vez de fijar el error.
+  nearMiss?: boolean;
 };
 
 export function FeedbackBanner({
@@ -17,6 +19,7 @@ export function FeedbackBanner({
   promptText,
   correctText,
   selectedText,
+  nearMiss = false,
 }: FeedbackBannerProps) {
   const { theme: activeTheme } = useAppTheme();
   const successTone = activeTheme.colors.success;
@@ -24,17 +27,27 @@ export function FeedbackBanner({
 
   const tone =
     status === 'correct'
-      ? successTone
+      ? nearMiss
+        ? activeTheme.colors.warning
+        : successTone
       : status === 'incorrect'
         ? errorTone
         : activeTheme.colors.lineStrong;
 
-  const resolvedAnswerText = promptText ? `${promptText} - ${correctText}` : correctText;
+  const resolvedAnswerText = promptText ? `${promptText} — ${correctText}` : correctText;
 
+  // Cuando errás, LO QUE IMPORTA es la respuesta correcta. Antes iba todo en un renglón
+  // ("Incorrecto: <lo tuyo> -> <prompt> - <correcta>") con `numberOfLines={1}`, y en las
+  // frases largas se cortaba justo antes de la respuesta: el único momento en que el
+  // ejercicio enseña quedaba ilegible. Ahora va en dos líneas y la correcta encabeza.
   const message =
     status === 'correct'
-      ? `Correcto: ${resolvedAnswerText}`
-      : `Incorrecto: ${selectedText ?? '...'} -> ${resolvedAnswerText}`;
+      ? nearMiss
+        ? `Casi — se escribe: ${resolvedAnswerText}`
+        : `Correcto: ${resolvedAnswerText}`
+      : resolvedAnswerText;
+  const secondaryMessage =
+    status === 'incorrect' && selectedText ? `Escribiste: ${selectedText}` : null;
 
   return (
     <View
@@ -52,75 +65,34 @@ export function FeedbackBanner({
       {status === 'idle' ? null : (
         <>
           <MaterialCommunityIcons
-            name={status === 'correct' ? 'check-circle-outline' : 'close-circle-outline'}
+            name={
+              status === 'correct'
+                ? nearMiss
+                  ? 'alert-circle-outline'
+                  : 'check-circle-outline'
+                : 'close-circle-outline'
+            }
             size={16}
             color={tone}
           />
-          <AutoFitFeedbackText color={activeTheme.colors.textPrimary}>
-            {message}
-          </AutoFitFeedbackText>
+          <View style={styles.messageWrap}>
+            <Text
+              numberOfLines={2}
+              style={[styles.answerText, { color: activeTheme.colors.textPrimary }]}
+            >
+              {message}
+            </Text>
+            {secondaryMessage ? (
+              <Text
+                numberOfLines={1}
+                style={[styles.secondaryText, { color: activeTheme.colors.textMuted }]}
+              >
+                {secondaryMessage}
+              </Text>
+            ) : null}
+          </View>
         </>
       )}
-    </View>
-  );
-}
-
-function AutoFitFeedbackText({
-  children,
-  color,
-}: {
-  children: string;
-  color: string;
-}) {
-  const [availableWidth, setAvailableWidth] = useState(0);
-  const [measuredWidth, setMeasuredWidth] = useState(0);
-  const minimumScale = 0.52;
-  const scale =
-    availableWidth > 0 && measuredWidth > 0
-      ? Math.max(minimumScale, Math.min(1, (availableWidth - 2) / measuredWidth))
-      : 1;
-
-  const handleWidthLayout = (
-    nextWidth: number,
-    setter: Dispatch<SetStateAction<number>>,
-  ) => {
-    const roundedWidth = Math.round(nextWidth);
-
-    setter((currentWidth) =>
-      currentWidth === roundedWidth ? currentWidth : roundedWidth,
-    );
-  };
-
-  return (
-    <View
-      style={styles.textWrap}
-      onLayout={(event) => handleWidthLayout(event.nativeEvent.layout.width, setAvailableWidth)}
-    >
-      <Text
-        adjustsFontSizeToFit
-        minimumFontScale={minimumScale}
-        numberOfLines={1}
-        style={[
-          styles.text,
-          styles.textVisible,
-          {
-            color,
-            fontSize: 11 * scale,
-            lineHeight: 14 * scale,
-          },
-        ]}
-      >
-        {children}
-      </Text>
-
-      <Text
-        numberOfLines={1}
-        pointerEvents="none"
-        style={[styles.text, styles.textMeasure]}
-        onLayout={(event) => handleWidthLayout(event.nativeEvent.layout.width, setMeasuredWidth)}
-      >
-        {children}
-      </Text>
     </View>
   );
 }
@@ -134,26 +106,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 4,
     shadowOffset: { width: 0, height: 0 },
   },
-  textWrap: {
+  messageWrap: {
     flex: 1,
     minWidth: 0,
-    justifyContent: 'center',
   },
-  text: {
+  // La respuesta correcta es lo que hay que poder leer: va primero y con más cuerpo.
+  answerText: {
+    fontFamily: theme.typography.bodyStrong.fontFamily,
+    fontSize: 13,
+    lineHeight: 16,
+  },
+  secondaryText: {
     fontFamily: theme.typography.bodySmall.fontFamily,
     fontSize: 11,
-    lineHeight: 14,
-  },
-  textVisible: {
-    width: '100%',
-  },
-  textMeasure: {
-    position: 'absolute',
-    opacity: 0,
-    left: 0,
-    top: 0,
+    lineHeight: 13,
   },
 });

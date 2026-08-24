@@ -99,19 +99,27 @@ function serialize(result, exportName) {
   return { text: out, count: ordered.length };
 }
 
+// The dataset keys each entry by the character itself (`char: '日'`); there are no
+// sequential ids. Keep this regex in sync with src/types/kanji.ts.
 function readKanjiCharacters() {
   const source = readFileSync('src/data/kanji.ts', 'utf8');
-  const chars = [...source.matchAll(/kanji:\s*'([^']+)'/g)].map((m) => m[1]);
+  const chars = [...source.matchAll(/^\s{4}char: '(.)',$/gm)].map((m) => m[1]);
   return [...new Set(chars)];
 }
 
 async function main() {
-  // Kana: full hiragana ぁ..ゖ (U+3041–U+3096) and katakana ァ..ヺ (U+30A1–U+30FA).
-  const kanaCodepoints = [...range(0x3041, 0x3096), ...range(0x30a1, 0x30fa)];
-  const kana = await collect(kanaCodepoints);
-  const kanaOut = serialize(kana.result, 'KANA_STROKES');
-  writeFileSync('src/data/kanaStrokes.generated.ts', kanaOut.text, 'utf8');
-  console.log(`Kana: wrote ${kanaOut.count} characters (${kana.missing} missing).`);
+  // `--only=kanji` skips the ~200 kana requests. Adding a kanji is frequent; the kana
+  // set never changes, so re-downloading it every time is pure wait.
+  const onlyKanji = process.argv.includes('--only=kanji');
+
+  if (!onlyKanji) {
+    // Kana: full hiragana ぁ..ゖ (U+3041–U+3096) and katakana ァ..ヺ (U+30A1–U+30FA).
+    const kanaCodepoints = [...range(0x3041, 0x3096), ...range(0x30a1, 0x30fa)];
+    const kana = await collect(kanaCodepoints);
+    const kanaOut = serialize(kana.result, 'KANA_STROKES');
+    writeFileSync('src/data/kanaStrokes.generated.ts', kanaOut.text, 'utf8');
+    console.log(`Kana: wrote ${kanaOut.count} characters (${kana.missing} missing).`);
+  }
 
   // Kanji: characters referenced in src/data/kanji.ts.
   const kanjiChars = readKanjiCharacters();

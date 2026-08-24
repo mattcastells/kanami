@@ -10,10 +10,6 @@ import { GlassCard } from '../ui/GlassCard';
 import { PrimaryButton } from '../ui/PrimaryButton';
 import { StatPill } from '../ui/StatPill';
 
-const SUCCESS_COLOR = '#3E7D5C';
-const ERROR_COLOR = '#B03A2E';
-const INFO_COLOR = '#C73E2E';
-
 function accuracyOf(correct: number, answered: number) {
   return answered > 0 ? Math.round((correct / answered) * 100) : 0;
 }
@@ -45,7 +41,7 @@ export function ProgressCard() {
       try {
         if (typeof navigator !== 'undefined' && navigator.clipboard) {
           await navigator.clipboard.writeText(json);
-          setFeedback({ tone: SUCCESS_COLOR, text: 'Copiado al portapapeles.' });
+          setFeedback({ tone: activeTheme.colors.success, text: 'Copiado al portapapeles.' });
           return;
         }
       } catch {
@@ -63,18 +59,18 @@ export function ProgressCard() {
     try {
       await Share.share({ message: json });
     } catch {
-      setFeedback({ tone: ERROR_COLOR, text: 'No se pudo compartir el progreso.' });
+      setFeedback({ tone: activeTheme.colors.error, text: 'No se pudo compartir el progreso.' });
     }
   };
 
   const handleImport = () => {
     const ok = importProgress(importText.trim());
     if (ok) {
-      setFeedback({ tone: SUCCESS_COLOR, text: 'Progreso importado.' });
+      setFeedback({ tone: activeTheme.colors.success, text: 'Progreso importado.' });
       setImportOpen(false);
       setImportText('');
     } else {
-      setFeedback({ tone: ERROR_COLOR, text: 'El texto no es un progreso válido.' });
+      setFeedback({ tone: activeTheme.colors.error, text: 'El texto no es un progreso válido.' });
     }
   };
 
@@ -116,13 +112,13 @@ export function ProgressCard() {
       {hasProgress ? (
         <>
           <View style={styles.statsRow}>
-            <StatPill label="Respondidas" value={totals.answered} accentColor={INFO_COLOR} />
+            <StatPill label="Respondidas" value={totals.answered} accentColor={activeTheme.colors.accent} />
             <StatPill
               label="Precisión"
               value={`${accuracyOf(totals.correct, totals.answered)}%`}
-              accentColor={SUCCESS_COLOR}
+              accentColor={activeTheme.colors.success}
             />
-            <StatPill label="Sesiones" value={totals.sessions} accentColor={INFO_COLOR} />
+            <StatPill label="Sesiones" value={totals.sessions} accentColor={activeTheme.colors.accent} />
           </View>
 
           <View style={styles.modeList}>

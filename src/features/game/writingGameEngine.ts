@@ -1,5 +1,6 @@
 import { HiraganaCharacter } from '../../types/hiragana';
 import { PracticeContentKind } from '../../types/game';
+import { normalizeRomaji } from './romajiAnswer';
 import { AnswerState, GameStats } from './gameEngine';
 
 export type WritingRound = {
@@ -57,9 +58,9 @@ export function sanitizeWritingInput(
   value: string,
   answerKind: PracticeContentKind = 'romaji',
 ) {
-  const compactValue = value.trim().replace(/\s+/g, '');
-
-  return answerKind === 'romaji' ? compactValue.toLowerCase() : compactValue;
+  // Romaji con la tolerancia compartida (wo/o, vocales largas). Ver `romajiAnswer.ts`.
+  if (answerKind === 'romaji') return normalizeRomaji(value);
+  return value.trim().replace(/\s+/g, '');
 }
 
 export function createWritingRound(
@@ -137,7 +138,10 @@ export function submitWritingAnswer(
     return currentState;
   }
 
-  const isCorrect = submittedValue === currentState.round.answer;
+  // La respuesta esperada se normaliza en la comparación, no al guardarla: `round.answer`
+  // se muestra tal cual en el feedback y tiene que seguir diciendo "wo" para を.
+  const isCorrect =
+    submittedValue === sanitizeWritingInput(currentState.round.answer, answerKind);
 
   return {
     ...currentState,

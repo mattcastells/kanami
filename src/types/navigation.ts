@@ -3,18 +3,23 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ClassVocabCategoryId } from '../data/classVocabulary';
 import { HiraganaGroupId } from './hiragana';
 import { KanaScript, PracticeMode, WordPracticeCategoryId } from './game';
-import { KanjiCategoryId, KanjiPracticeMode } from './kanji';
+import { KanjiCategoryId, KanjiGrindFocus } from './kanji';
 
 export type RootStackParamList = {
-  Home: undefined;
+  // Raíz de 練 Practicar: la grilla de juegos. La pantalla de ENTRADA de la app es
+  // StudyTopics (学 Estudiar), que es donde vive el contenido para aprender.
+  Practice: undefined;
   StudyTopics: undefined;
   StudyTopic: { topicId: string };
   ClassNotes: undefined;
   ClassNote: { classNumber: number };
-  QuickReview: undefined;
+  ClassQuiz: { classNumber: number };
+  TranslationGame: undefined;
   // Vocabulario de la cursada, de consulta (pestaña Estudiar). No confundir con
   // `Vocabulary`, que es el lanzador de juegos de vocabulario (pestaña Practicar).
-  VocabularyList: { categoryId?: ClassVocabCategoryId } | undefined;
+  // El índice lista las temáticas; cada una abre su propia página.
+  VocabularyList: undefined;
+  VocabularyTheme: { categoryId: ClassVocabCategoryId };
   KanaGroups: {
     script: KanaScript;
     initialMode?: PracticeMode;
@@ -28,17 +33,19 @@ export type RootStackParamList = {
     // Cantidad de rondas antes del resumen. undefined = sesión infinita (default).
     sessionLength?: number;
   };
-  KanjiHub: undefined;
-  KanjiLearn: undefined;
-  KanjiPractice: undefined;
-  KanjiDraw: {
-    categoryIds: KanjiCategoryId[];
-    kanjiId?: string;
+  // Sección Kanji (pestaña Estudiar): consultar y aprender.
+  // Igual que vocabulario: índice de temáticas → página de la temática → ficha.
+  KanjiList: undefined;
+  KanjiCategory: { categoryId: KanjiCategoryId };
+  KanjiDetail: { char: string };
+  // Kanji Grind (pestaña Practicar): practicar y repetir.
+  KanjiGrind: undefined;
+  // `chars` es el mazo de la sesión; el engine elige adentro el lote según tu progreso.
+  KanjiGrindGame: {
+    focus: KanjiGrindFocus;
+    chars: string[];
   };
-  KanjiGame: {
-    mode: KanjiPracticeMode;
-    categoryIds: KanjiCategoryId[];
-  };
+  KanjiDraw: { chars: string[] };
   Vocabulary: undefined;
   EmojiGame: {
     script: KanaScript;

@@ -26,6 +26,8 @@ import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
+import { HintToggle } from '../components/game/HintToggle';
+import { useAppSettings } from '../settings/AppSettingsProvider';
 import { StatPill } from '../components/ui/StatPill';
 import { getKanaCharactersForGroupIds, getKanaScriptLabel, getKanaWordEntries } from '../data/kana';
 import { useFillBlankGame } from '../features/game/useFillBlankGame';
@@ -41,6 +43,7 @@ import {
 } from '../features/game/phraseGameEngine';
 import { useHiraganaGame } from '../features/game/useHiraganaGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
+import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { usePhraseGame } from '../features/game/usePhraseGame';
 import { useWritingHiraganaGame } from '../features/game/useWritingHiraganaGame';
 import { useWordPracticeGame } from '../features/game/useWordPracticeGame';
@@ -55,14 +58,10 @@ import {
 } from '../features/game/wordGameEngine';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
-import { KanaScript } from '../types/game';
 import { HiraganaCharacter } from '../types/hiragana';
 import { RootStackScreenProps } from '../types/navigation';
 
-const GAME_SUCCESS_COLOR = '#3E7D5C';
-const GAME_ERROR_COLOR = '#B03A2E';
 // Azul apagado (compañero del bermellón) para la racha.
-const GAME_STREAK_COLOR = '#356E8E';
 
 export function GameScreen({
   route,
@@ -235,6 +234,16 @@ function ReadingGameView({
 }) {
   const { state, answer, lastFeedback } = useHiraganaGame(pool, resetKey, inverted);
   useTrackProgress('reading', state.stats);
+  useTrackWeakItem('reading', state.answerState, {
+    itemId: `${state.round.prompt.id}:${inverted ? 'inv' : 'std'}`,
+    format: 'choice',
+    prompt: inverted ? state.round.prompt.romaji : state.round.prompt.kana,
+    answer: inverted ? state.round.prompt.kana : state.round.prompt.romaji,
+    options: state.round.options.map((option) =>
+      inverted ? option.kana : option.romaji,
+    ),
+    speakText: state.round.prompt.kana,
+  });
   const kanaTransition = useRef(new Animated.Value(1)).current;
   const answersTransition = useRef(new Animated.Value(1)).current;
   const promptText = inverted ? state.round.prompt.romaji : state.round.prompt.kana;
@@ -298,8 +307,9 @@ function ReadingGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <SpeakButton text={state.round.prompt.kana} style={styles.speakCorner} />
-        <PromptBoard>
+        <PromptBoard
+          topRight={<SpeakButton text={state.round.prompt.kana} />}
+        >
           <View style={styles.kanaWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, kanaTextAnimatedStyle]}>
               <PromptGlyph
@@ -346,6 +356,13 @@ function WritingGameView({
     inverted,
   );
   useTrackProgress('writing', state.stats);
+  useTrackWeakItem('writing', state.answerState, {
+    itemId: `${state.round.roundKey}:${inverted ? 'inv' : 'std'}`,
+    format: 'input',
+    prompt: state.round.promptText,
+    answer: state.round.answer,
+    speakText: state.round.prompts.map((character) => character.kana).join(''),
+  });
   const promptTransition = useRef(new Animated.Value(1)).current;
   const inputLineTransition = useRef(new Animated.Value(0)).current;
   const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -379,7 +396,7 @@ function WritingGameView({
     }
 
     const nextTone =
-      state.answerState === 'correct' ? GAME_SUCCESS_COLOR : GAME_ERROR_COLOR;
+      state.answerState === 'correct' ? activeTheme.colors.success : activeTheme.colors.error;
 
     if (inputLineResetTimeoutRef.current) {
       clearTimeout(inputLineResetTimeoutRef.current);
@@ -467,11 +484,14 @@ function WritingGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
-        <SpeakButton
-          text={state.round.prompts.map((prompt) => prompt.kana).join('')}
-          style={styles.speakCorner}
-        />
-        <PromptBoard style={styles.writingPromptBoard}>
+        <PromptBoard
+          style={styles.writingPromptBoard}
+          topRight={
+            <SpeakButton
+              text={state.round.prompts.map((prompt) => prompt.kana).join('')}
+            />
+          }
+        >
           <View style={styles.writingPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
               <PromptGlyph
@@ -556,12 +576,23 @@ function WordSyllablesGameView({
   onBack: () => void;
 }) {
   const { theme: activeTheme } = useAppTheme();
+  const {
+    settings: { wordHintEnabled },
+    setWordHintEnabled,
+  } = useAppSettings();
   const { state, setInputValue, submit, lastFeedback } = useWordPracticeGame(
     pool,
     resetKey,
     'syllables',
   );
   useTrackProgress('syllables', state.stats);
+  useTrackWeakItem('syllables', state.answerState, {
+    itemId: state.round.word.id,
+    format: 'input',
+    prompt: state.round.promptText,
+    answer: state.round.answer,
+    speakText: state.round.word.kana,
+  });
   const promptTransition = useRef(new Animated.Value(1)).current;
   const inputLineTransition = useRef(new Animated.Value(0)).current;
   const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -594,7 +625,7 @@ function WordSyllablesGameView({
     }
 
     const nextTone =
-      state.answerState === 'correct' ? GAME_SUCCESS_COLOR : GAME_ERROR_COLOR;
+      state.answerState === 'correct' ? activeTheme.colors.success : activeTheme.colors.error;
 
     if (inputLineResetTimeoutRef.current) {
       clearTimeout(inputLineResetTimeoutRef.current);
@@ -694,13 +725,30 @@ function WordSyllablesGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
-        <SpeakButton text={state.round.word.kana} style={styles.speakCorner} />
-        <PromptBoard style={styles.writingPromptBoard}>
+        <PromptBoard
+          style={styles.writingPromptBoard}
+          topLeft={
+            <HintToggle
+              enabled={wordHintEnabled}
+              onToggle={() => setWordHintEnabled(!wordHintEnabled)}
+            />
+          }
+          topRight={<SpeakButton text={state.round.word.kana} />}
+        >
           <View style={styles.syllablesPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
               <PromptGlyph style={styles.syllablesPrompt}>
                 {state.round.promptText}
               </PromptGlyph>
+              {wordHintEnabled ? (
+                <AppText
+                  variant="bodySmall"
+                  color={activeTheme.colors.textMuted}
+                  style={styles.promptHint}
+                >
+                  {state.round.word.translations[0]}
+                </AppText>
+              ) : null}
             </Animated.View>
           </View>
         </PromptBoard>
@@ -772,6 +820,13 @@ function PhraseGameView({
     inverted,
   );
   useTrackProgress('phrases', state.stats);
+  useTrackWeakItem('phrases', state.answerState, {
+    itemId: `${state.round.phrase.id}:${inverted ? 'inv' : 'std'}`,
+    format: 'input',
+    prompt: state.round.promptText,
+    answer: state.round.displayAnswer || state.round.answer,
+    speakText: state.round.phrase.kana,
+  });
   const promptTransition = useRef(new Animated.Value(1)).current;
   const inputLineTransition = useRef(new Animated.Value(0)).current;
   const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -805,7 +860,7 @@ function PhraseGameView({
     }
 
     const nextTone =
-      state.answerState === 'correct' ? GAME_SUCCESS_COLOR : GAME_ERROR_COLOR;
+      state.answerState === 'correct' ? activeTheme.colors.success : activeTheme.colors.error;
 
     if (inputLineResetTimeoutRef.current) {
       clearTimeout(inputLineResetTimeoutRef.current);
@@ -897,8 +952,22 @@ function PhraseGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
-        <SpeakButton text={state.round.phrase.kana} style={styles.speakCorner} />
-        <PromptBoard style={styles.writingPromptBoard}>
+        {/* La consigna arriba del prompt, no solo en el placeholder: el placeholder se
+            tapa apenas empezás a escribir y no dice qué se pide. Es transcripción, no
+            traducción — sin decirlo, se escribe la traducción al español. */}
+        <AppText
+          variant="overline"
+          color={activeTheme.colors.textMuted}
+          style={styles.phraseConsigna}
+        >
+          {answerKind === 'kana'
+            ? `Transcribí en ${scriptLabelLowercase}`
+            : 'Transcribí en romaji'}
+        </AppText>
+        <PromptBoard
+          style={styles.writingPromptBoard}
+          topRight={<SpeakButton text={state.round.phrase.kana} />}
+        >
           <View style={styles.phrasePromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
               <PromptGlyph
@@ -998,17 +1067,17 @@ function PhraseGameView({
           <StatPill
             label="Aciertos"
             value={state.stats.correct}
-            accentColor={GAME_SUCCESS_COLOR}
+            accentColor={activeTheme.colors.success}
           />
           <StatPill
             label="Fallidos"
             value={state.stats.incorrect}
-            accentColor={GAME_ERROR_COLOR}
+            accentColor={activeTheme.colors.error}
           />
           <StatPill
             label="Racha"
             value={state.stats.streak}
-            accentColor={GAME_STREAK_COLOR}
+            accentColor={activeTheme.colors.warning}
           />
         </View>
       </View>
@@ -1034,6 +1103,18 @@ function FillBlankGameView({
   const { theme: activeTheme } = useAppTheme();
   const { state, answer, lastFeedback } = useFillBlankGame(pool, resetKey);
   useTrackProgress('fill-blank', state.stats);
+  useTrackWeakItem('fill-blank', state.answerState, {
+    itemId: `${state.round.word.id}:${state.round.blankIndex}`,
+    format: 'choice',
+    // El hueco tiene que verse en el prompt: sin eso el ejercicio no se entiende
+    // fuera de su pantalla.
+    prompt: state.round.syllables
+      .map((syllable, index) => (index === state.round.blankIndex ? '◯' : syllable))
+      .join(''),
+    answer: state.round.answer,
+    options: state.round.options.map((option) => option.text),
+    speakText: state.round.word.kana,
+  });
   const promptTransition = useRef(new Animated.Value(1)).current;
   const answersTransition = useRef(new Animated.Value(1)).current;
 
@@ -1110,8 +1191,7 @@ function FillBlankGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <SpeakButton text={state.round.word.kana} style={styles.speakCorner} />
-        <PromptBoard>
+        <PromptBoard topRight={<SpeakButton text={state.round.word.kana} />}>
           <View style={styles.kanaWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
               <View style={styles.fillBlankRow}>
@@ -1182,6 +1262,13 @@ function WordBuilderGameView({
     resetKey,
   );
   useTrackProgress('word-builder', state.stats);
+  useTrackWeakItem('word-builder', state.answerState, {
+    itemId: state.round.word.id,
+    format: 'input',
+    prompt: state.round.promptText,
+    answer: state.round.answer,
+    speakText: state.round.word.kana,
+  });
   const promptTransition = useRef(new Animated.Value(1)).current;
   const allPlaced =
     state.placedTileIds.length === state.round.syllableCount;
@@ -1235,8 +1322,7 @@ function WordBuilderGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <SpeakButton text={state.round.word.kana} style={styles.speakCorner} />
-        <PromptBoard>
+        <PromptBoard topRight={<SpeakButton text={state.round.word.kana} />}>
           <View style={styles.wordBuilderPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
               <PromptGlyph style={styles.wordTranslationPrompt}>
@@ -1270,9 +1356,9 @@ function WordBuilderGameView({
                   borderColor: isEmpty
                     ? hexToRgba(activeTheme.colors.textPrimary, 0.22)
                     : isIncorrect
-                      ? GAME_ERROR_COLOR
+                      ? activeTheme.colors.error
                       : state.answerState === 'correct'
-                        ? GAME_SUCCESS_COLOR
+                        ? activeTheme.colors.success
                         : activeTheme.colors.accent,
                   backgroundColor: isEmpty
                     ? hexToRgba(activeTheme.colors.textPrimary, 0.04)
@@ -1286,9 +1372,9 @@ function WordBuilderGameView({
                   styles.wordBuilderSlotKana,
                   {
                     color: isIncorrect
-                      ? GAME_ERROR_COLOR
+                      ? activeTheme.colors.error
                       : state.answerState === 'correct'
-                        ? GAME_SUCCESS_COLOR
+                        ? activeTheme.colors.success
                         : activeTheme.colors.textPrimary,
                   },
                 ]}
@@ -1378,9 +1464,12 @@ function GameTopBlock({
     promptText?: string;
     correctText: string;
     selectedText?: string | null;
+    nearMiss?: boolean;
   };
   hideStats?: boolean;
 }) {
+  const { theme: activeTheme } = useAppTheme();
+
   return (
     <View style={styles.topBlock}>
       <AppText variant="title" style={styles.title}>
@@ -1392,17 +1481,17 @@ function GameTopBlock({
           <StatPill
             label="Aciertos"
             value={stats.correct}
-            accentColor={GAME_SUCCESS_COLOR}
+            accentColor={activeTheme.colors.success}
           />
           <StatPill
             label="Fallidos"
             value={stats.incorrect}
-            accentColor={GAME_ERROR_COLOR}
+            accentColor={activeTheme.colors.error}
           />
           <StatPill
             label="Racha"
             value={stats.streak}
-            accentColor={GAME_STREAK_COLOR}
+            accentColor={activeTheme.colors.warning}
           />
         </View>
       )}
@@ -1413,6 +1502,7 @@ function GameTopBlock({
           promptText={lastFeedback.promptText}
           correctText={lastFeedback.correctText}
           selectedText={lastFeedback.selectedText}
+          nearMiss={lastFeedback.nearMiss}
         />
       </View>
     </View>
@@ -1448,12 +1538,19 @@ function getFillBlankOptionState(
   return 'muted';
 }
 
+// Los controles de la ronda (audio, ayuda) van en las esquinas DEL BOARD, no de la
+// tarjeta: ancladas a la tarjeta quedaban montadas sobre el borde del recuadro, mitad
+// adentro y mitad afuera. Se resuelve acá para que los seis modos queden iguales.
 function PromptBoard({
   children,
   style,
+  topLeft,
+  topRight,
 }: {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
+  topLeft?: ReactNode;
+  topRight?: ReactNode;
 }) {
   const { theme: activeTheme } = useAppTheme();
 
@@ -1468,6 +1565,8 @@ function PromptBoard({
         style,
       ]}
     >
+      {topLeft ? <View style={styles.boardCornerLeft}>{topLeft}</View> : null}
+      {topRight ? <View style={styles.boardCornerRight}>{topRight}</View> : null}
       {children}
     </View>
   );
@@ -1581,17 +1680,27 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   feedbackSlot: {
-    minHeight: 44,
+    minHeight: 56,
     marginBottom: theme.spacing.xs,
   },
   questionCard: {
     marginBottom: theme.spacing.sm,
   },
-  speakCorner: {
+  boardCornerLeft: {
+    position: 'absolute',
+    top: theme.spacing.xs,
+    left: theme.spacing.xs,
+    zIndex: 2,
+  },
+  boardCornerRight: {
     position: 'absolute',
     top: theme.spacing.xs,
     right: theme.spacing.xs,
     zIndex: 2,
+  },
+  promptHint: {
+    textAlign: 'center',
+    marginTop: theme.spacing.xs,
   },
   questionCardContent: {
     padding: theme.spacing.md,
@@ -1674,6 +1783,10 @@ const styles = StyleSheet.create({
     fontSize: 38,
     lineHeight: 46,
     letterSpacing: 0.8,
+  },
+  phraseConsigna: {
+    textAlign: 'center',
+    marginBottom: theme.spacing.xs,
   },
   phrasePromptWrap: {
     minHeight: 160,

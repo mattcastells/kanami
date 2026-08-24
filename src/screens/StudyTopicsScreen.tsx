@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AnimatedRow } from '../components/ui/AnimatedRow';
@@ -6,104 +7,90 @@ import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { CLASS_NOTES } from '../data/classNotes.generated';
 import { classVocabTotal } from '../data/classVocabulary';
 import { studyTopics } from '../data/studyTopics';
+import { useKanjiProgress } from '../features/kanji/KanjiProgressProvider';
+import { getAllKanji, kanjiTotal } from '../features/kanji/kanjiCatalog';
+import { countByStatus } from '../features/kanji/kanjiProgressStore';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
+
+const WEEKDAY_KANJI = ['日', '月', '火', '水', '木', '金', '土'];
+
+function greetingFor(hour: number) {
+  if (hour < 5) return { jp: 'こんばんは', es: 'Buenas noches' };
+  if (hour < 12) return { jp: 'おはよう', es: 'Buenos días' };
+  if (hour < 14) return { jp: 'こんにちは', es: 'Buen mediodía' };
+  if (hour < 19) return { jp: 'こんにちは', es: 'Buenas tardes' };
+  return { jp: 'こんばんは', es: 'Buenas noches' };
+}
+
+// Día y hora en japonés, para leerlo de paso: 水曜日・午後3時5分.
+function japaneseDateTime(date: Date): string {
+  const day = `${WEEKDAY_KANJI[date.getDay()]}曜日`;
+  const hours = date.getHours();
+  const period = hours < 12 ? '午前' : '午後';
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${day}・${period}${hour12}時${date.getMinutes()}分`;
+}
 
 export function StudyTopicsScreen({ navigation }: RootStackScreenProps<'StudyTopics'>) {
   const { theme: activeTheme } = useAppTheme();
+  const { data: kanjiProgress } = useKanjiProgress();
   const lastClass = CLASS_NOTES[CLASS_NOTES.length - 1];
 
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 20_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const greeting = greetingFor(now.getHours());
+  const dateTimeJp = japaneseDateTime(now);
+  const kanjiCounts = useMemo(
+    () => countByStatus(kanjiProgress, getAllKanji().map((entry) => entry.char)),
+    [kanjiProgress],
+  );
+
   return (
-    <ScreenBackground scrollable>
+    // Raíz de tab: `showBack={false}` porque `canGoBack()` da true (se puede volver a la
+    // pestaña anterior) y la flecha quedaba flotando encima del saludo.
+    <ScreenBackground scrollable showBack={false}>
+      {/* Esta es la pantalla de entrada de la app: saluda y muestra qué estás aprendiendo.
+          Los juegos viven en 練 Practicar; acá va el contenido. */}
       <View style={styles.header}>
-        <AppText variant="display">Estudiar</AppText>
+        <View style={styles.headerTop}>
+          <AppText variant="overline" color={activeTheme.colors.textMuted}>
+            日本語
+          </AppText>
+          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
+            {dateTimeJp}
+          </AppText>
+        </View>
+        <AppText variant="display">{greeting.jp}</AppText>
+        <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+          {greeting.es}
+        </AppText>
       </View>
 
       <View style={styles.shortcuts}>
-        <Pressable
-          onPress={() => navigation.navigate('QuickReview')}
-          style={({ pressed }) => [
-            styles.shortcutCard,
-            {
-              borderColor: activeTheme.colors.accent,
-              backgroundColor: hexToRgba(activeTheme.colors.accent, 0.08),
-            },
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText
-            variant="headline"
-            style={[styles.shortcutGlyph, { color: activeTheme.colors.accent }]}
-          >
-            要
-          </AppText>
-          <View style={styles.rowText}>
-            <AppText variant="bodyStrong">Repaso rápido</AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              Lo esencial de todas las clases
-            </AppText>
-          </View>
-          <AppText variant="body" color={activeTheme.colors.textMuted}>
-            ›
-          </AppText>
-        </Pressable>
-
-        <Pressable
-          onPress={() => navigation.navigate('VocabularyList')}
-          style={({ pressed }) => [
-            styles.shortcutCard,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor: activeTheme.colors.backgroundSecondary,
-            },
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText
-            variant="headline"
-            style={[styles.shortcutGlyph, { color: activeTheme.colors.accent }]}
-          >
-            語
-          </AppText>
-          <View style={styles.rowText}>
-            <AppText variant="bodyStrong">Vocabulario</AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {classVocabTotal} palabras de todas las clases
-            </AppText>
-          </View>
-          <AppText variant="body" color={activeTheme.colors.textMuted}>
-            ›
-          </AppText>
-        </Pressable>
-
-        <Pressable
+        <ShortcutCard
+          glyph="授"
+          title="Mis clases"
+          subtitle={`${CLASS_NOTES.length} apuntes · última: Kurasu ${lastClass?.number}`}
           onPress={() => navigation.navigate('ClassNotes')}
-          style={({ pressed }) => [
-            styles.shortcutCard,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor: activeTheme.colors.backgroundSecondary,
-            },
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText
-            variant="headline"
-            style={[styles.shortcutGlyph, { color: activeTheme.colors.accent }]}
-          >
-            授
-          </AppText>
-          <View style={styles.rowText}>
-            <AppText variant="bodyStrong">Mis clases</AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {CLASS_NOTES.length} apuntes · última: Kurasu {lastClass?.number}
-            </AppText>
-          </View>
-          <AppText variant="body" color={activeTheme.colors.textMuted}>
-            ›
-          </AppText>
-        </Pressable>
+        />
+        <ShortcutCard
+          glyph="漢"
+          title="Kanji"
+          subtitle={`${kanjiTotal} fichas · ${kanjiCounts.dominado} dominados, ${kanjiCounts.nuevo} sin ver`}
+          onPress={() => navigation.navigate('KanjiList')}
+        />
+        <ShortcutCard
+          glyph="語"
+          title="Vocabulario"
+          subtitle={`${classVocabTotal} palabras de todas las clases`}
+          onPress={() => navigation.navigate('VocabularyList')}
+        />
       </View>
 
       <AppText variant="overline" color={activeTheme.colors.textMuted} style={styles.sectionLabel}>
@@ -148,11 +135,63 @@ export function StudyTopicsScreen({ navigation }: RootStackScreenProps<'StudyTop
   );
 }
 
+// Los tres accesos de arriba (clases, kanji, vocabulario) comparten forma: glifo,
+// título, resumen y chevron. Uno solo componente en vez de tres copias.
+function ShortcutCard({
+  glyph,
+  title,
+  subtitle,
+  onPress,
+}: {
+  glyph: string;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+}) {
+  const { theme: activeTheme } = useAppTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.shortcutCard,
+        {
+          borderColor: activeTheme.colors.line,
+          backgroundColor: activeTheme.colors.backgroundSecondary,
+        },
+        pressed && styles.pressed,
+      ]}
+    >
+      <AppText
+        variant="headline"
+        style={[styles.shortcutGlyph, { color: activeTheme.colors.accent }]}
+      >
+        {glyph}
+      </AppText>
+      <View style={styles.rowText}>
+        <AppText variant="bodyStrong">{title}</AppText>
+        <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+          {subtitle}
+        </AppText>
+      </View>
+      <AppText variant="body" color={activeTheme.colors.textMuted}>
+        ›
+      </AppText>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   header: {
     gap: theme.spacing.xxs,
     marginBottom: theme.spacing.lg,
     paddingTop: theme.spacing.md,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.spacing.sm,
   },
   shortcuts: {
     gap: theme.spacing.sm,

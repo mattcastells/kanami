@@ -48,3 +48,8 @@ yarn-error.*
 /ios
 /android
 NossaClima/
+
+# Archivos personales que quedan sueltos en la raíz (CVs, escaneos).
+# No son parte del proyecto y no deben publicarse en un repo público.
+RESUME_*.PDF
+RESUME_*.pdf

@@ -31,7 +31,7 @@ export async function syncDailyReminder(enabled: boolean, hour: number) {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Kanami 🌸',
-        body: '¡Hora de practicar japonés! Mantené tu racha.',
+        body: '¡Hora de practicar japonés! Unos minutos alcanzan.',
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,

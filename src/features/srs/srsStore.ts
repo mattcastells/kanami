@@ -13,7 +13,10 @@ export type SrsItem = {
   key: string;
   kind: SrsKind;
   front: string; // japonés (kana) — también lo que se lee en voz alta
-  back: string; // lectura / significado
+  back: string; // lectura / significado, para mostrar
+  // Lo que hay que escribir para darlo por sabido. Separado de `back` porque `back`
+  // incluye la traducción y no se tipea.
+  answer: string;
 };
 
 export type SrsItemState = {
@@ -67,6 +70,7 @@ export function buildSrsDeck(): SrsItem[] {
           kind: 'kana',
           front: character.kana,
           back: character.romaji,
+          answer: character.romaji,
         });
       });
     });
@@ -78,6 +82,7 @@ export function buildSrsDeck(): SrsItem[] {
       kind: 'word',
       front: entry.kana,
       back: `${entry.syllables.join('')} · ${entry.translations[0] ?? ''}`,
+      answer: entry.syllables.join(''),
     });
   });
 

@@ -12,13 +12,10 @@ import { StatPill } from '../components/ui/StatPill';
 import { TimesGameMode } from '../features/game/timesGameEngine';
 import { useTimesGame } from '../features/game/useTimesGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
+import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
-
-const SUCCESS_COLOR = '#3E7D5C';
-const ERROR_COLOR = '#B03A2E';
-const STREAK_COLOR = '#356E8E';
 
 export function TimesGameScreen(_: RootStackScreenProps<'TimesGame'>) {
   const { theme: activeTheme } = useAppTheme();
@@ -27,6 +24,17 @@ export function TimesGameScreen(_: RootStackScreenProps<'TimesGame'>) {
   const resetKey = `times:${mode}`;
   const { state, answer, lastFeedback } = useTimesGame(mode, resetKey);
   useTrackProgress('times', state.stats);
+
+  // El id incluye la lectura elegida: fallar 11:30 en 〜はん y fallarlo en 〜さんじゅっぷん
+  // son dos cosas distintas para practicar.
+  useTrackWeakItem('times', state.answerState, {
+    itemId: `${state.round.entryId}:${state.round.promptIsReading ? 'r2t' : 't2r'}:${state.round.reading}`,
+    format: 'choice',
+    prompt: state.round.promptText,
+    answer: state.round.promptIsReading ? state.round.display : state.round.reading,
+    options: state.round.options.map((option) => option.text),
+    speakText: state.round.reading,
+  });
 
   const toggleMode = () =>
     setMode((current) =>
@@ -54,9 +62,9 @@ export function TimesGameScreen(_: RootStackScreenProps<'TimesGame'>) {
       />
 
       <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={stats.correct} accentColor={SUCCESS_COLOR} />
-        <StatPill label="Fallidos" value={stats.incorrect} accentColor={ERROR_COLOR} />
-        <StatPill label="Racha" value={stats.streak} accentColor={STREAK_COLOR} />
+        <StatPill label="Aciertos" value={stats.correct} accentColor={activeTheme.colors.success} />
+        <StatPill label="Fallidos" value={stats.incorrect} accentColor={activeTheme.colors.error} />
+        <StatPill label="Racha" value={stats.streak} accentColor={activeTheme.colors.warning} />
       </View>
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
@@ -70,13 +78,24 @@ export function TimesGameScreen(_: RootStackScreenProps<'TimesGame'>) {
           </AppText>
         </View>
         {showAnswer ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textSecondary}
-            style={styles.answerLine}
-          >
-            {round.display} · {round.reading}
-          </AppText>
+          <>
+            <AppText
+              variant="bodySmall"
+              color={activeTheme.colors.textSecondary}
+              style={styles.answerLine}
+            >
+              {round.display} · {round.reading}
+            </AppText>
+            {round.alternateReadings.length > 0 ? (
+              <AppText
+                variant="bodySmall"
+                color={activeTheme.colors.textMuted}
+                style={styles.alternateLine}
+              >
+                También: {round.alternateReadings.join(' · ')}
+              </AppText>
+            ) : null}
+          </>
         ) : null}
       </GlassCard>
 
@@ -142,8 +161,12 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.sm,
     textAlign: 'center',
   },
+  alternateLine: {
+    marginTop: 2,
+    textAlign: 'center',
+  },
   feedbackSlot: {
-    minHeight: 44,
+    minHeight: 56,
     marginBottom: theme.spacing.xs,
   },
   answersGrid: {

@@ -21,14 +21,20 @@ description: Trabajar con estado persistente en Kanami — providers, stores pur
 
 ## El modelo real
 
-No hay base de datos ni backend. Tres archivos JSON en `Paths.document`, escritos con la API
+No hay base de datos ni backend. Cinco archivos JSON en `Paths.document`, escritos con la API
 **nueva** de `expo-file-system` (`new File(Paths.document, '...')`):
 
 | Provider | Archivo | Store puro | Contiene |
 |---|---|---|---|
 | `AppSettingsProvider` | `app-settings.json` | inline | tema, haptics, API key Gemini, recordatorio |
-| `ProgressProvider` | `progress.json` | `progressStore.ts` | stats por modo + racha diaria |
+| `ProgressProvider` | `progress.json` | `progressStore.ts` | stats por modo (sin racha ni meta) |
 | `SrsProvider` | `srs.json` | `srsStore.ts` | cajas Leitner por ítem |
+| `WeakProvider` | `weak-items.json` | `weakStore.ts` | los ejercicios que venís fallando |
+| `KanjiProgressProvider` | `kanji-progress.json` | `kanjiProgressStore.ts` | qué sabés de cada kanji, por destreza |
+
+Dos claves distintas que conviene no confundir: `progress.json` se indexa por **modo de
+juego** y mide partidas; `kanji-progress.json` se indexa por **carácter** y mide cuánto
+sabés de ese kanji. Son preguntas distintas, por eso son archivos distintos.
 
 ## La separación provider / store
 
@@ -41,7 +47,7 @@ Toda lógica que se pueda escribir sin React **va en el store**.
 
 ## El patrón anti-race (copialo tal cual)
 
-Los tres providers lo implementan igual, y resuelve un bug real: el archivo se lee async, y si
+Los cinco providers lo implementan igual, y resuelve un bug real: el archivo se lee async, y si
 el usuario tocó algo mientras tanto, la lectura tardía le pisaría el cambio.
 
 ```tsx
@@ -104,8 +110,10 @@ export function normalizeX(value: unknown): X {
 }
 ```
 
-Ver `normalizeProgress` (`progressStore.ts:196`), `toStats` (`:179`), `toDaily` (`:221`) y
-`normalizeSettings` (`AppSettingsProvider.tsx:171`), que valida `reminderHour` en 0-23.
+Ver `normalizeProgress` / `toStats` (`progressStore.ts`) y `normalizeSettings`
+(`AppSettingsProvider.tsx`), que valida `reminderHour` en 0-23. `normalizeKanjiProgress` es el
+ejemplo de descarte activo: tira toda clave que no sea **un solo carácter**, para que los ids
+del modelo viejo (`k001`) no queden como basura fantasma.
 
 ## Agregar un campo a un modelo existente
 
@@ -120,7 +128,7 @@ Ver `normalizeProgress` (`progressStore.ts:196`), `toStats` (`:179`), `toDaily` 
 
 ## Agregar un dominio persistido nuevo
 
-Solo si no encaja en los tres existentes. Creá `src/features/<dominio>/` con
+Solo si no encaja en los cinco existentes. Creá `src/features/<dominio>/` con
 `<dominio>Store.ts` + `<Dominio>Provider.tsx`, copiá el patrón completo, y montá el provider
 en `App.tsx` **adentro** de `AppSettingsProvider`.
 
@@ -137,6 +145,20 @@ Leitner con intervalos `[0, 1, 3, 7, 16, 35]` días. Acierto → sube una caja; 
 0. El mazo (`buildSrsDeck`) es **derivado**: todos los kana de ambos silabarios + todo el
 vocabulario. No se persiste el mazo, solo los estados por clave (`kana:あ`, `word:<id>`).
 → Agregar vocabulario agranda el mazo automáticamente; **renombrar un id borra su historial**.
+
+Los kanji **no** entran al mazo SRS: tienen su propio modelo por destreza
+(`kanjiProgressStore`), porque "sé el significado pero no la lectura" no se puede expresar con
+una sola caja de Leitner. Ver la skill `kanami-kanji`.
+
+## Progreso por kanji
+
+`kanji-progress.json`, indexado por **carácter** (el id de un kanji ES el carácter). Tres
+destrezas independientes (`meaning`, `reading`, `recognition`), cada una con su racha;
+`MASTERY_STREAK = 3` aciertos seguidos la da por sabida. Estados derivados:
+**nuevo → estudiando → practicando → dominado**.
+
+Invariante: **el contenido nunca mueve el estado.** Que un kanji exista en el dataset no
+genera entrada; solo la generan `recordAnswer` (practicar) y `setStudied` (marcarlo a mano).
 
 ## Cómo validar
 

@@ -74,13 +74,11 @@ export function getKanaWordCategoryGroups(script: KanaScript) {
     {
       id: 'clase' as const,
       title: 'De tus clases',
-      note: 'Lo que viste en las clases 1 a 16',
       categories: getClassWordCategorySummaries(script),
     },
     {
       id: 'general' as const,
       title: 'General',
-      note: 'Vocabulario extra para practicar kana',
       categories: getWordPracticeCategorySummaries(script),
     },
   ].filter((group) => group.categories.length > 0);
