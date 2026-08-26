@@ -41,7 +41,7 @@ No hay linter ni test runner en el repo. El único gate automático es `tsc`.
 App.tsx                 Fonts (Zen) + providers + NavigationContainer + ajustes web
 index.ts                registerRootComponent
 content/                FUENTE editable de los apuntes (markdown, no se bundlea directo)
-  clases/kurasu-NN.md   transcripción de cada clase real (1-6, 8-16, 18-19; no hubo 7 ni 17)
+  clases/kurasu-NN.md   transcripción de cada clase real (1-6, 8-19; la 7 no existió)
   repaso.md             hoja de repaso consolidada — se mantiene al día clase a clase
 assets/clases/          imágenes de los apuntes (ver README ahí). Se referencian desde el
                         markdown con ![epígrafe](archivo.png) y el generador arma el mapa

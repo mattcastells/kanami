@@ -1,6 +1,6 @@
 # Índice temático — contenido de las clases (Notion → app)
 
-17 clases reales (Kurasu 1–6, 8–16, 18–19; no existieron 7 ni 17, ni una "13" separada: la página "Clase 14" contiene KURASU 13). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
+18 clases reales (Kurasu 1–6, 8–19; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
 ## Organización POR TEMAS propuesta para la app (sección "Estudiar")
 
@@ -22,6 +22,8 @@
 - Palabras del aula (K1)
 - Compras: いくら, を ください, を みせて ください, いらっしゃいませ/ようこそ (K9)
 - Teléfono でんわばんごう (K13)
+- Gracias y de nada: ありがとうございます / どういたしまして (K17)
+- En la estación: なんばんせん ですか · とっきゅう／きゅうこう／ふつう (K17)
 
 ### 4. Partículas
 - は tema (K1) · か pregunta (K2) · も también/tampoco (K2)
@@ -46,6 +48,7 @@
 - La hora: ～じ, minutos ～ふん/ぷん, ～はん, ごぜん/ごご (K11)
 - Días de la semana + pasado de です (K12) · Meses ～がつ, años ～ねん (K12)
 - Días del mes (lecturas irregulares), いつ, fechas especiales, cumpleaños (K15)
+- つぎ の 〜 · なつやすみ · クリスマス (K17)
 
 ### 8. Verbos
 - Los 3 grupos y formas じしょ/ます/ました (K14)

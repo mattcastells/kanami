@@ -39,6 +39,7 @@ yarn-error.*
 # material bruto de clase (los PPTX del curso pesan cientos de MB).
 # Los apuntes procesados viven en content/clases/*.md, que sí se versionan.
 *.pptx
+*Kurasu*.pdf
 *.pptm
 
 # typescript

@@ -1,4 +1,8 @@
 import { KanaScript } from '../types/game';
+import {
+  classHiraganaWordEntries,
+  classKatakanaWordEntries,
+} from './classVocabulary';
 import { hiraganaWordEntries, katakanaWordEntries } from './wordVocabulary';
 
 // Mapa traducción (español) → emoji. Keyed por traducción normalizada para servir
@@ -142,6 +146,45 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   video: '🎬',
   celular: '📱',
   correo: '📧',
+  // だい６か — たべもの (clase 19). La clave es la traducción tal cual está en el dataset,
+  // así que las de classVocabulary llevan el texto completo ("carne de vaca", no "vaca").
+  desayuno: '🥐',
+  almuerzo: '🍱',
+  cena: '🥘',
+  'carne de vaca': '🥩',
+  pollo: '🍗',
+  torta: '🍰',
+  uva: '🍇',
+  sandia: '🍉',
+  durazno: '🍑',
+  'pera japonesa': '🍐',
+  cereza: '🍒',
+  cebolla: '🧅',
+  zanahoria: '🥕',
+  pepino: '🥒',
+  // だい６か — のみもの
+  'te negro': '🫖',
+  jugo: '🧃',
+  cerveza: '🍺',
+  'sake / bebida alcoholica': '🍶',
+  vino: '🍷',
+  // だい６か — みもの / ききもの / よみもの / かきもの
+  peliculas: '🎥',
+  noticias: '📰',
+  'diario / periodico': '🗞️',
+  'chisme / rumor': '🗣️',
+  informe: '📊',
+  mail: '📨',
+  mensaje: '💬',
+  novela: '📕',
+  manga: '📙',
+  'dibujo / pintura': '🖼️',
+  diccionario: '📗',
+  cigarrillo: '🚬',
+  videojuegos: '🕹️',
+  fiesta: '🎉',
+  // Clase 18
+  'souvenir / regalo tipico': '🎁',
 };
 
 export type EmojiVocabEntry = {
@@ -165,13 +208,22 @@ function getEmojiForMeaning(translation: string): string | undefined {
 
 // Pool del juego de emojis: entradas de vocabulario (hira + kata) que tienen emoji,
 // deduplicadas por emoji para que cada foto aparezca una sola vez.
+//
+// El vocabulario de la cursada va DESPUÉS del genérico a propósito: cuando dos palabras
+// comparten emoji gana la primera, y así el mazo de siempre no cambia de golpe al sumar
+// una clase. Lo de clase solo agrega fotos que antes no tenían dueño.
 export function getEmojiVocabulary(script: KanaScript): EmojiVocabEntry[] {
   const source =
     script === 'katakana'
-      ? katakanaWordEntries
+      ? [...katakanaWordEntries, ...classKatakanaWordEntries]
       : script === 'hiragana'
-        ? hiraganaWordEntries
-        : [...hiraganaWordEntries, ...katakanaWordEntries];
+        ? [...hiraganaWordEntries, ...classHiraganaWordEntries]
+        : [
+            ...hiraganaWordEntries,
+            ...katakanaWordEntries,
+            ...classHiraganaWordEntries,
+            ...classKatakanaWordEntries,
+          ];
 
   const seenEmoji = new Set<string>();
   const result: EmojiVocabEntry[] = [];

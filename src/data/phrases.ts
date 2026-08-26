@@ -59,6 +59,19 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['うみにいきたいです', 'umi ni ikitai desu', 'Quiero ir al mar'],
   ['やまがきれいです', 'yama ga kirei desu', 'La montaña es bonita'],
   ['かぞくとあそびます', 'kazoku to asobimasu', 'Juego con la familia'],
+  // だい５か・だい６か (clases 16-19). Van AL FINAL: el id es el índice, así que insertar
+  // en el medio le corre la numeración a todas las que siguen y borra su historial.
+  ['なにをたべますか', 'nani wo tabemasu ka', '¿Qué comés?'],
+  ['あさごはんをたべました', 'asagohan wo tabemashita', 'Desayuné'],
+  ['みずをのみます', 'mizu wo nomimasu', 'Tomo agua'],
+  ['しんぶんをよみました', 'shinbun wo yomimashita', 'Leí el diario'],
+  ['じしょをかいます', 'jisho wo kaimasu', 'Compro un diccionario'],
+  ['しゅくだいをします', 'shukudai wo shimasu', 'Hago la tarea'],
+  ['ひとりでいきます', 'hitori de ikimasu', 'Voy solo'],
+  ['あるいてかえりました', 'aruite kaerimashita', 'Volví caminando'],
+  ['どこもいきません', 'doko mo ikimasen', 'No voy a ningún lado'],
+  ['なんばんせんですか', 'nanbansen desu ka', '¿De qué andén es?'],
+  ['どういたしまして', 'douitashimashite', 'De nada'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -82,6 +95,13 @@ const katakanaPhraseData: [string, string, string][] = [
   ['テストがあります', 'tesuto ga arimasu', 'Hay un examen'],
   ['プレゼントをもらいました', 'purezento wo moraimashita', 'Recibí un regalo'],
   ['ニュースをみます', 'nyuusu wo mimasu', 'Veo las noticias'],
+  // だい６か (clase 19). Van al final por lo mismo que las de hiragana.
+  ['タバコをすいません', 'tabako wo suimasen', 'No fumo'],
+  ['ワインをのみます', 'wain wo nomimasu', 'Tomo vino'],
+  ['ジュースをかいます', 'juusu wo kaimasu', 'Compro jugo'],
+  ['メールをかきます', 'meeru wo kakimasu', 'Escribo un mail'],
+  ['アニメをみます', 'anime wo mimasu', 'Miro anime'],
+  ['ラジオをききます', 'rajio wo kikimasu', 'Escucho la radio'],
 ];
 
 function createPhraseEntry(

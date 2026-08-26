@@ -27,6 +27,30 @@ los datasets se compilan dentro del bundle.
 | `studyTopics.ts` | Los 9 temas de la pestaña 学 Estudiar | `StudyTopic` |
 | `*Strokes.generated.ts` | Trazos — **generados, no editar a mano** | ver §Trazos |
 
+## Mapa de propagación — LEER ANTES DE SUMAR CONTENIDO
+
+Sumar una palabra a un dataset **no** la hace aparecer en todas las actividades. Esta tabla es
+la fuente de verdad de qué se propaga solo y qué hay que tocar a mano. Verificada el 2026-08-26.
+
+| Si tocás… | Llega SOLO a | Hay que tocar a mano |
+|---|---|---|
+| `content/clases/*.md` | Mis clases · quiz de esa clase · procedencia de kanji | correr `clases:generate` **y** `kanji:generate` |
+| `classVocabulary.ts` | Vocabulario (consulta) · y vía la facade `kana.ts`, los 7 modos de palabra: lectura, escritura, sílabas, constructor, completar, dictado, pronunciación | **`vocabularyEmoji.ts`** (sin mapeo emoji la palabra no entra al modo Imágenes) |
+| `wordVocabulary.ts` | los 7 modos de palabra · mazo SRS del Repaso · modo Imágenes | — |
+| `kanji.ts` | sección Kanji · Kanji Grind · Repaso | correr `kanji:generate` **y** `kanji:strokes` |
+| `phrases.ts` | Frases · Traducción | — |
+| `studyTopics.ts` | Por tema | — |
+| `vocabularyEmoji.ts` | modo Imágenes | — |
+
+Lo que **no** se propaga por decisión, no por olvido:
+
+- **`classVocabulary` no entra al mazo SRS.** `buildSrsDeck()` importa `wordVocabulary` directo.
+  Si algún día querés que el vocabulario de la cursada entre al repaso espaciado, el cambio va
+  en `srsStore`, no en el dataset.
+- Solo entra a práctica lo que es **una palabra de un solo silabario y de 2 a 6 moras**. Las
+  frases, los sufijos y lo mixto (スペインご) quedan solo en la consulta. Eso lo filtra
+  `classPracticeSource` en `classVocabulary.ts`.
+
 ## Reglas transversales
 
 - **Los ids son estables.** `progress.json` y `srs.json` guardan claves derivadas de ellos
@@ -68,18 +92,54 @@ Categorías válidas (`WordPracticeCategoryId` en `types/game.ts`): `trabajos`, 
 `hobbies`, `objetos`, `lugares`, `personas`, `ropa`, `animales`, `tecnologia`, `estudio`.
 Para una categoría nueva: agregá el id al tipo **y** la definición al array.
 
+## Agregar frases — `phrases.ts`
+
+Tuplas `[kana, romaji, español]` en `hiraganaPhrasesData` / `katakanaPhraseData`.
+
+- ⚠️ **El id es el índice del array** (`hiragana-phrase-12`). Las frases nuevas van
+  **siempre al final**: insertar en el medio le corre la numeración a todas las que siguen y
+  les borra el historial de progreso y de ítems flojos.
+- La frase va en **un solo silabario y sin espacios ni dígitos**: el modo escribe kana y el
+  input se normaliza sin espacios. Nada de `２じはん`.
+- El romaji del dataset escribe la partícula を como **`wo`** (69 entradas ya lo hacen). Seguí
+  esa convención aunque en clase se enseñe que se lee "o", o el usuario tipea una cosa y el
+  juego espera otra.
+
+## Agregar una palabra al modo Imágenes — `vocabularyEmoji.ts`
+
+Es el paso que más se olvida. El modo Imágenes arma su mazo cruzando `wordVocabulary` +
+`classVocabulary` contra el mapa `EMOJI_BY_MEANING`: **la palabra sin mapeo no existe para
+ese juego**.
+
+- La clave es la **traducción normalizada** (minúsculas, sin acentos), tal cual está en el
+  dataset: si la entrada dice `es: 'carne de vaca'`, la clave es `'carne de vaca'`, no `'vaca'`.
+- **Los emojis son únicos a propósito.** Si el que le corresponde ya está tomado, no fuerces un
+  duplicado: dejá la palabra sin mapear. Una foto que matchea con dos palabras rompe el juego.
+- El vocabulario de clase se concatena **después** del genérico: cuando dos palabras comparten
+  emoji gana la primera, así sumar una clase no le cambia el mazo de siempre al usuario.
+
 ## Agregar kanji — `kanji.ts`
 
+Ver la skill **`kanami-kanji`** para el detalle. En resumen:
+
 ```ts
-{ id: 'k0NN', kanji: '時', readings: ['じ'], meaning: 'hora',
-  category: 'tiempo', example: '何時 (nanji)' }
+{ char: '買', meaning: 'comprar',
+  on: [{ kana: 'バイ', romaji: 'bai' }],
+  kun: [{ kana: 'か(う)', romaji: 'ka(u)' }],
+  primary: 'kun',
+  examples: [{ jp: '買う', kana: 'かう', romaji: 'kau', es: 'comprar' }],
+  usage: '...', mnemonic: '...',
+  sentence: { jp, kana, romaji, es },   // obligatoria y tiene que contener el kanji
+  category: 'vida-diaria', deck: 'n5-extra', order: 93 }
 ```
 
-- Los ids son correlativos `k001`, `k002`, ... Continuá la numeración, no reutilices.
-- `readings` en kana. `meaning` en español. `example` con romaji entre paréntesis.
-- Categorías en `KANJI_CATEGORIES`.
-- Un kanji sin datos de trazos igual funciona en los modos de opción múltiple, pero **no** en
-  el modo Dibujo. Ver §Trazos.
+- **El id es el propio carácter** (`char`). No hay ids correlativos: renumerar borra el historial.
+- Los mazos son `n5-core` (los 80 de la lista de referencia, `order` 1-80) y `n5-extra`
+  (`order` 81+). Un kanji nuevo que aparece en una clase va como `n5-extra` con el `order`
+  siguiente.
+- **En qué clases apareció NO se escribe**: lo deriva `npm run kanji:generate`.
+- Después de agregar corré **`npm run kanji:strokes`** (baja de KanjiVG): sin trazos el kanji
+  funciona en opción múltiple pero **no** en el modo Dibujo.
 
 ## Agregar temas de estudio — `studyTopics.ts`
 

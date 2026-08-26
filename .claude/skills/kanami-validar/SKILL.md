@@ -84,6 +84,29 @@ Qué chequear según lo que tocaste:
 
 `.tmp-check/` es descartable — **borralo siempre** (no está en `.gitignore`).
 
+## Nivel 2.5 — Propagación (solo si sumaste contenido)
+
+Si el cambio agrega vocabulario, kanji, frases o una clase, el contenido nuevo tiene que
+**llegar a las actividades que lo consumen**. Compilar no alcanza: los datasets están
+desacoplados y el contenido puede quedar mudo sin que `tsc` diga nada.
+
+Abrí la tabla **§ Mapa de propagación** de `kanami-contenido` y recorré la fila del dataset que
+tocaste. Los tres olvidos históricos:
+
+- Palabra de clase nueva sin mapeo en `vocabularyEmoji.ts` → nunca aparece en el modo Imágenes.
+- Kanji nuevo sin `npm run kanji:strokes` → funciona en opción múltiple pero no en Dibujo.
+- Clase nueva sin `npm run kanji:generate` → sus kanji siguen figurando como "todavía no dado".
+
+Contalo de verdad, no lo mires a ojo:
+
+```bash
+# ¿cuántas palabras quedaron tagueadas con la clase N? ¿cuántas fotos suma el mazo de emojis?
+npx tsc src/data/vocabularyEmoji.ts --outDir .tmp-check --module commonjs \
+  --target es2020 --skipLibCheck --rootDir .
+# harness: getEmojiVocabulary('mixed').length antes vs después, y 0 emojis duplicados
+node .tmp-check/run.js && rm -rf .tmp-check
+```
+
 ## Nivel 3 — Web-first (la validación real)
 
 ```bash

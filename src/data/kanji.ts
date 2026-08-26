@@ -2138,6 +2138,29 @@ export const KANJI: KanjiEntry[] = [
     deck: 'n5-extra',
     order: 92,
   },
+  {
+    char: '買',
+    meaning: 'comprar',
+    on: [{ kana: 'バイ', romaji: 'bai' }],
+    kun: [{ kana: 'か(う)', romaji: 'ka(u)' }],
+    primary: 'kun',
+    examples: [
+      { jp: '買う', kana: 'かう', romaji: 'kau', es: 'comprar' },
+      { jp: '買い物', kana: 'かいもの', romaji: 'kaimono', es: 'las compras' },
+    ],
+    usage:
+      'かいます es de los verbos con を del だい6か: じしょ を かいます。 かいもの funciona como sustantivo y como かいもの（を）します.',
+    mnemonic: 'Una red 罒 sobre una concha 貝: las conchas eran la moneda con la que se compraba.',
+    sentence: {
+      jp: 'じしょ を 買います。',
+      kana: 'じしょ を かいます。',
+      romaji: 'jisho o kaimasu.',
+      es: 'Compro un diccionario.',
+    },
+    category: 'vida-diaria',
+    deck: 'n5-extra',
+    order: 93,
+  },
 ];
 
 // Índice por carácter. Las consultas van por `features/kanji/kanjiCatalog.ts`, que es la

@@ -1,4 +1,4 @@
-// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–16, 18–19).
+// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–19).
 // Fuente completa: content/clases/*.md en el proyecto de diseño.
 // Cada tema referencia sus clases de origen para trazabilidad.
 
@@ -181,8 +181,8 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '三',
     title: 'Saludos y vida cotidiana',
     titleJp: 'あいさつ',
-    summary: 'Saludos · compras · teléfono',
-    sourceClasses: [1, 3, 9, 13],
+    summary: 'Saludos · compras · teléfono · la estación',
+    sourceClasses: [1, 3, 9, 13, 17],
     keyRule:
       'は en こんにちは y こんばんは se pronuncia "wa", no "ha" — es una excepción histórica.',
     subtopics: [
@@ -240,9 +240,34 @@ export const studyTopics: StudyTopic[] = [
           },
         ],
       },
+      {
+        id: 'estacion',
+        title: 'En la estación',
+        sections: [
+          {
+            title: 'なんばんせん ですか',
+            note: 'En Japón los andenes se numeran y el número es la información clave: por el mismo andén pasan varios servicios distintos.',
+            rows: [
+              { jp: 'しらかわ は なんばんせん ですか？', romaji: 'Shirakawa wa nanbansen desu ka?', es: '¿De qué andén sale el de Shirakawa?' },
+              { jp: '４ばんせん です。', romaji: 'Yonbansen desu.', es: 'Del andén 4.' },
+              { jp: 'つぎ の でんしゃ は ２じはん に きます。', romaji: 'Tsugi no densha wa niji han ni kimasu.', es: 'El próximo tren llega a las 2 y media.' },
+            ],
+          },
+          {
+            title: 'Los tres tipos de tren',
+            note: 'Con el mismo boleto y la misma vía, uno para en tu estación y el otro pasa de largo. Mirá el cartel antes de subir.',
+            rows: [
+              { jp: 'とっきゅう', romaji: 'tokkyuu', es: 'expreso limitado — para en muy pocas estaciones' },
+              { jp: 'きゅうこう', romaji: 'kyuukou', es: 'expreso — para en algunas' },
+              { jp: 'ふつう', romaji: 'futsuu', es: 'normal — para en todas' },
+            ],
+          },
+        ],
+      },
     ],
     essentialPhrases: [
       { jp: 'おげんき ですか？', romaji: 'Ogenki desu ka?', es: '¿Cómo estás?' },
+      { jp: 'どういたしまして。', romaji: 'Douitashimashite.', es: 'De nada.' },
       { jp: 'げんき です。', romaji: 'Genki desu.', es: 'Estoy bien.' },
       { jp: 'おひさしぶり です。', romaji: 'Ohisashiburi desu.', es: 'Tanto tiempo sin verte.' },
     ],
@@ -441,8 +466,8 @@ export const studyTopics: StudyTopic[] = [
     practice: { script: 'hiragana', mode: 'phrases' },
     kanjiNumeral: '七',
     title: 'Tiempo y fechas',
-    summary: 'La hora · días · meses · いつ',
-    sourceClasses: [10, 11, 12, 15],
+    summary: 'La hora · días · meses · いつ · つぎ の',
+    sourceClasses: [10, 11, 12, 15, 17],
     keyRule:
       'Horas con excepciones: ４じ→よじ, ７じ→しちじ, ９じ→くじ. Días del mes 1–10 irregulares (ついたち, ふつか…); el 4 y el 14 siempre usan よっか.',
     subtopics: [
@@ -485,6 +510,15 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'おたんじょうび は いつ ですか？', romaji: 'Otanjoubi wa itsu desu ka?', es: '¿Cuándo es tu cumpleaños?' },
               { jp: 'たんじょうび は １２がつ １８にち です。', romaji: 'Tanjoubi wa juunigatsu juuhachinichi desu.', es: 'Es el 18 de diciembre.' },
               { jp: 'まいにち べんきょう します。', romaji: 'Mainichi benkyou shimasu.', es: 'Estudio todos los días (まい～ sin に).' },
+            ],
+          },
+          {
+            title: 'つぎ の — el/la siguiente',
+            note: 'つぎ es lo que viene después. Se engancha con の al sustantivo.',
+            rows: [
+              { jp: 'つぎ の でんしゃ', romaji: 'tsugi no densha', es: 'el próximo tren' },
+              { jp: 'つぎ の なつやすみ は イタリア へ いきます。', romaji: 'Tsugi no natsuyasumi wa Itaria e ikimasu.', es: 'Las próximas vacaciones de verano voy a Italia.' },
+              { jp: 'つぎ の クリスマス は きんようび です。', romaji: 'Tsugi no Kurisumasu wa kin\'youbi desu.', es: 'La próxima Navidad cae viernes.' },
             ],
           },
         ],

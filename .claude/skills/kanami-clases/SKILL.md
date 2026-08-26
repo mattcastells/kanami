@@ -109,14 +109,36 @@ completa al tocar. Detalle en `assets/clases/README.md`.
 
 ## Sumar una clase nueva
 
+Escribir el markdown es **el primer paso, no el único**. Una clase trae vocabulario, a veces
+kanji y a veces gramática nueva, y cada una de esas cosas alimenta actividades distintas que
+**no se enteran solas**. Checklist completo:
+
 1. Publicala primero en Notion (skill `clase-a-notion`).
 2. Creá `content/clases/kurasu-NN.md` con el dialecto de arriba. Copiá el contenido de la
    página de Notion, sin los emojis de los encabezados (acá el título va limpio).
-3. `npm run clases:generate` y después `npm run kanji:generate` (los kanji de la clase).
-4. `npx tsc --noEmit`
-5. Validá en `npm run web`: Estudiar → Mis clases → la clase nueva aparece **primera**.
-6. Si el tema aporta a uno de los 9 temas de "Por tema", eso es un paso aparte sobre
-   `src/data/studyTopics.ts` (ver `kanami-contenido`) — **preguntá antes de hacerlo**.
+3. `npm run clases:generate` — mirá el conteo de clases/secciones/bloques.
+4. **Vocabulario** → `src/data/classVocabulary.ts`: las palabras nuevas, **y** sumar `NN` al
+   campo `classes` de las que reaparecen (es la trazabilidad de "qué vimos en la clase N").
+   Categoría nueva → agregar también el id a `ClassVocabCategoryId` y a `ClassWordCategoryId`
+   (`types/game.ts`). Chequeá que no repitas un `kana` ya existente: la derivación a práctica
+   arma el id desde el kana y duplicarlo mete la palabra dos veces en el mazo.
+5. **Modo Imágenes** → `src/data/vocabularyEmoji.ts`: mapeo emoji para las palabras nuevas que
+   sean fotografiables. Sin esto, comida/bebida/objetos nuevos no entran a ese juego.
+6. **Kanji** → si la clase introduce un kanji que no está en `src/data/kanji.ts`, agregalo como
+   `n5-extra`. Después `npm run kanji:generate` **y** `npm run kanji:strokes`.
+7. **Frases** → `src/data/phrases.ts` si la clase deja frases reutilizables. **Al final del
+   array**, nunca en el medio (el id es el índice).
+8. **Por tema** → `src/data/studyTopics.ts`: sumá el `subtopic`/`section` al tema que
+   corresponde y agregá `NN` a `sourceClasses`.
+9. `npx tsc --noEmit`
+10. Validá en `npm run web`: Estudiar → Mis clases → la clase nueva aparece **primera**, y
+    entrá al menos a un juego que consuma el contenido nuevo.
+
+Los pasos 4-8 son los que se olvidan. La tabla de qué actividad consume qué dataset está en
+la skill **`kanami-contenido`** (§ Mapa de propagación) — esa es la fuente de verdad.
+
+Los pasos 4-8 tocan datasets que son del usuario: si la clase solo repasa cosas ya dadas,
+puede que no haya nada que sumar. Pero **verificalo**, no lo asumas.
 
 ## Los kanji de la clase
 
