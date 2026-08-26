@@ -1,4 +1,4 @@
-// Temas de estudio generados desde las 14 clases de Notion (Kurasu 1–6, 8–15).
+// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–16, 18–19).
 // Fuente completa: content/clases/*.md en el proyecto de diseño.
 // Cada tema referencia sus clases de origen para trazabilidad.
 
@@ -252,8 +252,8 @@ export const studyTopics: StudyTopic[] = [
     practice: { script: 'hiragana', mode: 'phrases' },
     kanjiNumeral: '四',
     title: 'Partículas',
-    summary: 'は · か · も · の · に · へ · から／まで',
-    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15],
+    summary: 'は · か · も · の · に · へ · から／まで · で · と · を',
+    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19],
     keyRule:
       'Las partículas reemplazan preposiciones y artículos. Van DESPUÉS de la palabra a la que refieren y ordenan la oración.',
     subtopics: [
@@ -297,6 +297,40 @@ export const studyTopics: StudyTopic[] = [
               { jp: '８じ に おきます。', romaji: '8ji ni okimasu.', es: 'Me levanto a las 8 (に = hora exacta).' },
               { jp: 'がっこう へ いきます。', romaji: 'Gakkou e ikimasu.', es: 'Voy hacia la escuela.' },
               { jp: '９じ から ６じ まで はたらきます。', romaji: '9ji kara 6ji made hatarakimasu.', es: 'Trabajo de 9 a 6 (rango).' },
+              { jp: 'インド から きました。', romaji: 'Indo kara kimashita.', es: 'Vine de la India (から = origen del viaje).' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'de-to',
+        title: 'で · と — cómo y con quién',
+        sections: [
+          {
+            title: 'Medio de transporte y compañía',
+            note: 'あるいて no lleva で y ひとり lleva で en vez de と: son las dos excepciones.',
+            rows: [
+              { jp: 'でんしゃ で いきます。', romaji: 'Densha de ikimasu.', es: 'Voy en tren (で = medio).' },
+              { jp: 'あるいて いきます。', romaji: 'Aruite ikimasu.', es: 'Voy caminando (⚠️ sin で).' },
+              { jp: 'ともだち と いきます。', romaji: 'Tomodachi to ikimasu.', es: 'Voy con un amigo (と = compañía).' },
+              { jp: 'ひとり で いきます。', romaji: 'Hitori de ikimasu.', es: 'Voy solo/a (⚠️ で, no と).' },
+              { jp: 'バス と でんしゃ で いきます。', romaji: 'Basu to densha de ikimasu.', es: 'Voy en colectivo y tren (と une, で cierra).' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'wo',
+        title: 'を — el objeto directo',
+        sections: [
+          {
+            title: 'La cosa que recibe la acción',
+            note: '⚠️ を se lee "o", no "wo". Todo verbo que necesita un objeto directo para entenderse es un verbo transitivo.',
+            rows: [
+              { jp: 'やまださん は ケーキ を たべます。', romaji: 'Yamada-san wa keeki o tabemasu.', es: 'Yamada come una torta.' },
+              { jp: 'みず を のみます。', romaji: 'Mizu o nomimasu.', es: 'Tomo agua.' },
+              { jp: 'おんがく を ききます。', romaji: 'Ongaku o kikimasu.', es: 'Escucho música.' },
+              { jp: 'さんぽ （を） します。', romaji: 'Sanpo (o) shimasu.', es: 'Doy un paseo (con する la を es opcional).' },
             ],
           },
         ],
@@ -306,6 +340,7 @@ export const studyTopics: StudyTopic[] = [
       { jp: 'これ は なん ですか？', romaji: 'Kore wa nan desu ka?', es: '¿Qué es esto? (は + か)' },
       { jp: 'わたし も いきます。', romaji: 'Watashi mo ikimasu.', es: 'Yo también voy. (も)' },
       { jp: 'あした から やすみ です。', romaji: 'Ashita kara yasumi desu.', es: 'Desde mañana hay descanso. (から)' },
+      { jp: 'なに を たべますか？', romaji: 'Nani o tabemasu ka?', es: '¿Qué comés? (を)' },
     ],
   },
   {
@@ -467,8 +502,8 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '八',
     title: 'Verbos',
     titleJp: 'どうし',
-    summary: '3 grupos · ます形 · movimiento',
-    sourceClasses: [13, 14, 15],
+    summary: '3 grupos · ます形 · movimiento · 〜を',
+    sourceClasses: [13, 14, 15, 16, 19],
     keyRule:
       'El verbo siempre va al final. No cambia por persona ni género. Solo hay dos tiempos: pasado y no-pasado. ¿Grupo? Termina en ERU/IRU → 2; es する/くる → 3; el resto → 1.',
     subtopics: [
@@ -517,11 +552,43 @@ export const studyTopics: StudyTopic[] = [
           },
         ],
       },
+      {
+        id: 'transitivos',
+        title: 'Verbos con を (だい6か)',
+        sections: [
+          {
+            title: 'Los nueve verbos nuevos',
+            note: 'たべる y みる son grupo 2; する es grupo 3; el resto grupo 1. ⚠️ とる termina en る pero es grupo 1: とります, no とます.',
+            rows: [
+              { jp: 'たべる → たべます', romaji: 'taberu → tabemasu', es: 'comer — ごはん を たべます。' },
+              { jp: 'のむ → のみます', romaji: 'nomu → nomimasu', es: 'beber — おちゃ を のみます。' },
+              { jp: 'みる → みます', romaji: 'miru → mimasu', es: 'ver — えいが を みます。' },
+              { jp: 'きく → ききます', romaji: 'kiku → kikimasu', es: 'escuchar — おんがく を ききます。' },
+              { jp: 'よむ → よみます', romaji: 'yomu → yomimasu', es: 'leer — しんぶん を よみます。' },
+              { jp: 'かく → かきます', romaji: 'kaku → kakimasu', es: 'escribir — てがみ を かきます。' },
+              { jp: 'かう → かいます', romaji: 'kau → kaimasu', es: 'comprar — じしょ を かいます。' },
+              { jp: 'とる → とります', romaji: 'toru → torimasu', es: 'sacar / grabar — しゃしん を とります。' },
+              { jp: 'すう → すいます', romaji: 'suu → suimasu', es: 'inhalar / fumar — タバコ を すいます。' },
+            ],
+          },
+          {
+            title: 'Sustantivo + （を）します',
+            note: 'する convierte sustantivos en acciones. La を se saltea muy seguido al hablar. También funciona con extranjerismos (サッカー, テニス) y onomatopeyas (ドキドキ, ニコニコ).',
+            rows: [
+              { jp: 'べんきょう （を） します。', romaji: 'Benkyou (o) shimasu.', es: 'Estudio.' },
+              { jp: 'かいもの （を） します。', romaji: 'Kaimono (o) shimasu.', es: 'Hago las compras.' },
+              { jp: 'せんたく （を） します。', romaji: 'Sentaku (o) shimasu.', es: 'Lavo la ropa.' },
+              { jp: 'サッカー （を） します。', romaji: 'Sakkaa (o) shimasu.', es: 'Juego al fútbol.' },
+            ],
+          },
+        ],
+      },
     ],
     essentialPhrases: [
       { jp: 'きのう べんきょうしました。', romaji: 'Kinou benkyou shimashita.', es: 'Ayer estudié.' },
       { jp: 'あした きません。', romaji: 'Ashita kimasen.', es: 'Mañana no vengo.' },
       { jp: 'いつ かえりますか？', romaji: 'Itsu kaerimasu ka?', es: '¿Cuándo volvés?' },
+      { jp: 'なに を のみますか？', romaji: 'Nani o nomimasu ka?', es: '¿Qué tomás?' },
     ],
   },
   {
@@ -529,8 +596,8 @@ export const studyTopics: StudyTopic[] = [
     practice: { script: 'hiragana', mode: 'syllables' },
     kanjiNumeral: '九',
     title: 'Vocabulario',
-    summary: 'Objetos · lugares · tiendas · escuelas',
-    sourceClasses: [4, 6, 8, 9, 10],
+    summary: 'Objetos · lugares · tiendas · escuelas · comida',
+    sourceClasses: [4, 6, 8, 9, 10, 19],
     subtopics: [
       {
         id: 'objetos',
@@ -594,10 +661,46 @@ export const studyTopics: StudyTopic[] = [
           },
         ],
       },
+      {
+        id: 'comida-bebida',
+        title: 'Comida y bebida',
+        sections: [
+          {
+            title: 'たべもの (だい６か)',
+            note: 'ごはん es arroz cocido y también "comida". Pegado a un momento del día arma las tres comidas: あさごはん, ひるごはん, ばんごはん. Las carnes son el animal + にく.',
+            rows: [
+              { jp: 'ごはん', romaji: 'gohan', es: 'arroz cocido / comida' },
+              { jp: 'パン', romaji: 'pan', es: 'pan' },
+              { jp: 'たまご', romaji: 'tamago', es: 'huevo' },
+              { jp: 'にく', romaji: 'niku', es: 'carne' },
+              { jp: 'ぎゅうにく', romaji: 'gyuuniku', es: 'carne de vaca' },
+              { jp: 'ぶたにく', romaji: 'butaniku', es: 'carne de cerdo' },
+              { jp: 'とりにく', romaji: 'toriniku', es: 'pollo' },
+              { jp: 'さかな', romaji: 'sakana', es: 'pescado' },
+              { jp: 'やさい', romaji: 'yasai', es: 'verduras' },
+              { jp: 'くだもの', romaji: 'kudamono', es: 'frutas' },
+            ],
+          },
+          {
+            title: 'のみもの (だい６か)',
+            rows: [
+              { jp: 'みず', romaji: 'mizu', es: 'agua' },
+              { jp: 'おちゃ', romaji: 'ocha', es: 'té verde' },
+              { jp: 'こうちゃ', romaji: 'koucha', es: 'té negro' },
+              { jp: 'ぎゅうにゅう', romaji: 'gyuunyuu', es: 'leche' },
+              { jp: 'ジュース', romaji: 'juusu', es: 'jugo' },
+              { jp: 'ビール', romaji: 'biiru', es: 'cerveza' },
+              { jp: 'おさけ', romaji: 'osake', es: 'sake / bebida alcohólica' },
+              { jp: 'ワイン', romaji: 'wain', es: 'vino' },
+            ],
+          },
+        ],
+      },
     ],
     essentialPhrases: [
       { jp: 'これ は にほんご で なん ですか？', romaji: 'Kore wa nihongo de nan desu ka?', es: '¿Cómo se dice esto en japonés?' },
       { jp: 'トイレ は どこ ですか？', romaji: 'Toire wa doko desu ka?', es: '¿Dónde está el baño?' },
+      { jp: 'なに を たべますか？', romaji: 'Nani o tabemasu ka?', es: '¿Qué comés?' },
     ],
   },
 ];

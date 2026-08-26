@@ -4688,5 +4688,1343 @@ export const CLASS_NOTES: ClassNote[] = [
         ]
       }
     ]
+  },
+  {
+    "id": "kurasu-18",
+    "number": 18,
+    "title": "Práctica del だい5か",
+    "titleJp": "なんで・だれと・いつ・〜から きました",
+    "date": "2026-08-15",
+    "topics": "repaso de なんで y だれと, las cuatro casillas へ・で・と・に, 〜から きました, cada palabra en su pregunta, 練習C con どこも いきません, おみやげ, おくに は どちら ですか, comprensión auditiva.",
+    "sections": [
+      {
+        "id": "repaso-de-la-tarea",
+        "title": "Repaso de la tarea",
+        "titleJp": "しゅくだい",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "No hubo gramática nueva: la pusimos a trabajar. La primera parte era なんで + el medio de transporte con で."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "なんで がっこう へ いきますか？ — ¿En qué vas a la escuela?",
+              "じてんしゃ で いきます。 — Voy en bicicleta.",
+              "なんで とうきょう へ いきますか？ — ¿En qué vas a Tokio?",
+              "ひこうき で いきます。 — Voy en avión.",
+              "なんで きゅうしゅう へ いきますか？ — ¿En qué vas a Kyushu?",
+              "ふね で いきます。 — Voy en barco.",
+              "なんで えき へ いきますか？ — ¿En qué vas a la estación?",
+              "あるいて いきます。 — Voy caminando."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "あるいて no lleva で. Es la única del grupo que se planta sola."
+          },
+          {
+            "kind": "text",
+            "text": "La segunda parte era だれと + la compañía con と."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "だれ と びじゅつかん へ いきますか？ — ¿Con quién vas al museo?",
+              "かのじょ と いきます。 — Voy con mi novia.",
+              "だれ と ひろしま へ いきますか？ — ¿Con quién vas a Hiroshima?",
+              "かいしゃ の ひと と いきます。 — Voy con gente de la empresa.",
+              "だれ と ほっかいどう へ いきますか？ — ¿Con quién vas a Hokkaido?",
+              "かぞく と いきます。 — Voy con mi familia.",
+              "だれ と フランス へ いきますか？ — ¿Con quién vas a Francia?",
+              "ひとり で いきます。 — Voy solo/a."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "las-cuatro-casillas",
+        "title": "Las cuatro casillas",
+        "titleJp": "へ・で・と・に",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "El ejercicio de かいておぼえる P. 18 arma la misma oración cuatro veces, cambiando qué casilla se completa. Es la mejor forma de ver que cada partícula contesta una pregunta distinta."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "[persona] は [lugar] へ / [transporte] で / [compañía] と / [tiempo] に いきます。"
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "En el dibujo, グプタさん viaja a Hiroshima el sábado, en tren bala, con さとうさん."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "ひろしま へ いきます。 — Voy a Hiroshima.",
+              "しんかんせん で いきます。 — Voy en tren bala.",
+              "さとうさん と いきます。 — Voy con Sato.",
+              "どようび に いきます。 — Voy el sábado."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vine-de",
+        "title": "Vine de…",
+        "titleJp": "〜から きました",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "Para decir de dónde viniste se usa から con きます. Es la misma から de から〜まで, pero acá marca el origen del viaje."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "[origen] から きました。 — Vine de [origen]."
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "En la segunda mitad del ejercicio, グプタさん llegó de la India, solo, en avión, en septiembre."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "インド から きました。 — Vine de la India.",
+              "ひこうき で きました。 — Vine en avión.",
+              "ひとり で きました。 — Vine solo.",
+              "９がつ に きました。 — Vine en septiembre."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "ひとりで ya trae su partícula adentro, así que no se le agrega nada. Por eso en el libro esa casilla figura con una ×."
+          }
+        ]
+      },
+      {
+        "id": "cada-palabra-en-su-pregunta",
+        "title": "Cada palabra en su pregunta",
+        "titleJp": "ことばの整理",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "El ejercicio de P. 19 era repartir un montón de palabras sueltas según qué pregunta contestan. Sirve como radiografía de todo el だい5か."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Pregunta",
+              "Palabras que la contestan"
+            ],
+            "rows": [
+              [
+                "なんじ に いきますか。",
+                "９じ・１２じ"
+              ],
+              [
+                "なんで いきますか。",
+                "でんしゃ・じてんしゃ・ちかてつ・ひこうき・あるいて"
+              ],
+              [
+                "だれ と いきますか。",
+                "ワンさん・かぞく・せんせい・ともだち・ひとりで"
+              ],
+              [
+                "どこ へ いきますか。",
+                "ぎんこう・えき・ゆうびんきょく・がっこう・スーパー"
+              ],
+              [
+                "いつ いきますか。",
+                "あした・きのう・せんしゅう・まいにち・こんばん"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "あるいて y ひとりで entran igual en su columna aunque no lleven la partícula del grupo. Son las dos excepciones que ya conocés, y contestan la pregunta lo mismo."
+          }
+        ]
+      },
+      {
+        "id": "y-vos-a-donde-vas",
+        "title": "¿Y vos, a dónde vas?",
+        "titleJp": "練習C",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "El primer diálogo de la página 45 junta どこへ いきます con どこも いきません."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "あした は にちようび ですね。 — Mañana es domingo, ¿no?",
+              "あ、そう ですね。 — Ah, sí, es cierto.",
+              "わたし は おおさかじょう へ いきます。タワポンさん は？ — Yo voy al castillo de Osaka. ¿Y vos, Tawapon?",
+              "どこも いきません。べんきょう します。 — No voy a ningún lado. Voy a estudiar."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "〜さんは？ es la forma corta de devolver la pregunta. No hace falta repetirla entera: con el tema y は alcanza."
+          }
+        ]
+      },
+      {
+        "id": "un-regalo-del-viaje",
+        "title": "Un regalo del viaje",
+        "titleJp": "おみやげ",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "El segundo diálogo es el de volver de viaje y traer una おみやげ: el recuerdo típico del lugar, que en Japón se comparte sí o sí con la oficina y la familia."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "せんしゅう とうきょう へ いきました。これ、おみやげ です。どうぞ。 — La semana pasada fui a Tokio. Esto es un souvenir. Tomá.",
+              "ありがとう ございます。ひとり で いきましたか。 — Muchas gracias. ¿Fuiste solo?",
+              "いいえ、ともだち と いきました。 — No, fui con un amigo.",
+              "なんで いきましたか。 — ¿En qué fuiste?",
+              "バス で いきました。 — Fui en colectivo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "de-que-pais-sos",
+        "title": "¿De qué país sos?",
+        "titleJp": "おくに は どちら ですか",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "El tercer diálogo usa la forma formal de preguntar el país: どちら en vez de どこ, y おくに con el お de cortesía."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "おくに は どちら ですか。 — ¿De qué país es usted?",
+              "アメリカ です。 — De Estados Unidos.",
+              "そう ですか。いつ にほん へ きましたか。 — Ah, ¿sí? ¿Cuándo vino a Japón?",
+              "きょねん の ９がつ に きました。 — Vine en septiembre del año pasado."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "きょねん の ９がつ lleva の porque el año enmarca al mes. Y el に va al final de todo el bloque de fecha, no en el medio."
+          }
+        ]
+      },
+      {
+        "id": "comprension-auditiva",
+        "title": "Comprensión auditiva",
+        "titleJp": "ちょうかい タスク",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "La segunda mitad de la clase fue escuchar. Cada tarea entrena una de las preguntas del だい5か."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Tarea",
+              "Qué había que sacar"
+            ],
+            "rows": [
+              [
+                "どこ へ いきましたか。",
+                "El lugar: としょかん, うち, ゆうびんきょく, びょういん, びじゅつかん"
+              ],
+              [
+                "がくせい は なんで いきますか。",
+                "El transporte de cada tramo: ひこうき, バス, しんかんせん, でんしゃ, ふね, あるいて"
+              ],
+              [
+                "いつ いきますか。",
+                "La fecha en el calendario de ２がつ"
+              ],
+              [
+                "ミラーさん の せいかつ は どんな せいかつ ですか。",
+                "Horarios, transporte y compañía, todo junto"
+              ],
+              [
+                "たんじょうび は いつ ですか。",
+                "がつ + にち de cada persona"
+              ]
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "Dos palabras nuevas que aparecieron acá:"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "せいかつ",
+                "seikatsu",
+                "vida (la rutina de alguien)"
+              ],
+              [
+                "どんな",
+                "donna",
+                "¿qué tipo de…?"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "📝",
+            "text": "Tarea: みんな の にほんご — ４４ページ ５・６・７・８, ４６ページ ４, ４７ページ ５ と ６."
+          }
+        ]
+      },
+      {
+        "id": "frases-esenciales",
+        "title": "Frases esenciales",
+        "blocks": [
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "インド から きました。",
+                "Indo kara kimashita.",
+                "Vine de la India."
+              ],
+              [
+                "いつ にほん へ きましたか？",
+                "Itsu Nihon e kimashita ka?",
+                "¿Cuándo viniste a Japón?"
+              ],
+              [
+                "きょねん の ９がつ に きました。",
+                "Kyonen no kugatsu ni kimashita.",
+                "Vine en septiembre del año pasado."
+              ],
+              [
+                "おくに は どちら ですか？",
+                "Okuni wa dochira desu ka?",
+                "¿De qué país es usted?"
+              ],
+              [
+                "これ、おみやげ です。どうぞ。",
+                "Kore, omiyage desu. Douzo.",
+                "Esto es un souvenir. Tomá."
+              ],
+              [
+                "どこも いきません。",
+                "Doko mo ikimasen.",
+                "No voy a ningún lado."
+              ],
+              [
+                "かいしゃ の ひと と いきます。",
+                "Kaisha no hito to ikimasu.",
+                "Voy con gente de la empresa."
+              ],
+              [
+                "ひとり で きました。",
+                "Hitori de kimashita.",
+                "Vine solo/a."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "kurasu-19",
+    "number": 19,
+    "title": "La partícula を y los verbos del だい6か",
+    "date": "2026-08-22",
+    "topics": "repaso de いつ・だれと・なんで, las palabras que preguntan, la partícula を y el objeto directo, たべます・のみます・みます・ききます・よみます・かきます・かいます・とります・すいます, comida, bebidas, medios, lectura, sustantivo + (を) します.",
+    "sections": [
+      {
+        "id": "repaso-de-la-tarea",
+        "title": "Repaso de la tarea",
+        "titleJp": "しゅくだい",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "La página 44 era practicar いつ con fechas, y だれと・なんで・なんじに en pasado."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "いつ さくらだいがく へ いきますか？ — ¿Cuándo vas a la universidad Sakura?",
+              "９がつ １４にち に いきます。 — Voy el 14 de septiembre.",
+              "いつ ひろしま へ いきますか？ — ¿Cuándo vas a Hiroshima?",
+              "らいげつ いきます。 — Voy el mes que viene.",
+              "だれ と にほん へ きましたか？ — ¿Con quién viniste a Japón?",
+              "ひとり で きました。 — Vine solo.",
+              "まいあさ なんで かいしゃ へ いきますか？ — ¿En qué vas a la empresa todas las mañanas?",
+              "バス と でんしゃ で いきます。 — Voy en colectivo y tren."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "らいげつ, らいしゅう y こんしゅう no llevan に; ９がつ１４にち sí. La regla es la de siempre: solo las fechas y horas exactas llevan に."
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "Cuando combinás dos transportes, と une los dos sustantivos y で va una sola vez al final: バス と でんしゃ で."
+          }
+        ]
+      },
+      {
+        "id": "las-palabras-que-preguntan",
+        "title": "Las palabras que preguntan",
+        "titleJp": "ぎもんし",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "La página 46 era completar el hueco con la pregunta correcta. Este es el juego completo hasta ahora."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "いつ",
+                "itsu",
+                "¿cuándo?"
+              ],
+              [
+                "だれ",
+                "dare",
+                "¿quién?"
+              ],
+              [
+                "どこ",
+                "doko",
+                "¿dónde? / ¿a dónde?"
+              ],
+              [
+                "いくら",
+                "ikura",
+                "¿cuánto cuesta?"
+              ],
+              [
+                "なん",
+                "nan",
+                "¿qué? / ¿en qué? (con で)"
+              ],
+              [
+                "なんじ",
+                "nanji",
+                "¿a qué hora?"
+              ],
+              [
+                "なんがつ",
+                "nangatsu",
+                "¿qué mes?"
+              ],
+              [
+                "なんにち",
+                "nannichi",
+                "¿qué día del mes?"
+              ]
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "Y la página 47 era al revés: dada la oración, poner la partícula."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "ことし の ４がつ に アメリカ へ きました。 — Vine a Estados Unidos en abril de este año.",
+              "まいにち でんしゃ で かいしゃ へ いきます。 — Todos los días voy a la empresa en tren.",
+              "けさ わたし は まつもとさん と ここ へ きました。 — Esta mañana vine acá con Matsumoto.",
+              "おととい どこ も いきません でした。 — Anteayer no fui a ningún lado."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "la-particula",
+        "title": "La partícula を",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "を marca el objeto directo de la oración: la cosa que recibe la acción."
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "を se lee \"o\", no \"wo\". Se escribe distinto de お porque es partícula, igual que は se lee \"wa\" y へ se lee \"e\"."
+          },
+          {
+            "kind": "text",
+            "text": "La forma de darse cuenta de que hace falta un objeto directo es preguntarle \"¿qué?\" al verbo. \"Yamada come\" queda coja: falta información."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "やまださん は ケーキ を たべます。 — Yamada come una torta."
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "Todo verbo que necesita un objeto directo para entenderse del todo es un verbo transitivo. Los nueve de esta clase lo son."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "[persona] は [cosa] を [verbo]。"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "las-cuatro-formas",
+        "title": "Las cuatro formas",
+        "titleJp": "los verbos del だい6か",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "Se conjugan con las reglas de grupo que ya vimos: たべる y みる son grupo 2 (se les cae る), する es grupo 3, y el resto es grupo 1 (la U final pasa a I)."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Infinitivo",
+              "Significado",
+              "ます(+)",
+              "ます(−)",
+              "ました(+)",
+              "ました(−)"
+            ],
+            "rows": [
+              [
+                "たべる",
+                "comer",
+                "たべます",
+                "たべません",
+                "たべました",
+                "たべませんでした"
+              ],
+              [
+                "のむ",
+                "beber",
+                "のみます",
+                "のみません",
+                "のみました",
+                "のみませんでした"
+              ],
+              [
+                "みる",
+                "ver / mirar",
+                "みます",
+                "みません",
+                "みました",
+                "みませんでした"
+              ],
+              [
+                "きく",
+                "escuchar",
+                "ききます",
+                "ききません",
+                "ききました",
+                "ききませんでした"
+              ],
+              [
+                "よむ",
+                "leer",
+                "よみます",
+                "よみません",
+                "よみました",
+                "よみませんでした"
+              ],
+              [
+                "かく",
+                "escribir",
+                "かきます",
+                "かきません",
+                "かきました",
+                "かきませんでした"
+              ],
+              [
+                "かう",
+                "comprar",
+                "かいます",
+                "かいません",
+                "かいました",
+                "かいませんでした"
+              ],
+              [
+                "とる",
+                "sacar una foto",
+                "とります",
+                "とりません",
+                "とりました",
+                "とりませんでした"
+              ],
+              [
+                "すう",
+                "inhalar / fumar",
+                "すいます",
+                "すいません",
+                "すいました",
+                "すいませんでした"
+              ],
+              [
+                "する",
+                "hacer",
+                "します",
+                "しません",
+                "しました",
+                "しませんでした"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "とる termina en る pero es grupo 1, no 2. Por eso hace とります y no とます."
+          }
+        ]
+      },
+      {
+        "id": "comer",
+        "title": "Comer",
+        "titleJp": "たべます",
+        "blocks": [
+          {
+            "kind": "quote",
+            "lines": [
+              "りんご を たべます。 — Como una manzana.",
+              "パン を たべます。 — Como pan."
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "ごはん es arroz cocido, pero también \"comida\" en general. Pegado a un momento del día arma las tres comidas."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "ごはん",
+                "gohan",
+                "arroz cocido / comida"
+              ],
+              [
+                "あさごはん",
+                "asagohan",
+                "desayuno"
+              ],
+              [
+                "ひるごはん",
+                "hirugohan",
+                "almuerzo"
+              ],
+              [
+                "ばんごはん",
+                "bangohan",
+                "cena"
+              ],
+              [
+                "パン",
+                "pan",
+                "pan"
+              ],
+              [
+                "たまご",
+                "tamago",
+                "huevo"
+              ],
+              [
+                "にく",
+                "niku",
+                "carne"
+              ],
+              [
+                "ぎゅうにく",
+                "gyuuniku",
+                "carne de vaca"
+              ],
+              [
+                "ぶたにく",
+                "butaniku",
+                "carne de cerdo"
+              ],
+              [
+                "とりにく",
+                "toriniku",
+                "pollo"
+              ],
+              [
+                "さかな",
+                "sakana",
+                "pescado"
+              ],
+              [
+                "やさい",
+                "yasai",
+                "verduras"
+              ],
+              [
+                "くだもの",
+                "kudamono",
+                "frutas"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "Las carnes se arman igual que las comidas: el animal + にく. ぎゅう (vaca), ぶた (cerdo), とり (pájaro/pollo)."
+          },
+          {
+            "kind": "subheading",
+            "text": "くだもの — frutas"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "りんご",
+                "ringo",
+                "manzana"
+              ],
+              [
+                "バナナ",
+                "banana",
+                "banana"
+              ],
+              [
+                "みかん",
+                "mikan",
+                "mandarina"
+              ],
+              [
+                "いちご",
+                "ichigo",
+                "frutilla"
+              ],
+              [
+                "もも",
+                "momo",
+                "durazno"
+              ],
+              [
+                "かき",
+                "kaki",
+                "caqui"
+              ],
+              [
+                "ぶどう",
+                "budou",
+                "uva"
+              ],
+              [
+                "すいか",
+                "suika",
+                "sandía"
+              ],
+              [
+                "メロン",
+                "meron",
+                "melón"
+              ],
+              [
+                "なし",
+                "nashi",
+                "pera japonesa"
+              ],
+              [
+                "さくらんぼ",
+                "sakuranbo",
+                "cereza"
+              ]
+            ]
+          },
+          {
+            "kind": "subheading",
+            "text": "やさい — verduras"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "トマト",
+                "tomato",
+                "tomate"
+              ],
+              [
+                "たまねぎ",
+                "tamanegi",
+                "cebolla"
+              ],
+              [
+                "にんじん",
+                "ninjin",
+                "zanahoria"
+              ],
+              [
+                "きゅうり",
+                "kyuuri",
+                "pepino"
+              ],
+              [
+                "キャベツ",
+                "kyabetsu",
+                "repollo"
+              ],
+              [
+                "はくさい",
+                "hakusai",
+                "repollo chino"
+              ],
+              [
+                "ほうれんそう",
+                "hourensou",
+                "espinaca"
+              ],
+              [
+                "だいこん",
+                "daikon",
+                "rábano japonés"
+              ]
+            ]
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "あなた は なに を たべますか？ — ¿Vos qué comés?",
+              "わたし は さかな を たべます。 — Yo como pescado."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "beber",
+        "title": "Beber",
+        "titleJp": "のみます",
+        "blocks": [
+          {
+            "kind": "quote",
+            "lines": [
+              "みず を のみます。 — Tomo agua.",
+              "コーヒー を のみます。 — Tomo café."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "みず",
+                "mizu",
+                "agua"
+              ],
+              [
+                "おちゃ",
+                "ocha",
+                "té verde"
+              ],
+              [
+                "こうちゃ",
+                "koucha",
+                "té negro"
+              ],
+              [
+                "ぎゅうにゅう",
+                "gyuunyuu",
+                "leche"
+              ],
+              [
+                "ジュース",
+                "juusu",
+                "jugo"
+              ],
+              [
+                "コーヒー",
+                "koohii",
+                "café"
+              ],
+              [
+                "ビール",
+                "biiru",
+                "cerveza"
+              ],
+              [
+                "おさけ",
+                "osake",
+                "sake / bebida alcohólica"
+              ],
+              [
+                "ワイン",
+                "wain",
+                "vino"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "おさけ con お es cualquier bebida alcohólica; sin お suele ser el sake de arroz. El お de cortesía también aparece en おちゃ y おはなし."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "あなた は なに を のみますか？ — ¿Vos qué tomás?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ver",
+        "title": "Ver",
+        "titleJp": "みます",
+        "blocks": [
+          {
+            "kind": "quote",
+            "lines": [
+              "DVD を みます。 — Miro un DVD."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "テレビ",
+                "terebi",
+                "televisión"
+              ],
+              [
+                "えいが",
+                "eiga",
+                "película"
+              ],
+              [
+                "ばんぐみ",
+                "bangumi",
+                "programa de TV"
+              ],
+              [
+                "アニメ",
+                "anime",
+                "anime"
+              ],
+              [
+                "ドラマ",
+                "dorama",
+                "serie / novela"
+              ],
+              [
+                "ネットフリックス",
+                "nettofurikkusu",
+                "Netflix"
+              ],
+              [
+                "ユーチューブ",
+                "yuuchuubu",
+                "YouTube"
+              ],
+              [
+                "どうが",
+                "douga",
+                "video"
+              ],
+              [
+                "ビデオ",
+                "bideo",
+                "video"
+              ]
+            ]
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "あなた は なに を みますか？ — ¿Vos qué mirás?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "escuchar",
+        "title": "Escuchar",
+        "titleJp": "ききます",
+        "blocks": [
+          {
+            "kind": "quote",
+            "lines": [
+              "CD を ききます。 — Escucho un CD."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "おんがく",
+                "ongaku",
+                "música"
+              ],
+              [
+                "ラジオ",
+                "rajio",
+                "radio"
+              ],
+              [
+                "スポティファイ",
+                "supotifai",
+                "Spotify"
+              ],
+              [
+                "ニュース",
+                "nyuusu",
+                "noticias"
+              ],
+              [
+                "おはなし",
+                "ohanashi",
+                "historia / lo que alguien cuenta"
+              ],
+              [
+                "うわさ",
+                "uwasa",
+                "chisme / rumor"
+              ]
+            ]
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "あなた は なに を ききますか？ — ¿Vos qué escuchás?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "leer-y-escribir",
+        "title": "Leer y escribir",
+        "titleJp": "よみます・かきます",
+        "blocks": [
+          {
+            "kind": "quote",
+            "lines": [
+              "ほん を よみます。 — Leo un libro.",
+              "ほん を かきます。 — Escribo un libro."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "てがみ",
+                "tegami",
+                "carta"
+              ],
+              [
+                "レポート",
+                "repooto",
+                "informe"
+              ],
+              [
+                "メール",
+                "meeru",
+                "mail"
+              ],
+              [
+                "メッセージ",
+                "messeeji",
+                "mensaje"
+              ],
+              [
+                "しんぶん",
+                "shinbun",
+                "diario / periódico"
+              ],
+              [
+                "しょうせつ",
+                "shousetsu",
+                "novela"
+              ],
+              [
+                "まんが",
+                "manga",
+                "manga"
+              ],
+              [
+                "え",
+                "e",
+                "dibujo / pintura"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "え va con かきます, no con つくります: un dibujo en japonés se \"escribe\"."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "あなた は なに を よみますか？ — ¿Vos qué leés?",
+              "あなた は なに を かきますか？ — ¿Vos qué escribís?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "comprar-sacar-y-fumar",
+        "title": "Comprar, sacar y fumar",
+        "titleJp": "かいます・とります・すいます",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "Tres verbos más que se enganchan con を, cada uno con su objeto típico."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "じしょ を かいます。 — Compro un diccionario.",
+              "しゃしん を とります。 — Saco una foto.",
+              "ビデオ を とります。 — Grabo un video.",
+              "タバコ を すいます。 — Fumo."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "とる es \"tomar\" en el sentido de capturar: sirve para しゃしん, ビデオ y どうが. Y すう es literalmente \"inhalar\": fumar es タバコ を すいます."
+          }
+        ]
+      },
+      {
+        "id": "sustantivo",
+        "title": "Sustantivo + (を) します",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "El verbo する convierte sustantivos en acciones. La を va entre paréntesis porque en el habla cotidiana se saltea muy seguido."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "べんきょう します",
+                "benkyou shimasu",
+                "estudiar"
+              ],
+              [
+                "しゅくだい します",
+                "shukudai shimasu",
+                "hacer la tarea"
+              ],
+              [
+                "さんぽ します",
+                "sanpo shimasu",
+                "dar un paseo"
+              ],
+              [
+                "でんわ します",
+                "denwa shimasu",
+                "hacer una llamada"
+              ],
+              [
+                "かいもの します",
+                "kaimono shimasu",
+                "hacer las compras"
+              ],
+              [
+                "せんたく します",
+                "sentaku shimasu",
+                "lavar la ropa"
+              ],
+              [
+                "そうじ します",
+                "souji shimasu",
+                "limpiar"
+              ]
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "También funciona con palabras extranjeras."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "サッカー を します。 — Juego al fútbol.",
+              "テニス を します。 — Juego al tenis.",
+              "ビデオゲーム を します。 — Juego videojuegos.",
+              "パーティー を します。 — Hago una fiesta."
+            ]
+          },
+          {
+            "kind": "text",
+            "text": "Y con onomatopeyas, que en japonés son palabras de pleno derecho."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "ドキドキ します",
+                "dokidoki shimasu",
+                "latir fuerte el corazón (nervios, amor, ansiedad)"
+              ],
+              [
+                "ニコニコ します",
+                "nikoniko shimasu",
+                "sonreír"
+              ],
+              [
+                "ワクワク します",
+                "wakuwaku shimasu",
+                "estar entusiasmado"
+              ],
+              [
+                "キラキラ します",
+                "kirakira shimasu",
+                "brillar"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "📝",
+            "text": "Tarea: みんな の にほんご — ５１ページ １ と ２ と ３."
+          }
+        ]
+      },
+      {
+        "id": "frases-esenciales",
+        "title": "Frases esenciales",
+        "blocks": [
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "なに を たべますか？",
+                "Nani o tabemasu ka?",
+                "¿Qué comés?"
+              ],
+              [
+                "あさごはん を たべました。",
+                "Asagohan o tabemashita.",
+                "Desayuné."
+              ],
+              [
+                "おちゃ を のみます。",
+                "Ocha o nomimasu.",
+                "Tomo té verde."
+              ],
+              [
+                "ビール を のみません。",
+                "Biiru o nomimasen.",
+                "No tomo cerveza."
+              ],
+              [
+                "えいが を みます。",
+                "Eiga o mimasu.",
+                "Miro una película."
+              ],
+              [
+                "おんがく を ききます。",
+                "Ongaku o kikimasu.",
+                "Escucho música."
+              ],
+              [
+                "しんぶん を よみましたか？",
+                "Shinbun o yomimashita ka?",
+                "¿Leíste el diario?"
+              ],
+              [
+                "しゃしん を とります。",
+                "Shashin o torimasu.",
+                "Saco una foto."
+              ],
+              [
+                "しゅくだい を します。",
+                "Shukudai o shimasu.",
+                "Hago la tarea."
+              ],
+              [
+                "タバコ を すいません。",
+                "Tabako o suimasen.",
+                "No fumo."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
   }
 ];

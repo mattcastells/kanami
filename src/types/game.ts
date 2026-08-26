@@ -37,6 +37,10 @@ export type ClassWordCategoryId =
   | 'clase-tiempo'
   | 'clase-verbos'
   | 'clase-transporte'
+  | 'clase-comida'
+  | 'clase-bebidas'
+  | 'clase-medios'
+  | 'clase-lectura'
   | 'clase-naturaleza';
 
 export type WordPracticeCategoryId = GeneralWordCategoryId | ClassWordCategoryId;

@@ -41,7 +41,7 @@ No hay linter ni test runner en el repo. El único gate automático es `tsc`.
 App.tsx                 Fonts (Zen) + providers + NavigationContainer + ajustes web
 index.ts                registerRootComponent
 content/                FUENTE editable de los apuntes (markdown, no se bundlea directo)
-  clases/kurasu-NN.md   transcripción de cada clase real (1-6, 8-16; la 7 no existió)
+  clases/kurasu-NN.md   transcripción de cada clase real (1-6, 8-16, 18-19; no hubo 7 ni 17)
   repaso.md             hoja de repaso consolidada — se mantiene al día clase a clase
 assets/clases/          imágenes de los apuntes (ver README ahí). Se referencian desde el
                         markdown con ![epígrafe](archivo.png) y el generador arma el mapa
@@ -144,7 +144,7 @@ de scroll — no asumas un alto fijo, una barra con resumen mide bastante más q
 
 - `wordVocabulary.ts` — vocabulario **genérico** para drillear kana (~200). Es el único que
   alimenta el mazo de repaso espaciado: `buildSrsDeck()` lo importa **directo**.
-- `classVocabulary.ts` — vocabulario **de la cursada** (~300): lo visto en las clases 1–16 más
+- `classVocabulary.ts` — vocabulario **de la cursada** (~370): lo visto en las clases 1–19 más
   la sección Vocabulario de Notion. Trae kanji, romaji, nota y `classes` (trazabilidad).
   Pantalla de consulta: `VocabularyList` en Estudiar.
 - La unión de ambos para práctica se hace en el facade `kana.ts` (`getKanaWordEntries`,
