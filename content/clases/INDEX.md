@@ -1,6 +1,6 @@
 # Índice temático — contenido de las clases (Notion → app)
 
-18 clases reales (Kurasu 1–6, 8–19; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
+19 clases reales (Kurasu 1–6, 8–19, 21; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; la 20 no llegó al repo). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
 ## Organización POR TEMAS propuesta para la app (sección "Estudiar")
 
@@ -32,6 +32,8 @@
 - で medio de transporte · と compañía · ひとりで y あるいて como excepciones (K16, K18)
 - から origen del viaje: 〜から きました (K18)
 - を objeto directo y verbos transitivos (K19)
+- で lugar donde pasa la acción: 〜で 〜ます, y へ vs で (K21)
+- に de la persona con あいます (K21)
 
 ### 5. Demostrativos y ubicación
 - これ/それ/あれ pronombres (K4) vs この/その/あの adjetivos (K2, K5)
@@ -49,6 +51,8 @@
 - Días de la semana + pasado de です (K12) · Meses ～がつ, años ～ねん (K12)
 - Días del mes (lecturas irregulares), いつ, fechas especiales, cumpleaños (K15)
 - つぎ の 〜 · なつやすみ · クリスマス (K17)
+- Frecuencia: いつも · ときどき · あまり／ぜんぜん + negativo (K21)
+- それから para encadenar dos acciones (K21)
 
 ### 8. Verbos
 - Los 3 grupos y formas じしょ/ます/ました (K14)
@@ -56,10 +60,12 @@
 - Verbos de movimiento いく/くる/かえる + へ/に (K15, K16)
 - Verbos transitivos del だい6か: たべる, のむ, みる, きく, よむ, かく, かう, とる, すう (K19)
 - Sustantivo + (を) します, extranjerismos y onomatopeyas (K19)
+- Invitar con 〜ませんか, aceptar/rechazar y proponer con 〜ましょう (K21)
 
 ### 9. Vocabulario (datasets para práctica)
 - Objetos cotidianos (K4/K6) · Lugares de edificio y ciudad (K8) · Tiendas (K9) · Escuelas (K8) · Tiempo (K10)
 - Transporte (K16) · Comida y bebida (K19) · Ver/escuchar y leer/escribir (K19)
+- Ropa, hamburguesa, onigiri, ramen, matemática, recital (K21)
 
 ### 10. Preguntar
 - Las palabras que preguntan: いつ · だれ · どこ · いくら · なん · なんじ · なんがつ／なんにち (K18, K19)

@@ -46,6 +46,9 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   curry: '🍛',
   sopa: '🍲',
   pasta: '🍝',
+  hamburguesa: '🍔',
+  ramen: '🍥',
+  'onigiri (bola de arroz)': '🍙',
   // Objetos
   libro: '📖',
   silla: '🪑',

@@ -72,6 +72,16 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['どこもいきません', 'doko mo ikimasen', 'No voy a ningún lado'],
   ['なんばんせんですか', 'nanbansen desu ka', '¿De qué andén es?'],
   ['どういたしまして', 'douitashimashite', 'De nada'],
+  // Clase 21. Van al final por lo mismo: el id es el índice.
+  ['いつもうちでたべます', 'itsumo uchi de tabemasu', 'Siempre como en casa'],
+  ['ときどきえいがかんへいきます', 'tokidoki eigakan e ikimasu', 'A veces voy al cine'],
+  ['あまりよみません', 'amari yomimasen', 'Casi no leo'],
+  ['ぜんぜんのみません', 'zenzen nomimasen', 'No tomo para nada'],
+  ['どこでかいましたか', 'doko de kaimashita ka', '¿Dónde lo compraste?'],
+  ['いっしょにおちゃをのみませんか', 'issho ni ocha o nomimasen ka', '¿Tomamos un té?'],
+  ['いっしょにとしょかんへいきませんか', 'issho ni toshokan e ikimasen ka', '¿Vamos a la biblioteca?'],
+  ['えきであいましょう', 'eki de aimashou', 'Encontrémonos en la estación'],
+  ['わかりました', 'wakarimashita', 'Entendido'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -102,6 +112,12 @@ const katakanaPhraseData: [string, string, string][] = [
   ['メールをかきます', 'meeru wo kakimasu', 'Escribo un mail'],
   ['アニメをみます', 'anime wo mimasu', 'Miro anime'],
   ['ラジオをききます', 'rajio wo kikimasu', 'Escucho la radio'],
+  // Clase 21. Van al final por lo mismo que las de hiragana.
+  ['コーヒーをのみませんか', 'koohii o nomimasen ka', '¿Tomamos un café?'],
+  ['テニスをしませんか', 'tenisu o shimasen ka', '¿Jugamos al tenis?'],
+  ['デパートでふくをかいます', 'depaato de fuku o kaimasu', 'Compro ropa en la tienda'],
+  ['ハンバーガーをたべます', 'hanbaagaa o tabemasu', 'Como una hamburguesa'],
+  ['コンサートへいきました', 'konsaato e ikimashita', 'Fui a un recital'],
 ];
 
 function createPhraseEntry(

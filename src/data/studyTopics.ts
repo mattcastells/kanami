@@ -1,4 +1,4 @@
-// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–19).
+// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–19, 21).
 // Fuente completa: content/clases/*.md en el proyecto de diseño.
 // Cada tema referencia sus clases de origen para trazabilidad.
 
@@ -278,7 +278,7 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '四',
     title: 'Partículas',
     summary: 'は · か · も · の · に · へ · から／まで · で · と · を',
-    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19],
+    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19, 21],
     keyRule:
       'Las partículas reemplazan preposiciones y artículos. Van DESPUÉS de la palabra a la que refieren y ordenan la oración.',
     subtopics: [
@@ -345,6 +345,22 @@ export const studyTopics: StudyTopic[] = [
         ],
       },
       {
+        id: 'de-lugar',
+        title: 'で — dónde pasa la acción',
+        sections: [
+          {
+            title: '[lugar] で [cosa] を [verbo]',
+            note: '⚠️ へ marca a dónde vas, で dónde hacés la cosa: デパート へ いきます vs. デパート で かいます. Es la misma で del transporte: siempre el marco en el que pasa la acción.',
+            rows: [
+              { jp: 'うち で テレビ を みます。', romaji: 'Uchi de terebi o mimasu.', es: 'Miro la tele en casa.' },
+              { jp: 'かいしゃ の しょくどう で たべます。', romaji: 'Kaisha no shokudou de tabemasu.', es: 'Como en el comedor de la empresa.' },
+              { jp: 'どこ で ぎゅうにゅう を かいましたか？', romaji: 'Doko de gyuunyuu o kaimashita ka?', es: '¿Dónde compraste la leche?' },
+              { jp: 'だいがく で べんきょう しました。', romaji: 'Daigaku de benkyou shimashita.', es: 'Estudié en la universidad.' },
+            ],
+          },
+        ],
+      },
+      {
         id: 'wo',
         title: 'を — el objeto directo',
         sections: [
@@ -366,6 +382,7 @@ export const studyTopics: StudyTopic[] = [
       { jp: 'わたし も いきます。', romaji: 'Watashi mo ikimasu.', es: 'Yo también voy. (も)' },
       { jp: 'あした から やすみ です。', romaji: 'Ashita kara yasumi desu.', es: 'Desde mañana hay descanso. (から)' },
       { jp: 'なに を たべますか？', romaji: 'Nani o tabemasu ka?', es: '¿Qué comés? (を)' },
+      { jp: 'どこ で たべますか？', romaji: 'Doko de tabemasu ka?', es: '¿Dónde comés? (で de lugar)' },
     ],
   },
   {
@@ -466,8 +483,8 @@ export const studyTopics: StudyTopic[] = [
     practice: { script: 'hiragana', mode: 'phrases' },
     kanjiNumeral: '七',
     title: 'Tiempo y fechas',
-    summary: 'La hora · días · meses · いつ · つぎ の',
-    sourceClasses: [10, 11, 12, 15, 17],
+    summary: 'La hora · días · meses · いつ · つぎ の · frecuencia',
+    sourceClasses: [10, 11, 12, 15, 17, 21],
     keyRule:
       'Horas con excepciones: ４じ→よじ, ７じ→しちじ, ９じ→くじ. Días del mes 1–10 irregulares (ついたち, ふつか…); el 4 y el 14 siempre usan よっか.',
     subtopics: [
@@ -523,11 +540,36 @@ export const studyTopics: StudyTopic[] = [
           },
         ],
       },
+      {
+        id: 'frecuencia-orden',
+        title: 'Frecuencia y orden',
+        sections: [
+          {
+            title: 'いつも · ときどき · あまり · ぜんぜん',
+            note: '⚠️ あまり y ぜんぜん exigen el verbo en negativo. El adverbio va después del tema y antes del objeto.',
+            rows: [
+              { jp: 'いつも ラーメン を たべます。', romaji: 'Itsumo raamen o tabemasu.', es: 'Siempre como ramen.' },
+              { jp: 'ときどき サッカー を します。', romaji: 'Tokidoki sakkaa o shimasu.', es: 'A veces juego al fútbol.' },
+              { jp: 'あまり えいが を みません。', romaji: 'Amari eiga o mimasen.', es: 'Casi no veo películas.' },
+              { jp: 'ぜんぜん さけ を のみません。', romaji: 'Zenzen sake o nomimasen.', es: 'No tomo alcohol para nada.' },
+            ],
+          },
+          {
+            title: 'それから — y después',
+            note: 'Encadena dos acciones en orden. Va al principio de la segunda oración, normalmente con coma.',
+            rows: [
+              { jp: 'さんぽ を しました。それから、コンサート へ いきました。', romaji: 'Sanpo o shimashita. Sorekara, konsaato e ikimashita.', es: 'Salí a caminar. Después fui a un recital.' },
+              { jp: 'ほん を よみました。それから、ビデオ を みました。', romaji: 'Hon o yomimashita. Sorekara, bideo o mimashita.', es: 'Leí un libro. Después miré un video.' },
+            ],
+          },
+        ],
+      },
     ],
     essentialPhrases: [
       { jp: 'いま なんじ ですか？', romaji: 'Ima nanji desu ka?', es: '¿Qué hora es?' },
       { jp: 'きょう は なんようび ですか？', romaji: 'Kyou wa nanyoubi desu ka?', es: '¿Qué día es hoy?' },
       { jp: 'たんじょうび は いつ ですか？', romaji: 'Tanjoubi wa itsu desu ka?', es: '¿Cuándo es tu cumpleaños?' },
+      { jp: 'ときどき えいがかん へ いきます。', romaji: 'Tokidoki eigakan e ikimasu.', es: 'A veces voy al cine.' },
     ],
   },
   {
@@ -536,8 +578,8 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '八',
     title: 'Verbos',
     titleJp: 'どうし',
-    summary: '3 grupos · ます形 · movimiento · 〜を',
-    sourceClasses: [13, 14, 15, 16, 19],
+    summary: '3 grupos · ます形 · movimiento · 〜を · 〜ませんか',
+    sourceClasses: [13, 14, 15, 16, 19, 21],
     keyRule:
       'El verbo siempre va al final. No cambia por persona ni género. Solo hay dos tiempos: pasado y no-pasado. ¿Grupo? Termina en ERU/IRU → 2; es する/くる → 3; el resto → 1.',
     subtopics: [
@@ -617,12 +659,38 @@ export const studyTopics: StudyTopic[] = [
           },
         ],
       },
+      {
+        id: 'invitaciones',
+        title: 'Invitar: 〜ませんか · 〜ましょう',
+        sections: [
+          {
+            title: 'いっしょに [cosa] を [verbo]ませんか？',
+            note: 'La forma negativa + か deja de ser pregunta y pasa a ser invitación. Con un lugar la partícula sigue siendo へ.',
+            rows: [
+              { jp: 'いっしょに コーヒー を のみませんか？', romaji: 'Issho ni koohii o nomimasen ka?', es: '¿Tomamos un café?' },
+              { jp: 'いっしょに としょかん へ いきませんか？', romaji: 'Issho ni toshokan e ikimasen ka?', es: '¿Vamos a la biblioteca?' },
+              { jp: 'あした いっしょに テニス を しませんか？', romaji: 'Ashita issho ni tenisu o shimasen ka?', es: '¿Jugamos al tenis mañana?' },
+            ],
+          },
+          {
+            title: 'Aceptar, rechazar y arreglar',
+            note: '⚠️ すみません、ちょっと… es un NO. La frase se deja colgada a propósito: decir que no de frente es brusco.',
+            rows: [
+              { jp: 'ええ、いい です ね。', romaji: 'Ee, ii desu ne.', es: 'Sí, dale.' },
+              { jp: 'はい、のみましょう！', romaji: 'Hai, nomimashou!', es: '¡Sí, tomemos!' },
+              { jp: 'すみません、ちょっと…', romaji: 'Sumimasen, chotto…', es: 'Perdón, no puedo.' },
+              { jp: 'じゃ、１１じ に えき で あいましょう。', romaji: 'Ja, juuichiji ni eki de aimashou.', es: 'Bueno, encontrémonos a las 11 en la estación.' },
+            ],
+          },
+        ],
+      },
     ],
     essentialPhrases: [
       { jp: 'きのう べんきょうしました。', romaji: 'Kinou benkyou shimashita.', es: 'Ayer estudié.' },
       { jp: 'あした きません。', romaji: 'Ashita kimasen.', es: 'Mañana no vengo.' },
       { jp: 'いつ かえりますか？', romaji: 'Itsu kaerimasu ka?', es: '¿Cuándo volvés?' },
       { jp: 'なに を のみますか？', romaji: 'Nani o nomimasu ka?', es: '¿Qué tomás?' },
+      { jp: 'いっしょに いきませんか？', romaji: 'Issho ni ikimasen ka?', es: '¿Vamos juntos?' },
     ],
   },
   {
