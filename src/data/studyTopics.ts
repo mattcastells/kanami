@@ -1,4 +1,4 @@
-// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–19, 21).
+// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–21).
 // Fuente completa: content/clases/*.md en el proyecto de diseño.
 // Cada tema referencia sus clases de origen para trazabilidad.
 
@@ -278,7 +278,7 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '四',
     title: 'Partículas',
     summary: 'は · か · も · の · に · へ · から／まで · で · と · を',
-    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19, 21],
+    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19, 20, 21],
     keyRule:
       'Las partículas reemplazan preposiciones y artículos. Van DESPUÉS de la palabra a la que refieren y ordenan la oración.',
     subtopics: [
@@ -356,6 +356,38 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'かいしゃ の しょくどう で たべます。', romaji: 'Kaisha no shokudou de tabemasu.', es: 'Como en el comedor de la empresa.' },
               { jp: 'どこ で ぎゅうにゅう を かいましたか？', romaji: 'Doko de gyuunyuu o kaimashita ka?', es: '¿Dónde compraste la leche?' },
               { jp: 'だいがく で べんきょう しました。', romaji: 'Daigaku de benkyou shimashita.', es: 'Estudié en la universidad.' },
+              { jp: 'でんしゃ で ねます。', romaji: 'Densha de nemasu.', es: 'Duermo en el tren (acá で es el lugar, no el medio).' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'ni-persona',
+        title: 'に — la persona con あいます',
+        sections: [
+          {
+            title: '[persona] に あいます',
+            note: '⚠️ La persona lleva に, no を. En la misma oración conviven las dos: el lugar con で y la persona con に.',
+            rows: [
+              { jp: 'ともだち に あいます。', romaji: 'Tomodachi ni aimasu.', es: 'Me encuentro con un amigo.' },
+              { jp: 'こうえん で ともだち に あいました。', romaji: 'Kouen de tomodachi ni aimashita.', es: 'Me encontré con un amigo en el parque.' },
+              { jp: 'だれ に あいましたか？', romaji: 'Dare ni aimashita ka?', es: '¿Con quién te encontraste?' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'mo-negativo',
+        title: 'も — nada, nadie, a ningún lado',
+        sections: [
+          {
+            title: '[palabra que pregunta] + も + verbo en negativo',
+            note: '⚠️ Esta familia no existe con verbo afirmativo. なにも みます no se dice.',
+            rows: [
+              { jp: 'なにも しません。', romaji: 'Nani mo shimasen.', es: 'No hago nada.' },
+              { jp: 'なにも たべませんでした。', romaji: 'Nani mo tabemasen deshita.', es: 'No comí nada.' },
+              { jp: 'だれにも あいませんでした。', romaji: 'Dare ni mo aimasen deshita.', es: 'No me encontré con nadie.' },
+              { jp: 'どこ も いきません。', romaji: 'Doko mo ikimasen.', es: 'No voy a ningún lado.' },
             ],
           },
         ],
@@ -579,7 +611,7 @@ export const studyTopics: StudyTopic[] = [
     title: 'Verbos',
     titleJp: 'どうし',
     summary: '3 grupos · ます形 · movimiento · 〜を · 〜ませんか',
-    sourceClasses: [13, 14, 15, 16, 19, 21],
+    sourceClasses: [13, 14, 15, 16, 19, 20, 21],
     keyRule:
       'El verbo siempre va al final. No cambia por persona ni género. Solo hay dos tiempos: pasado y no-pasado. ¿Grupo? Termina en ERU/IRU → 2; es する/くる → 3; el resto → 1.',
     subtopics: [

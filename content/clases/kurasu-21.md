@@ -1,6 +1,6 @@
 # Kurasu 21 — Invitaciones y frecuencia | 〜ませんか・それから・いつも・ときどき
 📅 2026-09-05
-Temas: repaso de la tarea del だい6か, la partícula で de lugar, それから para encadenar acciones, los adverbios de frecuencia いつも・ときどき・あまり・ぜんぜん, invitar con 〜ませんか, aceptar y rechazar, arreglar los detalles con 〜ましょう.
+Temas: repaso de la tarea del だい6か, repaso de la partícula で de lugar, それから para encadenar acciones, los adverbios de frecuencia いつも・ときどき・あまり・ぜんぜん, invitar con 〜ませんか, aceptar y rechazar, arreglar los detalles con 〜ましょう.
 
 ## Repaso de la tarea | しゅくだい
 La página 51 tenía dos ejercicios. El 4 era contestar なに を しますか según el momento, cuidando el tiempo verbal.
@@ -28,7 +28,7 @@ El 5 era preguntar por el lugar con どこ で.
 💡 あいます (encontrarse con alguien) lleva に para la persona, no を: ミラーさん に あいます.
 
 ## Dónde pasa la acción | [ばしょ] で 〜ます
-La partícula で marca el lugar donde ocurre la acción. Va pegada al lugar, antes del objeto y del verbo.
+Seguimos con la で que vimos en la clase 20: marca el lugar donde ocurre la acción. Va pegada al lugar, antes del objeto y del verbo.
 > [lugar] で [cosa] を [verbo]。
 
 > うち で テレビ を みます。 — Miro la tele en casa.

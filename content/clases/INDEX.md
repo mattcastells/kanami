@@ -1,6 +1,6 @@
 # Índice temático — contenido de las clases (Notion → app)
 
-19 clases reales (Kurasu 1–6, 8–19, 21; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; la 20 no llegó al repo). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
+20 clases reales (Kurasu 1–6, 8–21; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
 ## Organización POR TEMAS propuesta para la app (sección "Estudiar")
 
@@ -32,8 +32,9 @@
 - で medio de transporte · と compañía · ひとりで y あるいて como excepciones (K16, K18)
 - から origen del viaje: 〜から きました (K18)
 - を objeto directo y verbos transitivos (K19)
-- で lugar donde pasa la acción: 〜で 〜ます, y へ vs で (K21)
-- に de la persona con あいます (K21)
+- で lugar donde pasa la acción: 〜で 〜ます, y へ vs で (K20, K21)
+- に de la persona con あいます (K20, K21)
+- なにも・だれにも・どこも + verbo en negativo (K16, K20)
 
 ### 5. Demostrativos y ubicación
 - これ/それ/あれ pronombres (K4) vs この/その/あの adjetivos (K2, K5)
@@ -65,8 +66,10 @@
 ### 9. Vocabulario (datasets para práctica)
 - Objetos cotidianos (K4/K6) · Lugares de edificio y ciudad (K8) · Tiendas (K9) · Escuelas (K8) · Tiempo (K10)
 - Transporte (K16) · Comida y bebida (K19) · Ver/escuchar y leer/escribir (K19)
+- Zapatos, camisa, sushi, pizza, kimchi (K20)
 - Ropa, hamburguesa, onigiri, ramen, matemática, recital (K21)
 
 ### 10. Preguntar
 - Las palabras que preguntan: いつ · だれ · どこ · いくら · なん · なんじ · なんがつ／なんにち (K18, K19)
+- なに を 〜ますか para cada verbo · どこ で 〜ますか (K20)
 - Formal: おくに は どちら ですか (K18)

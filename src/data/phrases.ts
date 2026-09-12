@@ -82,6 +82,15 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['いっしょにとしょかんへいきませんか', 'issho ni toshokan e ikimasen ka', '¿Vamos a la biblioteca?'],
   ['えきであいましょう', 'eki de aimashou', 'Encontrémonos en la estación'],
   ['わかりました', 'wakarimashita', 'Entendido'],
+  // Clase 20. Van al final por lo mismo: el id es el índice.
+  ['うちでてがみをかきます', 'uchi de tegami o kakimasu', 'Escribo una carta en casa'],
+  ['かいしゃではたらきます', 'kaisha de hatarakimasu', 'Trabajo en la empresa'],
+  ['なにもしません', 'nani mo shimasen', 'No hago nada'],
+  ['なにもたべませんでした', 'nani mo tabemasen deshita', 'No comí nada'],
+  ['ともだちにあいました', 'tomodachi ni aimashita', 'Me encontré con un amigo'],
+  ['だれにあいましたか', 'dare ni aimashita ka', '¿Con quién te encontraste?'],
+  ['だれにもあいませんでした', 'dare ni mo aimasen deshita', 'No me encontré con nadie'],
+  ['でんしゃでねます', 'densha de nemasu', 'Duermo en el tren'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -118,6 +127,9 @@ const katakanaPhraseData: [string, string, string][] = [
   ['デパートでふくをかいます', 'depaato de fuku o kaimasu', 'Compro ropa en la tienda'],
   ['ハンバーガーをたべます', 'hanbaagaa o tabemasu', 'Como una hamburguesa'],
   ['コンサートへいきました', 'konsaato e ikimashita', 'Fui a un recital'],
+  // Clase 20. Van al final por lo mismo que las de hiragana.
+  ['デパートでシャツをかいました', 'depaato de shatsu o kaimashita', 'Compré una camisa en el shopping'],
+  ['レストランでピザをたべました', 'resutoran de piza o tabemashita', 'Comí pizza en el restaurante'],
 ];
 
 function createPhraseEntry(
