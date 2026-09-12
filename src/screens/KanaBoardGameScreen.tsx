@@ -36,9 +36,17 @@ function columnsForWidth(width: number) {
   return 9;
 }
 
+// Los combos (きゃ, ぎゃ, みゅ...) son DOS caracteres y ocupan casi el doble: con un
+// tamaño fijo se parten en dos renglones adentro de la carta. Por eso la tipografía sale
+// del ancho disponible y de cuántos caracteres hay que meter, nunca de un número fijo.
+function kanaFontSize(kana: string, boxWidth: number) {
+  const ratio = kana.length > 1 ? 0.3 : 0.44;
+  return Math.max(12, Math.round(boxWidth * ratio));
+}
+
 // Tablero de kana al estilo del quiz de Tofugu: se ve el mazo entero y se completa carta
 // por carta. En vez de un input por carta (imposible en un teléfono) hay uno solo que
-// camina el tablero; la sesión la cortás vos con "Terminar".
+// camina el tablero; las que fallás vuelven a la cola hasta que salgan bien.
 export function KanaBoardGameScreen({
   navigation,
   route,
@@ -54,15 +62,8 @@ export function KanaBoardGameScreen({
   const [attempt, setAttempt] = useState(0);
   const resetKey = `board:${script}:${selectedGroupIds.join(',')}:${attempt}`;
 
-  const {
-    state,
-    inputValue,
-    setInputValue,
-    submit,
-    selectCard,
-    finish,
-    lastFeedback,
-  } = useKanaBoardGame(characters, resetKey);
+  const { state, inputValue, setInputValue, submit, selectCard, finish, lastFeedback } =
+    useKanaBoardGame(characters, resetKey);
 
   const inputRef = useRef<TextInput>(null);
   const [boardWidth, setBoardWidth] = useState(0);
@@ -107,50 +108,73 @@ export function KanaBoardGameScreen({
   const handleRestart = () => setAttempt((current) => current + 1);
 
   if (state.finished) {
-    const missed = state.cards.filter((card) => card.status === 'incorrect');
+    const struggled = state.cards.filter((card) => card.misses > 0);
 
     return (
       <ScreenBackground scrollable>
-        <ScreenHeader eyebrow="盤 · Tablero" title="Resultado" />
+        <ScreenHeader
+          eyebrow="盤 · Tablero"
+          title="Resultado"
+          subtitle={
+            summary.completed
+              ? 'Completaste el tablero entero'
+              : 'Cortaste el tablero antes de terminarlo'
+          }
+        />
 
         <GlassCard style={styles.summaryCard} contentStyle={styles.summaryContent}>
           <AppText variant="display" style={styles.summaryScore}>
-            {summary.correct} / {summary.total}
+            {summary.solved} / {summary.total}
           </AppText>
           <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-            {summary.answered > 0
-              ? `${summary.accuracy}% de acierto sobre ${summary.answered} ${
-                  summary.answered === 1 ? 'carta contestada' : 'cartas contestadas'
-                }`
-              : 'No contestaste ninguna carta'}
+            {summary.perfect} al primer intento · {summary.accuracy}% de acierto
           </AppText>
           {summary.pending > 0 ? (
             <AppText
               variant="bodySmall"
               color={activeTheme.colors.textMuted}
-              style={styles.summaryPending}
+              style={styles.summaryNote}
             >
               {summary.pending}{' '}
-              {summary.pending === 1 ? 'carta quedó' : 'cartas quedaron'} sin contestar.
+              {summary.pending === 1 ? 'carta quedó' : 'cartas quedaron'} sin resolver.
             </AppText>
           ) : null}
         </GlassCard>
 
-        {missed.length > 0 ? (
+        <View style={styles.statsRow}>
+          <StatPill
+            label="Resueltas"
+            value={summary.solved}
+            accentColor={activeTheme.colors.success}
+          />
+          <StatPill
+            label="Fallos"
+            value={summary.misses}
+            accentColor={activeTheme.colors.error}
+          />
+          <StatPill
+            label="Vueltas"
+            value={summary.rounds}
+            accentColor={activeTheme.colors.warning}
+          />
+        </View>
+
+        {struggled.length > 0 ? (
           <>
             <AppText variant="overline" color={activeTheme.colors.textMuted}>
-              LO QUE FALLASTE
+              LO QUE TE COSTÓ
             </AppText>
             <View style={styles.missedList}>
-              {missed.map((card) => (
+              {struggled.map((card) => (
                 <View
                   key={card.id}
-                  style={[
-                    styles.missedRow,
-                    { borderColor: activeTheme.colors.line },
-                  ]}
+                  style={[styles.missedRow, { borderColor: activeTheme.colors.line }]}
                 >
-                  <AppText variant="kana" style={styles.missedKana}>
+                  <AppText
+                    variant="kana"
+                    numberOfLines={1}
+                    style={[styles.missedKana, { fontSize: kanaFontSize(card.kana, 64) }]}
+                  >
                     {card.kana}
                   </AppText>
                   <View style={styles.missedTexts}>
@@ -158,7 +182,9 @@ export function KanaBoardGameScreen({
                       {card.romaji}
                     </AppText>
                     <AppText variant="bodySmall" color={activeTheme.colors.error}>
-                      Escribiste: {card.submitted}
+                      {card.misses === 1
+                        ? `Escribiste: ${card.submitted}`
+                        : `${card.misses} fallos · último: ${card.submitted}`}
                     </AppText>
                   </View>
                 </View>
@@ -184,27 +210,14 @@ export function KanaBoardGameScreen({
       <ScreenHeader
         eyebrow="盤 · Tablero"
         title={scriptLabel}
+        subtitle={
+          state.round > 1
+            ? `Vuelta ${state.round} · repasando lo que fallaste`
+            : undefined
+        }
         actionLabel="Terminar"
         onActionPress={finish}
       />
-
-      <View style={styles.statsRow}>
-        <StatPill
-          label="Aciertos"
-          value={state.stats.correct}
-          accentColor={activeTheme.colors.success}
-        />
-        <StatPill
-          label="Fallidos"
-          value={state.stats.incorrect}
-          accentColor={activeTheme.colors.error}
-        />
-        <StatPill
-          label="Restantes"
-          value={summary.pending}
-          accentColor={activeTheme.colors.warning}
-        />
-      </View>
 
       <GlassCard style={styles.promptCard} contentStyle={styles.promptContent}>
         <View
@@ -216,7 +229,14 @@ export function KanaBoardGameScreen({
             },
           ]}
         >
-          <AppText variant="kana" style={styles.promptKana}>
+          <AppText
+            variant="kana"
+            numberOfLines={1}
+            style={[
+              styles.promptKana,
+              { fontSize: kanaFontSize(activeCard?.kana ?? '', 92) },
+            ]}
+          >
             {activeCard?.kana ?? '—'}
           </AppText>
         </View>
@@ -268,7 +288,7 @@ export function KanaBoardGameScreen({
         style={styles.hint}
       >
         Escribí el romaji de la carta marcada y mandá con Enter. Tocá cualquier otra para
-        saltar a esa. Cuando quieras, Terminar.
+        saltar a esa. Las que falles vuelven al final.
       </AppText>
 
       <View style={styles.board} onLayout={handleBoardLayout}>
@@ -301,6 +321,8 @@ function BoardCard({
 }) {
   const { theme: activeTheme } = useAppTheme();
 
+  // Una pendiente que ya fallaste alguna vez se marca en ámbar: es la que volvió a la
+  // cola, y verla distinta es la mitad de la gracia de la segunda vuelta.
   const tone =
     card.status === 'correct'
       ? activeTheme.colors.success
@@ -308,9 +330,13 @@ function BoardCard({
         ? activeTheme.colors.error
         : isActive
           ? activeTheme.colors.accent
-          : null;
+          : card.misses > 0
+            ? activeTheme.colors.warning
+            : null;
 
   const resolved = card.status !== 'pending';
+  // Cuando se muestra el romaji abajo, el kana tiene menos alto disponible.
+  const fontSize = Math.round(kanaFontSize(card.kana, size) * (resolved ? 0.78 : 1));
 
   return (
     <Pressable
@@ -332,13 +358,14 @@ function BoardCard({
     >
       <AppText
         variant="kana"
-        style={[styles.cardKana, resolved ? styles.cardKanaResolved : null]}
+        numberOfLines={1}
+        style={[styles.cardKana, { fontSize, lineHeight: Math.round(fontSize * 1.25) }]}
         color={tone ?? activeTheme.colors.textPrimary}
       >
         {card.kana}
       </AppText>
       {resolved ? (
-        <AppText variant="label" color={tone ?? activeTheme.colors.textMuted}>
+        <AppText variant="label" numberOfLines={1} color={tone ?? activeTheme.colors.textMuted}>
           {card.romaji}
         </AppText>
       ) : null}
@@ -350,7 +377,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.lg,
   },
   promptCard: {
     marginBottom: theme.spacing.xs,
@@ -362,15 +389,14 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   promptGlyph: {
-    width: 72,
-    height: 72,
+    width: 92,
+    height: 80,
     borderWidth: 2,
     borderRadius: theme.radii.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   promptKana: {
-    fontSize: 40,
     lineHeight: 50,
   },
   promptInputWrap: {
@@ -408,15 +434,10 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 2,
   },
   cardKana: {
-    fontSize: 26,
-    lineHeight: 34,
     ...(Platform.OS === 'web' ? { userSelect: 'none' as const } : null),
-  },
-  cardKanaResolved: {
-    fontSize: 20,
-    lineHeight: 26,
   },
   summaryCard: {
     marginBottom: theme.spacing.md,
@@ -430,7 +451,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     lineHeight: 58,
   },
-  summaryPending: {
+  summaryNote: {
     marginTop: theme.spacing.xxs,
     textAlign: 'center',
   },
@@ -449,9 +470,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
   },
   missedKana: {
-    fontSize: 30,
-    lineHeight: 38,
-    minWidth: 44,
+    lineHeight: 40,
+    minWidth: 52,
     textAlign: 'center',
   },
   missedTexts: {

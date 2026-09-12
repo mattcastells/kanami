@@ -7,8 +7,10 @@ import { isRomajiAnswerCorrect } from './romajiAnswer';
 // que ahí cada carta tiene su propio input; en un teléfono eso es inusable, así que hay
 // UN input que camina el tablero: respondés y salta sola a la siguiente pendiente.
 //
-// La sesión la termina el usuario cuando quiere (o cuando no quedan pendientes), así que
-// el tablero admite quedar a medias: las que no contestaste no cuentan como error.
+// Al terminar la vuelta, las que fallaste VUELVEN a la cola: el tablero no se da por
+// terminado hasta que todas estén bien. Esa es la mecánica del original y es la que hace
+// que sirva para estudiar — si el error se pudiera dejar atrás, no aprendés el carácter
+// que no sabías. Cortar antes de tiempo sigue siendo decisión del usuario ("Terminar").
 
 export type KanaBoardCardStatus = 'pending' | 'correct' | 'incorrect';
 
@@ -19,7 +21,11 @@ export type KanaBoardCard = {
   kana: string;
   romaji: string;
   status: KanaBoardCardStatus;
+  // Último intento fallido, para poder mostrarlo en el resumen.
   submitted: string | null;
+  // Cuántas veces se falló esta carta en toda la sesión. Sobrevive a la vuelta a la
+  // cola: es lo que distingue "la sabía" de "me costó tres intentos".
+  misses: number;
 };
 
 export type KanaBoardState = {
@@ -30,16 +36,23 @@ export type KanaBoardState = {
   answerState: AnswerState;
   lastCardId: string | null;
   stats: GameStats;
+  // Vuelta actual. La 1 es el mazo completo; de la 2 en adelante son las que fallaste.
+  round: number;
   finished: boolean;
 };
 
 export type KanaBoardSummary = {
   total: number;
-  answered: number;
-  correct: number;
-  incorrect: number;
+  // Cartas que quedaron bien. Si el tablero se completó, es igual a `total`.
+  solved: number;
   pending: number;
+  // Fallos totales, contando los repetidos de una misma carta.
+  misses: number;
+  // Cartas que salieron bien al primer intento.
+  perfect: number;
   accuracy: number;
+  rounds: number;
+  completed: boolean;
 };
 
 function nextPendingId(cards: KanaBoardCard[], fromId: string | null): string | null {
@@ -66,6 +79,7 @@ export function createKanaBoardState(
     romaji: character.romaji,
     status: 'pending',
     submitted: null,
+    misses: 0,
   }));
 
   return {
@@ -74,6 +88,7 @@ export function createKanaBoardState(
     answerState: 'idle',
     lastCardId: null,
     stats: { correct: 0, incorrect: 0, streak: 0, answered: 0 },
+    round: 1,
     finished: cards.length === 0,
   };
 }
@@ -85,8 +100,8 @@ export function selectKanaBoardCard(
   if (state.finished) return state;
 
   const card = state.cards.find((item) => item.id === cardId);
-  // Las resueltas quedan cerradas: si se pudieran reescribir, las estadísticas y el
-  // Repaso por errores dejarían de significar algo.
+  // Las que ya están bien quedan cerradas: si se pudieran reescribir, las estadísticas
+  // y el Repaso por errores dejarían de significar algo.
   if (!card || card.status !== 'pending') return state;
 
   return { ...state, activeCardId: cardId };
@@ -112,26 +127,62 @@ export function submitKanaBoardAnswer(
       ? {
           ...card,
           status: (isCorrect ? 'correct' : 'incorrect') as KanaBoardCardStatus,
-          submitted: trimmed,
+          submitted: isCorrect ? card.submitted : trimmed,
+          misses: card.misses + (isCorrect ? 0 : 1),
         }
       : card,
   );
 
+  const stats: GameStats = {
+    correct: state.stats.correct + (isCorrect ? 1 : 0),
+    incorrect: state.stats.incorrect + (isCorrect ? 0 : 1),
+    streak: isCorrect ? state.stats.streak + 1 : 0,
+    answered: state.stats.answered + 1,
+  };
+
   const nextId = nextPendingId(cards, activeCard.id);
+
+  if (nextId !== null) {
+    return {
+      ...state,
+      cards,
+      activeCardId: nextId,
+      answerState: isCorrect ? 'correct' : 'incorrect',
+      lastCardId: activeCard.id,
+      stats,
+    };
+  }
+
+  // Se acabó la vuelta. Las falladas vuelven a la cola EN SU MISMO LUGAR del tablero:
+  // reordenarlas haría saltar la grilla justo cuando el usuario está mirando dónde
+  // quedaron. Se distinguen por `misses`, que la pantalla pinta distinto.
+  const retryCards = cards.map((card) =>
+    card.status === 'incorrect'
+      ? { ...card, status: 'pending' as KanaBoardCardStatus }
+      : card,
+  );
+  const retryId = nextPendingId(retryCards, null);
+
+  if (retryId === null) {
+    return {
+      ...state,
+      cards,
+      activeCardId: null,
+      answerState: isCorrect ? 'correct' : 'incorrect',
+      lastCardId: activeCard.id,
+      stats,
+      finished: true,
+    };
+  }
 
   return {
     ...state,
-    cards,
-    activeCardId: nextId,
+    cards: retryCards,
+    activeCardId: retryId,
     answerState: isCorrect ? 'correct' : 'incorrect',
     lastCardId: activeCard.id,
-    stats: {
-      correct: state.stats.correct + (isCorrect ? 1 : 0),
-      incorrect: state.stats.incorrect + (isCorrect ? 0 : 1),
-      streak: isCorrect ? state.stats.streak + 1 : 0,
-      answered: state.stats.answered + 1,
-    },
-    finished: nextId === null,
+    stats,
+    round: state.round + 1,
   };
 }
 
@@ -149,16 +200,21 @@ export function finishKanaBoard(state: KanaBoardState): KanaBoardState {
 
 export function getKanaBoardSummary(state: KanaBoardState): KanaBoardSummary {
   const total = state.cards.length;
-  const correct = state.cards.filter((card) => card.status === 'correct').length;
-  const incorrect = state.cards.filter((card) => card.status === 'incorrect').length;
-  const answered = correct + incorrect;
+  const solved = state.cards.filter((card) => card.status === 'correct').length;
+  const misses = state.cards.reduce((sum, card) => sum + card.misses, 0);
+  const perfect = state.cards.filter(
+    (card) => card.status === 'correct' && card.misses === 0,
+  ).length;
+  const attempts = solved + misses;
 
   return {
     total,
-    answered,
-    correct,
-    incorrect,
-    pending: total - answered,
-    accuracy: answered === 0 ? 0 : Math.round((correct / answered) * 100),
+    solved,
+    pending: total - solved,
+    misses,
+    perfect,
+    accuracy: attempts === 0 ? 0 : Math.round((solved / attempts) * 100),
+    rounds: state.round,
+    completed: total > 0 && solved === total,
   };
 }
