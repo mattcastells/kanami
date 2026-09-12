@@ -91,7 +91,8 @@ src/
 en el contenido para aprender; los juegos son la segunda pestaña.
 
 - **練 Practicar** (`PracticeTab`) → stack: **Practice** (la grilla de juegos), KanaGroups,
-  KanaGame, **KanjiGrind** + **KanjiGrindGame** (la práctica de kanji), KanjiDraw,
+  KanaGame, **KanaBoardGame** (el tablero de kana), **KanjiGrind** + **KanjiGrindGame**
+  (la práctica de kanji), KanjiDraw,
   **EmojiGame** (matcheo palabra↔emoji), **TimesGame** (leer/escribir horarios 〜時〜分),
   **TranslationGame** (traducir frases enteras en las dos direcciones, ordenando piezas o
   escribiendo), **Review** (el repaso por errores).
@@ -103,6 +104,12 @@ en el contenido para aprender; los juegos son la segunda pestaña.
 
   **No hay tile "Mixto"**: el silabario (hiragana / katakana / mixto) se elige adentro de
   `KanaGroups`. Mixto no es otro modo, es la misma práctica con los dos silabarios juntos.
+
+  **Tablero** (`KanaBoardGame`) es el quinto modo de `KanaGroups` y el único que no pasa por
+  `GameScreen`: muestra el mazo entero y se completa carta por carta con un solo input que
+  va saltando a la siguiente pendiente (un input por carta, como el original de Tofugu, es
+  inusable en un teléfono). Las cartas resueltas quedan cerradas y la sesión la corta el
+  usuario con "Terminar"; lo que quedó sin contestar no cuenta como error.
 - **学 Estudiar** (`StudyTab`, **la home**) → stack: StudyTopics, StudyTopic, **ClassNotes** (Mis clases),
   **ClassNote** (apunte de una clase), **ClassQuiz** (quiz de esa clase), **VocabularyList**
   (Vocabulario de consulta), **KanjiList** + **KanjiDetail** (la sección Kanji: consultar y
@@ -283,7 +290,7 @@ Los cinco formatos y cómo los repite el Repaso:
 | Formato | Modos | Cómo se repite |
 |---|---|---|
 | `choice` | reading, kanji-grind, times, emoji, fill-blank, class-quiz | prompt + opciones guardadas |
-| `input` | writing, syllables, word-builder, phrases, translation | prompt + escribir |
+| `input` | writing, syllables, word-builder, phrases, translation, kana-board | prompt + escribir |
 | `listen` | dictation | audio + escribir |
 | `draw` | drawing | `DrawingPractice` con pool de un carácter |
 | `speak` | pronunciation | `PronunciationRound` con el micrófono |

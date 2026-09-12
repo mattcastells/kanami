@@ -33,6 +33,11 @@ export type RootStackParamList = {
     // Cantidad de rondas antes del resumen. undefined = sesión infinita (default).
     sessionLength?: number;
   };
+  // Tablero de kana: el mazo entero en pantalla, se completa carta por carta.
+  KanaBoardGame: {
+    script: KanaScript;
+    selectedGroupIds: HiraganaGroupId[];
+  };
   // Sección Kanji (pestaña Estudiar): consultar y aprender.
   // Igual que vocabulario: índice de temáticas → página de la temática → ficha.
   KanjiList: undefined;

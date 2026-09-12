@@ -52,6 +52,7 @@ export const PROGRESS_MODE_LABELS: Record<string, string> = {
   pronunciation: 'Pronunciación',
   'class-quiz': 'Quiz de clase',
   translation: 'Traducción',
+  'kana-board': 'Tablero',
 };
 
 export function getModeLabel(modeKey: string): string {

@@ -22,7 +22,9 @@ export type GameSessionState = {
   stats: GameStats;
 };
 
-function shuffle<T>(items: T[]) {
+// Exportado para que los engines nuevos no sumen otra copia: ya hay demasiadas
+// repartidas por `features/game`.
+export function shuffle<T>(items: T[]) {
   const result = [...items];
 
   for (let index = result.length - 1; index > 0; index -= 1) {

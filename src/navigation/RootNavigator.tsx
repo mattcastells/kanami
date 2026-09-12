@@ -26,6 +26,7 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { ClassQuizScreen } from '../screens/ClassQuizScreen';
 import { StudyTopicScreen } from '../screens/StudyTopicScreen';
 import { StudyTopicsScreen } from '../screens/StudyTopicsScreen';
+import { KanaBoardGameScreen } from '../screens/KanaBoardGameScreen';
 import { TimesGameScreen } from '../screens/TimesGameScreen';
 import { TranslationGameScreen } from '../screens/TranslationGameScreen';
 import { VocabularyListScreen } from '../screens/VocabularyListScreen';
@@ -51,6 +52,7 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="Practice" component={PracticeScreen} />
       <PracticeStack.Screen name="KanaGroups" component={HiraganaSelectionScreen} />
       <PracticeStack.Screen name="KanaGame" component={GameScreen} />
+      <PracticeStack.Screen name="KanaBoardGame" component={KanaBoardGameScreen} />
       <PracticeStack.Screen name="KanjiGrind" component={KanjiGrindScreen} />
       <PracticeStack.Screen name="KanjiGrindGame" component={KanjiGrindGameScreen} />
       <PracticeStack.Screen name="KanjiDraw" component={KanjiDrawScreen} />

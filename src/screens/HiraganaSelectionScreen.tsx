@@ -28,8 +28,12 @@ const SCRIPTS: { script: KanaScript; label: string }[] = [
   { script: 'mixed', label: 'Mixto' },
 ];
 
+// El tablero no es un `PracticeMode` del dataset: tiene pantalla propia y no pasa por
+// KanaGame, así que vive solo en esta lista.
+type KanaSelectionMode = PracticeMode | 'board';
+
 type ModeMeta = {
-  mode: PracticeMode;
+  mode: KanaSelectionMode;
   glyph: string;
   title: string;
   cta: string;
@@ -64,6 +68,13 @@ const MODES: ModeMeta[] = [
     title: 'Dibujo',
     cta: 'COMENZAR DIBUJO',
     note: 'Dibujás el carácter en el pizarrón siguiendo el orden de trazos.',
+  },
+  {
+    mode: 'board',
+    glyph: '盤',
+    title: 'Tablero',
+    cta: 'COMENZAR TABLERO',
+    note: 'Ves el mazo entero y escribís el romaji de cada carta. Terminás cuando querés.',
   },
   {
     mode: 'phrases',
@@ -109,7 +120,7 @@ export function HiraganaSelectionScreen({
 
   const [selectedGroupIds, setSelectedGroupIds] =
     useState<HiraganaGroupId[]>(allGroupIds);
-  const [selectedMode, setSelectedMode] = useState<PracticeMode>(
+  const [selectedMode, setSelectedMode] = useState<KanaSelectionMode>(
     route.params.initialMode ?? 'reading',
   );
   const [invertedMode, setInvertedMode] = useState(false);
@@ -164,7 +175,7 @@ export function HiraganaSelectionScreen({
     });
   };
 
-  const selectMode = (nextMode: PracticeMode) => {
+  const selectMode = (nextMode: KanaSelectionMode) => {
     setSelectedMode(nextMode);
     const next = MODES.find((item) => item.mode === nextMode);
     if (!next?.invertedNote) {
@@ -174,6 +185,10 @@ export function HiraganaSelectionScreen({
 
   const startPractice = () => {
     if (!canStart) return;
+    if (selectedMode === 'board') {
+      navigation.navigate('KanaBoardGame', { script, selectedGroupIds });
+      return;
+    }
     navigation.navigate('KanaGame', {
       script,
       selectedGroupIds,
