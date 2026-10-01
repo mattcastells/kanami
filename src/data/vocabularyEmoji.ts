@@ -190,6 +190,19 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   fiesta: '🎉',
   // Clase 18
   'souvenir / regalo tipico': '🎁',
+  // Clase 23 — だい７か. Tijeras, cubiertos y computadora ya tenían emoji.
+  palitos: '🥢',
+  'brochette de pollo': '🍢',
+  'ver los cerezos en flor': '🌸',
+  trabajo: '💼',
+  // Clase 24 — だい７か. El 🎁 ya es de おみやげ, por eso プレゼント va con 💝. Canción y
+  // teléfono ya tenían emoji. La familia queda afuera: ちち y おとうさん son la misma foto.
+  regalo: '💝',
+  flor: '🌷',
+  'plata / dinero': '💴',
+  bebe: '👶',
+  hombre: '👨',
+  mujer: '👩',
 };
 
 export type EmojiVocabEntry = {

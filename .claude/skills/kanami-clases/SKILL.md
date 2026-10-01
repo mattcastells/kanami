@@ -120,8 +120,10 @@ kanji y a veces gramática nueva, y cada una de esas cosas alimenta actividades 
 4. **Vocabulario** → `src/data/classVocabulary.ts`: las palabras nuevas, **y** sumar `NN` al
    campo `classes` de las que reaparecen (es la trazabilidad de "qué vimos en la clase N").
    Categoría nueva → agregar también el id a `ClassVocabCategoryId` y a `ClassWordCategoryId`
-   (`types/game.ts`). Chequeá que no repitas un `kana` ya existente: la derivación a práctica
-   arma el id desde el kana y duplicarlo mete la palabra dos veces en el mazo.
+   (`types/game.ts`). Antes de repetir un `kana` ya existente, chequeá que sea un homógrafo de
+   verdad (着る y 切る, las dos きる) y no la misma palabra cargada dos veces: la derivación a
+   práctica arma el id desde el kana y funde los homógrafos en una sola entrada que acepta
+   todas sus traducciones.
 5. **Modo Imágenes** → `src/data/vocabularyEmoji.ts`: mapeo emoji para las palabras nuevas que
    sean fotografiables. Sin esto, comida/bebida/objetos nuevos no entran a ese juego.
 6. **Kanji** → si la clase introduce un kanji que no está en `src/data/kanji.ts`, agregalo como

@@ -1,4 +1,4 @@
-// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–21).
+// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–21, 23–24).
 // Fuente completa: content/clases/*.md en el proyecto de diseño.
 // Cada tema referencia sus clases de origen para trazabilidad.
 
@@ -109,8 +109,8 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '二',
     title: 'Presentarse y personas',
     titleJp: 'はじめまして',
-    summary: 'Honoríficos · países · profesiones · edad',
-    sourceClasses: [1, 3, 5, 9],
+    summary: 'Honoríficos · países · profesiones · edad · familia',
+    sourceClasses: [1, 3, 5, 9, 24],
     keyRule:
       'Primero el apellido, después el nombre. Los honoríficos (～さん, ～さま, ～くん, ～ちゃん) van con el apellido y NUNCA se usan para uno mismo.',
     subtopics: [
@@ -164,6 +164,55 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'おいくつ ですか？', romaji: 'Oikutsu desu ka?', es: '¿Cuántos años tiene? (formal)' },
               { jp: '３２さい です。', romaji: 'Sanjuuni sai desu.', es: 'Tengo 32 años.' },
               { jp: 'はたち です。', romaji: 'Hatachi desu.', es: 'Tengo 20 años.' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'familia',
+        title: 'La familia (かぞく)',
+        sections: [
+          {
+            title: 'Mi familia',
+            note: 'Para hablar de la tuya con otro. Sin さん: es de la casa.',
+            rows: [
+              { jp: 'ちち', romaji: 'chichi', es: 'mi papá' },
+              { jp: 'はは', romaji: 'haha', es: 'mi mamá' },
+              { jp: 'りょうしん', romaji: 'ryoushin', es: 'mis padres' },
+              { jp: 'あに', romaji: 'ani', es: 'mi hermano mayor' },
+              { jp: 'あね', romaji: 'ane', es: 'mi hermana mayor' },
+              { jp: 'おとうと', romaji: 'otouto', es: 'mi hermano menor' },
+              { jp: 'いもうと', romaji: 'imouto', es: 'mi hermana menor' },
+              { jp: 'おっと', romaji: 'otto', es: 'mi esposo' },
+              { jp: 'つま', romaji: 'tsuma', es: 'mi esposa' },
+            ],
+          },
+          {
+            title: 'La familia de otro',
+            note: 'Más respetuosas y casi siempre con さん. También son las que usás para llamar a la tuya: a tu mamá le decís おかあさん.',
+            rows: [
+              { jp: 'おとうさん', romaji: 'otousan', es: 'papá (de otro)' },
+              { jp: 'おかあさん', romaji: 'okaasan', es: 'mamá (de otro)' },
+              { jp: 'ごりょうしん', romaji: 'goryoushin', es: 'padres (de otro)' },
+              { jp: 'おにいさん', romaji: 'oniisan', es: 'hermano mayor (de otro)' },
+              { jp: 'おねえさん', romaji: 'oneesan', es: 'hermana mayor (de otro)' },
+              { jp: 'おとうとさん', romaji: 'otoutosan', es: 'hermano menor (de otro)' },
+              { jp: 'いもうとさん', romaji: 'imoutosan', es: 'hermana menor (de otro)' },
+              { jp: 'ごしゅじん', romaji: 'goshujin', es: 'esposo (de otra)' },
+              { jp: 'おくさん', romaji: 'okusan', es: 'esposa (de otro)' },
+            ],
+          },
+          {
+            title: 'Abuelos, tíos y el resto',
+            note: '⚠️ おじさん (tío) no es おじいさん (abuelo), ni おばさん (tía) es おばあさん (abuela): la vocal larga sube una generación.',
+            rows: [
+              { jp: 'おじいさん', romaji: 'ojiisan', es: 'abuelo (el tuyo: じいちゃん)' },
+              { jp: 'おばあさん', romaji: 'obaasan', es: 'abuela (la tuya: ばあちゃん)' },
+              { jp: 'おじさん', romaji: 'ojisan', es: 'tío' },
+              { jp: 'おばさん', romaji: 'obasan', es: 'tía' },
+              { jp: 'いとこ', romaji: 'itoko', es: 'primo / prima' },
+              { jp: 'きょうだい', romaji: 'kyoudai', es: 'hermanos' },
+              { jp: 'あかちゃん', romaji: 'akachan', es: 'bebé' },
             ],
           },
         ],
@@ -278,7 +327,7 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '四',
     title: 'Partículas',
     summary: 'は · か · も · の · に · へ · から／まで · で · と · を',
-    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19, 20, 21],
+    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19, 20, 21, 23, 24],
     keyRule:
       'Las partículas reemplazan preposiciones y artículos. Van DESPUÉS de la palabra a la que refieren y ordenan la oración.',
     subtopics: [
@@ -362,8 +411,35 @@ export const studyTopics: StudyTopic[] = [
         ],
       },
       {
+        id: 'de-herramienta-idioma',
+        title: 'で — con qué y en qué idioma',
+        sections: [
+          {
+            title: '[herramienta] で [cosa] を [verbo]',
+            note: 'Para preguntar se usa なんで (なに + で). ⚠️ あるいて sigue sin で. Con esta, で ya tiene cuatro trabajos: transporte, lugar, herramienta e idioma.',
+            rows: [
+              { jp: 'はし で ごはん を たべます。', romaji: 'Hashi de gohan o tabemasu.', es: 'Como arroz con palitos.' },
+              { jp: 'はさみ で かみ を きります。', romaji: 'Hasami de kami o kirimasu.', es: 'Corto el papel con la tijera.' },
+              { jp: 'なんで てがみ を かきますか？', romaji: 'Nande tegami o kakimasu ka?', es: '¿Con qué escribís la carta?' },
+              { jp: 'ボールペン で かきます。', romaji: 'Boorupen de kakimasu.', es: 'La escribo con birome.' },
+              { jp: 'て で たべます。', romaji: 'Te de tabemasu.', es: 'Como con la mano.' },
+            ],
+          },
+          {
+            title: '[idioma] で',
+            note: 'Idioma se dice げんご. La pregunta para el aula: これ は にほんご で なん ですか？',
+            rows: [
+              { jp: 'これ は にほんご で なん ですか？', romaji: 'Kore wa nihongo de nan desu ka?', es: '¿Cómo se dice esto en japonés?' },
+              { jp: 'くるま は えいご で なん ですか？', romaji: 'Kuruma wa eigo de nan desu ka?', es: '¿Cómo se dice "kuruma" en inglés?' },
+              { jp: 'にほんご で ほん を よみます。', romaji: 'Nihongo de hon o yomimasu.', es: 'Leo libros en japonés.' },
+              { jp: 'えいご で レポート を かきます。', romaji: 'Eigo de repooto o kakimasu.', es: 'Escribo el informe en inglés.' },
+            ],
+          },
+        ],
+      },
+      {
         id: 'ni-persona',
-        title: 'に — la persona con あいます',
+        title: 'に — la persona: あいます, あげます, もらいます',
         sections: [
           {
             title: '[persona] に あいます',
@@ -372,6 +448,17 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'ともだち に あいます。', romaji: 'Tomodachi ni aimasu.', es: 'Me encuentro con un amigo.' },
               { jp: 'こうえん で ともだち に あいました。', romaji: 'Kouen de tomodachi ni aimashita.', es: 'Me encontré con un amigo en el parque.' },
               { jp: 'だれ に あいましたか？', romaji: 'Dare ni aimashita ka?', es: '¿Con quién te encontraste?' },
+            ],
+          },
+          {
+            title: '[persona 1] は [persona 2] に [cosa] を [verbo]',
+            note: '⚠️ La に cambia de sentido según el verbo. Con あげます, かします y おしえます marca a quien recibe; con もらいます, かります y ならいます, a quien da. Con もらいます también vale から.',
+            rows: [
+              { jp: 'マリアさん は たなかさん に プレゼント を あげます。', romaji: 'Maria-san wa Tanaka-san ni purezento o agemasu.', es: 'María le da un regalo a Tanaka.' },
+              { jp: 'たなかさん は マリアさん に プレゼント を もらいます。', romaji: 'Tanaka-san wa Maria-san ni purezento o moraimasu.', es: 'Tanaka recibe un regalo de María.' },
+              { jp: 'たなかさん は マリアさん から プレゼント を もらいます。', romaji: 'Tanaka-san wa Maria-san kara purezento o moraimasu.', es: 'Tanaka recibe un regalo de María.' },
+              { jp: 'だれ に もらいましたか？', romaji: 'Dare ni moraimashita ka?', es: '¿De quién lo recibiste?' },
+              { jp: 'かれし は わたし に うた を うたいました。', romaji: 'Kareshi wa watashi ni uta o utaimashita.', es: 'Mi novio me cantó una canción.' },
             ],
           },
         ],
@@ -415,6 +502,7 @@ export const studyTopics: StudyTopic[] = [
       { jp: 'あした から やすみ です。', romaji: 'Ashita kara yasumi desu.', es: 'Desde mañana hay descanso. (から)' },
       { jp: 'なに を たべますか？', romaji: 'Nani o tabemasu ka?', es: '¿Qué comés? (を)' },
       { jp: 'どこ で たべますか？', romaji: 'Doko de tabemasu ka?', es: '¿Dónde comés? (で de lugar)' },
+      { jp: 'なんで たべますか？', romaji: 'Nande tabemasu ka?', es: '¿Con qué comés? (で de herramienta)' },
     ],
   },
   {
@@ -610,8 +698,8 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '八',
     title: 'Verbos',
     titleJp: 'どうし',
-    summary: '3 grupos · ます形 · movimiento · 〜を · 〜ませんか',
-    sourceClasses: [13, 14, 15, 16, 19, 20, 21],
+    summary: '3 grupos · ます形 · movimiento · 〜を · 〜ませんか · あげます／もらいます',
+    sourceClasses: [13, 14, 15, 16, 19, 20, 21, 23, 24],
     keyRule:
       'El verbo siempre va al final. No cambia por persona ni género. Solo hay dos tiempos: pasado y no-pasado. ¿Grupo? Termina en ERU/IRU → 2; es する/くる → 3; el resto → 1.',
     subtopics: [
@@ -662,7 +750,7 @@ export const studyTopics: StudyTopic[] = [
       },
       {
         id: 'transitivos',
-        title: 'Verbos con を (だい6か)',
+        title: 'Verbos con を (だい6か・だい7か)',
         sections: [
           {
             title: 'Los nueve verbos nuevos',
@@ -687,6 +775,14 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'かいもの （を） します。', romaji: 'Kaimono (o) shimasu.', es: 'Hago las compras.' },
               { jp: 'せんたく （を） します。', romaji: 'Sentaku (o) shimasu.', es: 'Lavo la ropa.' },
               { jp: 'サッカー （を） します。', romaji: 'Sakkaa (o) shimasu.', es: 'Juego al fútbol.' },
+            ],
+          },
+          {
+            title: 'Del だい7か: きる y おくる',
+            note: '⚠️ きる de cortar es grupo 1 → きります. La きる de vestirse (clase 14) es grupo 2 → きます. Mismo sonido, distinto verbo.',
+            rows: [
+              { jp: 'きる → きります', romaji: 'kiru → kirimasu', es: 'cortar — かみ を きります。' },
+              { jp: 'おくる → おくります', romaji: 'okuru → okurimasu', es: 'enviar — メッセージ を おくります。' },
             ],
           },
         ],
@@ -716,6 +812,33 @@ export const studyTopics: StudyTopic[] = [
           },
         ],
       },
+      {
+        id: 'dar-recibir',
+        title: 'Dar y recibir (だい7か)',
+        sections: [
+          {
+            title: 'Los pares: la misma escena desde cada lado',
+            note: '⚠️ かします (prestar) y かります (pedir prestado) cambian en una sola letra. かりる termina en る y es grupo 2.',
+            rows: [
+              { jp: 'あげる → あげます', romaji: 'ageru → agemasu', es: 'dar / regalar' },
+              { jp: 'もらう → もらいます', romaji: 'morau → moraimasu', es: 'recibir' },
+              { jp: 'かす → かします', romaji: 'kasu → kashimasu', es: 'prestar' },
+              { jp: 'かりる → かります', romaji: 'kariru → karimasu', es: 'pedir prestado' },
+              { jp: 'おしえる → おしえます', romaji: 'oshieru → oshiemasu', es: 'enseñar' },
+              { jp: 'ならう → ならいます', romaji: 'narau → naraimasu', es: 'aprender (con alguien)' },
+            ],
+          },
+          {
+            title: 'Enviar y llamar',
+            note: 'もらいます también sirve para una llamada: でんわ を もらいました.',
+            rows: [
+              { jp: 'ともだち に メール を おくります。', romaji: 'Tomodachi ni meeru o okurimasu.', es: 'Le mando un mail a mi amigo.' },
+              { jp: 'ちち に でんわ を かけます。', romaji: 'Chichi ni denwa o kakemasu.', es: 'Llamo por teléfono a mi papá.' },
+              { jp: 'たなかさん に でんわ を もらいました。', romaji: 'Tanaka-san ni denwa o moraimashita.', es: 'Recibí una llamada de Tanaka.' },
+            ],
+          },
+        ],
+      },
     ],
     essentialPhrases: [
       { jp: 'きのう べんきょうしました。', romaji: 'Kinou benkyou shimashita.', es: 'Ayer estudié.' },
@@ -723,6 +846,7 @@ export const studyTopics: StudyTopic[] = [
       { jp: 'いつ かえりますか？', romaji: 'Itsu kaerimasu ka?', es: '¿Cuándo volvés?' },
       { jp: 'なに を のみますか？', romaji: 'Nani o nomimasu ka?', es: '¿Qué tomás?' },
       { jp: 'いっしょに いきませんか？', romaji: 'Issho ni ikimasen ka?', es: '¿Vamos juntos?' },
+      { jp: 'ちち に もらいました。', romaji: 'Chichi ni moraimashita.', es: 'Me lo regaló mi papá.' },
     ],
   },
   {
@@ -730,8 +854,8 @@ export const studyTopics: StudyTopic[] = [
     practice: { script: 'hiragana', mode: 'syllables' },
     kanjiNumeral: '九',
     title: 'Vocabulario',
-    summary: 'Objetos · lugares · tiendas · escuelas · comida',
-    sourceClasses: [4, 6, 8, 9, 10, 19],
+    summary: 'Objetos · herramientas · lugares · tiendas · escuelas · comida',
+    sourceClasses: [4, 6, 8, 9, 10, 19, 23],
     subtopics: [
       {
         id: 'objetos',
@@ -749,6 +873,29 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'ほん', romaji: 'hon', es: 'libro' },
               { jp: 'ノート', romaji: 'nooto', es: 'cuaderno' },
               { jp: 'けいたい', romaji: 'keitai', es: 'celular' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'herramientas',
+        title: 'Herramientas (だい７か)',
+        sections: [
+          {
+            title: 'Con qué se hace — van con で',
+            note: 'パソコン y スマホ son palabras acortadas: パーソナル コンピューター y スマートフォン.',
+            rows: [
+              { jp: 'はし', romaji: 'hashi', es: 'palitos' },
+              { jp: 'スプーン', romaji: 'supuun', es: 'cuchara' },
+              { jp: 'フォーク', romaji: 'fooku', es: 'tenedor' },
+              { jp: 'ナイフ', romaji: 'naifu', es: 'cuchillo' },
+              { jp: 'はさみ', romaji: 'hasami', es: 'tijera' },
+              { jp: 'かみ', romaji: 'kami', es: 'papel' },
+              { jp: 'セロテープ', romaji: 'seroteepu', es: 'cinta scotch' },
+              { jp: 'ホッチキス', romaji: 'hotchikisu', es: 'abrochadora' },
+              { jp: 'けしゴム', romaji: 'keshigomu', es: 'goma de borrar' },
+              { jp: 'パソコン', romaji: 'pasokon', es: 'computadora' },
+              { jp: 'スマホ', romaji: 'sumaho', es: 'smartphone' },
             ],
           },
         ],

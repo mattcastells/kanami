@@ -91,6 +91,27 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['だれにあいましたか', 'dare ni aimashita ka', '¿Con quién te encontraste?'],
   ['だれにもあいませんでした', 'dare ni mo aimasen deshita', 'No me encontré con nadie'],
   ['でんしゃでねます', 'densha de nemasu', 'Duermo en el tren'],
+  // Clase 23. Van al final por lo mismo: el id es el índice.
+  ['はしでごはんをたべます', 'hashi de gohan wo tabemasu', 'Como arroz con palitos'],
+  ['はさみでかみをきります', 'hasami de kami wo kirimasu', 'Corto el papel con la tijera'],
+  ['なんでてがみをかきますか', 'nande tegami wo kakimasu ka', '¿Con qué escribís la carta?'],
+  ['えんぴつでてがみをかきます', 'enpitsu de tegami wo kakimasu', 'Escribo la carta con lápiz'],
+  ['てでたべます', 'te de tabemasu', 'Como con la mano'],
+  ['けいたいでんわでおくります', 'keitai denwa de okurimasu', 'Lo mando con el celular'],
+  ['にほんごでなんですか', 'nihongo de nan desu ka', '¿Cómo se dice en japonés?'],
+  ['にほんごでほんをよみます', 'nihongo de hon wo yomimasu', 'Leo libros en japonés'],
+  ['はなみをします', 'hanami wo shimasu', 'Vamos a ver los cerezos en flor'],
+  // Clase 24. Van al final por lo mismo: el id es el índice.
+  ['ともだちにはなをあげます', 'tomodachi ni hana wo agemasu', 'Le regalo flores a mi amigo'],
+  ['たんじょうびにちちにもらいました', 'tanjoubi ni chichi ni moraimashita', 'Me lo regaló mi papá para mi cumpleaños'],
+  ['だれにもらいましたか', 'dare ni moraimashita ka', '¿De quién lo recibiste?'],
+  ['そのとけいすてきですね', 'sono tokei suteki desu ne', 'Qué lindo ese reloj'],
+  ['ともだちにおかねをかります', 'tomodachi ni okane wo karimasu', 'Le pido plata prestada a un amigo'],
+  ['せんせいににほんごをならいます', 'sensei ni nihongo wo naraimasu', 'Aprendo japonés con el profesor'],
+  ['がくせいにえいごをおしえます', 'gakusei ni eigo wo oshiemasu', 'Les enseño inglés a los alumnos'],
+  ['ちちにでんわをかけます', 'chichi ni denwa wo kakemasu', 'Llamo por teléfono a mi papá'],
+  ['かれしはわたしにうたをうたいました', 'kareshi wa watashi ni uta wo utaimashita', 'Mi novio me cantó una canción'],
+  ['かばんをわすれました', 'kaban wo wasuremashita', 'Me olvidé la mochila'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -130,6 +151,20 @@ const katakanaPhraseData: [string, string, string][] = [
   // Clase 20. Van al final por lo mismo que las de hiragana.
   ['デパートでシャツをかいました', 'depaato de shatsu o kaimashita', 'Compré una camisa en el shopping'],
   ['レストランでピザをたべました', 'resutoran de piza o tabemashita', 'Comí pizza en el restaurante'],
+  // Clase 23. Van al final por lo mismo que las de hiragana.
+  ['スプーンでカレーライスをたべます', 'supuun de kareeraisu wo tabemasu', 'Como el curry con cuchara'],
+  ['ボールペンでかきます', 'boorupen de kakimasu', 'Escribo con birome'],
+  ['パソコンでべんきょうします', 'pasokon de benkyou shimasu', 'Estudio con la computadora'],
+  ['スマホでしゃしんをとります', 'sumaho de shashin wo torimasu', 'Saco fotos con el celular'],
+  ['テレビでえいがをみます', 'terebi de eiga wo mimasu', 'Veo películas en la tele'],
+  ['えいごでレポートをかきます', 'eigo de repooto wo kakimasu', 'Escribo el informe en inglés'],
+  ['スペインごでなんですか', 'supeingo de nan desu ka', '¿Cómo se dice en español?'],
+  // Clase 24. Van al final por lo mismo que las de hiragana.
+  ['ともだちにプレゼントをあげます', 'tomodachi ni purezento wo agemasu', 'Le doy un regalo a mi amigo'],
+  ['ちちにシャツをもらいました', 'chichi ni shatsu wo moraimashita', 'Mi papá me regaló una camisa'],
+  ['ともだちにメールをおくります', 'tomodachi ni meeru wo okurimasu', 'Le mando un mail a mi amigo'],
+  ['スタンプをおくります', 'sutanpu wo okurimasu', 'Mando stickers'],
+  ['ともだちにワインをもらいました', 'tomodachi ni wain wo moraimashita', 'Mi amigo me regaló un vino'],
 ];
 
 function createPhraseEntry(

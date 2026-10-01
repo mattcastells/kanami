@@ -1,6 +1,6 @@
 # Índice temático — contenido de las clases (Notion → app)
 
-20 clases reales (Kurasu 1–6, 8–21; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
+22 clases reales (Kurasu 1–6, 8–21, 23–24; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
 ## Organización POR TEMAS propuesta para la app (sección "Estudiar")
 
@@ -15,6 +15,7 @@
 - Países y nacionalidades ～じん (K1) · Idiomas ～ご (K5)
 - Profesiones y hobbies (K1)
 - Edad なんさい/おいくつ + excepciones いっさい/はっさい/じゅっさい/はたち (K3)
+- La familia かぞく: la propia (ちち・はは・あに…) y la de otro (おとうさん・おかあさん・おにいさん…), おじさん vs おじいさん (K24)
 - Formal vs informal: ひと/かた, だれ/どなた (K2), どちら para pertenencia (K9)
 
 ### 3. Saludos y vida cotidiana
@@ -35,6 +36,8 @@
 - で lugar donde pasa la acción: 〜で 〜ます, y へ vs で (K20, K21)
 - に de la persona con あいます (K20, K21)
 - なにも・だれにも・どこも + verbo en negativo (K16, K20)
+- で de la herramienta (はし で たべます) y del idioma (にほんご で なん ですか) · los cuatro usos de で (K23)
+- に de la persona con あげます/もらいます: a quien recibe o de quien recibís · もらいます acepta から (K24)
 
 ### 5. Demostrativos y ubicación
 - これ/それ/あれ pronombres (K4) vs この/その/あの adjetivos (K2, K5)
@@ -62,14 +65,20 @@
 - Verbos transitivos del だい6か: たべる, のむ, みる, きく, よむ, かく, かう, とる, すう (K19)
 - Sustantivo + (を) します, extranjerismos y onomatopeyas (K19)
 - Invitar con 〜ませんか, aceptar/rechazar y proponer con 〜ましょう (K21)
+- きる de cortar (G1 → きります) vs きる de vestir (G2 → きます) · おくる enviar (K23)
+- Dar y recibir del だい7か: あげる/もらう · かす/かりる · おしえる/ならう · おくる · でんわ を かける (K24)
 
 ### 9. Vocabulario (datasets para práctica)
 - Objetos cotidianos (K4/K6) · Lugares de edificio y ciudad (K8) · Tiendas (K9) · Escuelas (K8) · Tiempo (K10)
 - Transporte (K16) · Comida y bebida (K19) · Ver/escuchar y leer/escribir (K19)
 - Zapatos, camisa, sushi, pizza, kimchi (K20)
 - Ropa, hamburguesa, onigiri, ramen, matemática, recital (K21)
+- Herramientas: はし · スプーン · フォーク · ナイフ · はさみ · かみ · セロテープ · ホッチキス · けしゴム · パソコン · スマホ (K23)
+- Familia (categoría propia) · プレゼント · おかね · でんわ · はな · うた · スタンプ (K24)
 
 ### 10. Preguntar
 - Las palabras que preguntan: いつ · だれ · どこ · いくら · なん · なんじ · なんがつ／なんにち (K18, K19)
 - なに を 〜ますか para cada verbo · どこ で 〜ますか (K20)
 - Formal: おくに は どちら ですか (K18)
+- なんで — ¿con qué? (herramienta, K23) y ¿cómo? (transporte, K18)
+- なに を あげますか · だれ に もらいましたか (K24)
