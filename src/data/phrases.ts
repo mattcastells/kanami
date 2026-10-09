@@ -112,6 +112,17 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['ちちにでんわをかけます', 'chichi ni denwa wo kakemasu', 'Llamo por teléfono a mi papá'],
   ['かれしはわたしにうたをうたいました', 'kareshi wa watashi ni uta wo utaimashita', 'Mi novio me cantó una canción'],
   ['かばんをわすれました', 'kaban wo wasuremashita', 'Me olvidé la mochila'],
+  // Clase 25. Van al final por lo mismo: el id es el índice.
+  ['もうひるごはんをたべましたか', 'mou hirugohan wo tabemashita ka', '¿Ya almorzaste?'],
+  ['はいもうたべました', 'hai mou tabemashita', 'Sí, ya comí'],
+  ['いいえまだです', 'iie mada desu', 'No, todavía no'],
+  ['これからたべます', 'korekara tabemasu', 'Ahora voy a comer'],
+  ['もうしゅくだいをしましたか', 'mou shukudai wo shimashita ka', '¿Ya hiciste la tarea?'],
+  ['じゃいっしょにみませんか', 'ja issho ni mimasen ka', 'Entonces, ¿la vemos juntos?'],
+  ['としょかんでほんをかりました', 'toshokan de hon wo karimashita', 'Saqué un libro de la biblioteca'],
+  ['せんせいにひらがなをならいます', 'sensei ni hiragana wo naraimasu', 'Aprendo hiragana con el profesor'],
+  ['いらっしゃいどうぞおあがりください', 'irasshai douzo oagari kudasai', '¡Bienvenidos! Pasen, por favor'],
+  ['しつれいします', 'shitsurei shimasu', 'Con permiso'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -165,6 +176,12 @@ const katakanaPhraseData: [string, string, string][] = [
   ['ともだちにメールをおくります', 'tomodachi ni meeru wo okurimasu', 'Le mando un mail a mi amigo'],
   ['スタンプをおくります', 'sutanpu wo okurimasu', 'Mando stickers'],
   ['ともだちにワインをもらいました', 'tomodachi ni wain wo moraimashita', 'Mi amigo me regaló un vino'],
+  // Clase 25. Van al final por lo mismo que las de hiragana.
+  ['コーヒーはいかがですか', 'koohii wa ikaga desu ka', '¿Gusta un café?'],
+  ['このスプーンすてきですね', 'kono supuun suteki desu ne', 'Qué linda esta cuchara'],
+  ['もうレポートをおくりましたか', 'mou repooto wo okurimashita ka', '¿Ya mandaste el informe?'],
+  ['メキシコのおみやげです', 'mekishiko no omiyage desu', 'Es un recuerdo de México'],
+  ['これはホッチキスです', 'kore wa hotchikisu desu', 'Esto es una abrochadora'],
 ];
 
 function createPhraseEntry(

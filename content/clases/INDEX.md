@@ -1,6 +1,6 @@
 # Índice temático — contenido de las clases (Notion → app)
 
-22 clases reales (Kurasu 1–6, 8–21, 23–24; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
+23 clases reales (Kurasu 1–6, 8–21, 23–25; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
 ## Organización POR TEMAS propuesta para la app (sección "Estudiar")
 
@@ -25,6 +25,7 @@
 - Teléfono でんわばんごう (K13)
 - Gracias y de nada: ありがとうございます / どういたしまして (K17)
 - En la estación: なんばんせん ですか · とっきゅう／きゅうこう／ふつう (K17)
+- De visita en una casa: いらっしゃい · どうぞ おあがり ください · しつれい します · 〜は いかが ですか · いただきます (K25)
 
 ### 4. Partículas
 - は tema (K1) · か pregunta (K2) · も también/tampoco (K2)
@@ -38,6 +39,7 @@
 - なにも・だれにも・どこも + verbo en negativo (K16, K20)
 - で de la herramienta (はし で たべます) y del idioma (にほんご で なん ですか) · los cuatro usos de で (K23)
 - に de la persona con あげます/もらいます: a quien recibe o de quien recibís · もらいます acepta から (K24)
+- で o に con かります/ならいます: el lugar (としょかん で) o la persona (ともだち に) (K25)
 
 ### 5. Demostrativos y ubicación
 - これ/それ/あれ pronombres (K4) vs この/その/あの adjetivos (K2, K5)
@@ -57,6 +59,7 @@
 - つぎ の 〜 · なつやすみ · クリスマス (K17)
 - Frecuencia: いつも · ときどき · あまり／ぜんぜん + negativo (K21)
 - それから para encadenar dos acciones (K21)
+- Ya y todavía no: もう 〜ましたか · いいえ、まだ です · これから／いまから (K25)
 
 ### 8. Verbos
 - Los 3 grupos y formas じしょ/ます/ました (K14)
@@ -75,6 +78,7 @@
 - Ropa, hamburguesa, onigiri, ramen, matemática, recital (K21)
 - Herramientas: はし · スプーン · フォーク · ナイフ · はさみ · かみ · セロテープ · ホッチキス · けしゴム · パソコン · スマホ (K23)
 - Familia (categoría propia) · プレゼント · おかね · でんわ · はな · うた · スタンプ (K24)
+- En la mesa: はしおき · しお · しょうゆ · コップ／カップ · はくぶつかん · むかし (K25)
 
 ### 10. Preguntar
 - Las palabras que preguntan: いつ · だれ · どこ · いくら · なん · なんじ · なんがつ／なんにち (K18, K19)
@@ -82,3 +86,4 @@
 - Formal: おくに は どちら ですか (K18)
 - なんで — ¿con qué? (herramienta, K23) y ¿cómo? (transporte, K18)
 - なに を あげますか · だれ に もらいましたか (K24)
+- もう 〜ましたか — ¿ya…? (K25)

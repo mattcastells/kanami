@@ -203,6 +203,10 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   bebe: '👶',
   hombre: '👨',
   mujer: '👩',
+  // Clase 25 — だい７か. コップ (vaso) queda afuera: comparte traducción con グラス del mazo
+  // genérico, que se llevaría la foto. La taza tampoco: ☕ ya es del café.
+  sal: '🧂',
+  museo: '🏛️',
 };
 
 export type EmojiVocabEntry = {

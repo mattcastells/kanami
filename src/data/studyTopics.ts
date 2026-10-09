@@ -1,4 +1,4 @@
-// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–21, 23–24).
+// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–21, 23–25).
 // Fuente completa: content/clases/*.md en el proyecto de diseño.
 // Cada tema referencia sus clases de origen para trazabilidad.
 
@@ -230,8 +230,8 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '三',
     title: 'Saludos y vida cotidiana',
     titleJp: 'あいさつ',
-    summary: 'Saludos · compras · teléfono · la estación',
-    sourceClasses: [1, 3, 9, 13, 17],
+    summary: 'Saludos · compras · teléfono · la estación · de visita',
+    sourceClasses: [1, 3, 9, 13, 17, 25],
     keyRule:
       'は en こんにちは y こんばんは se pronuncia "wa", no "ha" — es una excepción histórica.',
     subtopics: [
@@ -313,6 +313,23 @@ export const studyTopics: StudyTopic[] = [
           },
         ],
       },
+      {
+        id: 'visita',
+        title: 'De visita en una casa',
+        sections: [
+          {
+            title: 'いらっしゃい',
+            note: 'いらっしゃい es la bienvenida en casa; いらっしゃいませ, la de las tiendas. おあがり ください es "suba": los zapatos quedan en la entrada (げんかん) y se sube al piso de la casa.',
+            rows: [
+              { jp: 'いらっしゃい。どうぞ おあがり ください。', romaji: 'Irasshai. Douzo oagari kudasai.', es: '¡Bienvenidos! Pasen, por favor.' },
+              { jp: 'しつれい します。', romaji: 'Shitsurei shimasu.', es: 'Con permiso.' },
+              { jp: 'コーヒー は いかが ですか？', romaji: 'Koohii wa ikaga desu ka?', es: '¿Gusta un café?' },
+              { jp: 'いただきます。', romaji: 'Itadakimasu.', es: 'Gracias (antes de comer o tomar).' },
+              { jp: 'この スプーン、すてき です ね。', romaji: 'Kono supuun, suteki desu ne.', es: 'Qué linda esta cuchara.' },
+            ],
+          },
+        ],
+      },
     ],
     essentialPhrases: [
       { jp: 'おげんき ですか？', romaji: 'Ogenki desu ka?', es: '¿Cómo estás?' },
@@ -327,7 +344,7 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '四',
     title: 'Partículas',
     summary: 'は · か · も · の · に · へ · から／まで · で · と · を',
-    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19, 20, 21, 23, 24],
+    sourceClasses: [1, 2, 3, 5, 6, 11, 13, 15, 16, 18, 19, 20, 21, 23, 24, 25],
     keyRule:
       'Las partículas reemplazan preposiciones y artículos. Van DESPUÉS de la palabra a la que refieren y ordenan la oración.',
     subtopics: [
@@ -459,6 +476,16 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'たなかさん は マリアさん から プレゼント を もらいます。', romaji: 'Tanaka-san wa Maria-san kara purezento o moraimasu.', es: 'Tanaka recibe un regalo de María.' },
               { jp: 'だれ に もらいましたか？', romaji: 'Dare ni moraimashita ka?', es: '¿De quién lo recibiste?' },
               { jp: 'かれし は わたし に うた を うたいました。', romaji: 'Kareshi wa watashi ni uta o utaimashita.', es: 'Mi novio me cantó una canción.' },
+            ],
+          },
+          {
+            title: '[lugar] で o [persona] に',
+            note: '⚠️ Con かります y ならいます podés decir dónde o de quién. El lugar no es una persona: lleva で, la de la acción. La に queda para quien te presta o te enseña.',
+            rows: [
+              { jp: 'としょかん で ほん を かりました。', romaji: 'Toshokan de hon o karimashita.', es: 'Saqué un libro de la biblioteca.' },
+              { jp: 'ともだち に CD を かりました。', romaji: 'Tomodachi ni CD o karimashita.', es: 'Le pedí prestado un CD a un amigo.' },
+              { jp: 'アメリカ の だいがく で にほんご を ならいました。', romaji: 'Amerika no daigaku de nihongo o naraimashita.', es: 'Aprendí japonés en una universidad de Estados Unidos.' },
+              { jp: 'せんせい に にほんご を ならいました。', romaji: 'Sensei ni nihongo o naraimashita.', es: 'Aprendí japonés con el profesor.' },
             ],
           },
         ],
@@ -603,8 +630,8 @@ export const studyTopics: StudyTopic[] = [
     practice: { script: 'hiragana', mode: 'phrases' },
     kanjiNumeral: '七',
     title: 'Tiempo y fechas',
-    summary: 'La hora · días · meses · いつ · つぎ の · frecuencia',
-    sourceClasses: [10, 11, 12, 15, 17, 21],
+    summary: 'La hora · días · meses · いつ · つぎ の · frecuencia · もう／まだ',
+    sourceClasses: [10, 11, 12, 15, 17, 21, 25],
     keyRule:
       'Horas con excepciones: ４じ→よじ, ７じ→しちじ, ９じ→くじ. Días del mes 1–10 irregulares (ついたち, ふつか…); el 4 y el 14 siempre usan よっか.',
     subtopics: [
@@ -680,6 +707,32 @@ export const studyTopics: StudyTopic[] = [
             rows: [
               { jp: 'さんぽ を しました。それから、コンサート へ いきました。', romaji: 'Sanpo o shimashita. Sorekara, konsaato e ikimashita.', es: 'Salí a caminar. Después fui a un recital.' },
               { jp: 'ほん を よみました。それから、ビデオ を みました。', romaji: 'Hon o yomimashita. Sorekara, bideo o mimashita.', es: 'Leí un libro. Después miré un video.' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'mou-mada',
+        title: 'Ya y todavía no: もう · まだ',
+        sections: [
+          {
+            title: 'もう [verbo]ましたか？',
+            note: 'もう va con el verbo en pasado. "Todavía no" es いいえ、まだ です, sin repetir el verbo. ⚠️ No es まだ 〜ませんでした: el pasado negativo dice "no lo hice", no "todavía no".',
+            rows: [
+              { jp: 'もう ひるごはん を たべましたか？', romaji: 'Mou hirugohan o tabemashita ka?', es: '¿Ya almorzaste?' },
+              { jp: 'はい、もう たべました。', romaji: 'Hai, mou tabemashita.', es: 'Sí, ya comí.' },
+              { jp: 'いいえ、まだ です。', romaji: 'Iie, mada desu.', es: 'No, todavía no.' },
+              { jp: 'これから たべます。', romaji: 'Korekara tabemasu.', es: 'Ahora voy a comer.' },
+            ],
+          },
+          {
+            title: 'Si todavía no, invitalo',
+            note: 'Se junta con 〜ませんか (clase 21). じゃ es "entonces".',
+            rows: [
+              { jp: 'もう あの えいが を みましたか？', romaji: 'Mou ano eiga o mimashita ka?', es: '¿Ya viste esa película?' },
+              { jp: 'いいえ、まだ です。', romaji: 'Iie, mada desu.', es: 'No, todavía no.' },
+              { jp: 'じゃ、いっしょに みませんか？', romaji: 'Ja, issho ni mimasen ka?', es: 'Entonces, ¿la vemos juntos?' },
+              { jp: 'ええ、いい です ね。', romaji: 'Ee, ii desu ne.', es: 'Sí, dale.' },
             ],
           },
         ],
@@ -855,7 +908,7 @@ export const studyTopics: StudyTopic[] = [
     kanjiNumeral: '九',
     title: 'Vocabulario',
     summary: 'Objetos · herramientas · lugares · tiendas · escuelas · comida',
-    sourceClasses: [4, 6, 8, 9, 10, 19, 23],
+    sourceClasses: [4, 6, 8, 9, 10, 19, 23, 25],
     subtopics: [
       {
         id: 'objetos',
@@ -973,6 +1026,17 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'ビール', romaji: 'biiru', es: 'cerveza' },
               { jp: 'おさけ', romaji: 'osake', es: 'sake / bebida alcohólica' },
               { jp: 'ワイン', romaji: 'wain', es: 'vino' },
+            ],
+          },
+          {
+            title: 'En la mesa (だい７か)',
+            note: '⚠️ コップ es el vaso y カップ la taza: se parecen pero no son lo mismo. はしおき es el apoyapalillos.',
+            rows: [
+              { jp: 'はしおき', romaji: 'hashioki', es: 'apoyapalillos' },
+              { jp: 'しお', romaji: 'shio', es: 'sal' },
+              { jp: 'しょうゆ', romaji: 'shouyu', es: 'salsa de soja' },
+              { jp: 'コップ', romaji: 'koppu', es: 'vaso' },
+              { jp: 'カップ', romaji: 'kappu', es: 'taza' },
             ],
           },
         ],
