@@ -207,6 +207,25 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   // genérico, que se llevaría la foto. La taza tampoco: ☕ ya es del café.
   sal: '🧂',
   museo: '🏛️',
+  // Clase 26 — だい8か. Solo los adjetivos con una imagen inequívoca: colores, clima y
+  // caras. こども ya estaba en el mazo genérico ("niño") y se lleva la foto desde ahí.
+  negro: '⚫',
+  blanco: '⚪',
+  rojo: '🔴',
+  azul: '🔵',
+  amarillo: '🟡',
+  caluroso: '🥵',
+  frio: '🥶',
+  triste: '😢',
+  contento: '😊',
+  'rico / delicioso': '😋',
+  'que da miedo': '😱',
+  nino: '🧒',
+  festival: '🏮',
+  'monte fuji': '🗻',
+  verano: '🏖️',
+  invierno: '⛄',
+  temperatura: '🌡️',
 };
 
 export type EmojiVocabEntry = {

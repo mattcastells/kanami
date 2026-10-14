@@ -63,6 +63,9 @@ function buildRound(
   shuffle(pool).forEach((candidate) => {
     if (distractors.length >= OPTION_COUNT - 1) return;
     if (candidate.id === entry.id) return;
+    // Un homógrafo (あつい caluroso / あつい caliente) o un sinónimo con la misma traducción
+    // (やさしい / かんたん, "fácil") también es respuesta correcta: no puede ser distractor.
+    if (candidate.kana === entry.kana || candidate.es === entry.es) return;
     const text = textOf(candidate);
     if (seen.has(text)) return;
     seen.add(text);
