@@ -90,8 +90,15 @@ function parseClassFile(filePath) {
   const openSection = (heading) => {
     flush();
     const parsed = parseHeading(heading);
+    // El slug descarta el japonés, así que "Adjetivos い" y "Adjetivos な" darían el mismo
+    // id. Es la key de React de la sección: si se repite, se numera.
+    const baseId = slugify(parsed.title, `seccion-${note.sections.length + 1}`);
+    let id = baseId;
+    for (let n = 2; note.sections.some((existing) => existing.id === id); n += 1) {
+      id = `${baseId}-${n}`;
+    }
     section = {
-      id: slugify(parsed.title, `seccion-${note.sections.length + 1}`),
+      id,
       title: parsed.title,
       titleJp: parsed.titleJp,
       blocks: [],

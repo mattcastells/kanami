@@ -1,4 +1,4 @@
-// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–21, 23–25).
+// Temas de estudio generados desde las clases de Notion (Kurasu 1–6, 8–21, 23–26).
 // Fuente completa: content/clases/*.md en el proyecto de diseño.
 // Cada tema referencia sus clases de origen para trazabilidad.
 
@@ -907,8 +907,8 @@ export const studyTopics: StudyTopic[] = [
     practice: { script: 'hiragana', mode: 'syllables' },
     kanjiNumeral: '九',
     title: 'Vocabulario',
-    summary: 'Objetos · herramientas · lugares · tiendas · escuelas · comida',
-    sourceClasses: [4, 6, 8, 9, 10, 19, 23, 25],
+    summary: 'Objetos · herramientas · lugares · tiendas · escuelas · comida · adjetivos',
+    sourceClasses: [4, 6, 8, 9, 10, 19, 23, 25, 26],
     subtopics: [
       {
         id: 'objetos',
@@ -1037,6 +1037,72 @@ export const studyTopics: StudyTopic[] = [
               { jp: 'しょうゆ', romaji: 'shouyu', es: 'salsa de soja' },
               { jp: 'コップ', romaji: 'koppu', es: 'vaso' },
               { jp: 'カップ', romaji: 'kappu', es: 'taza' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'adjetivos',
+        title: 'Adjetivos い y な (だい８か)',
+        sections: [
+          {
+            title: 'い けいようし — terminan en い',
+            note: '⚠️ たかい tiene dos opuestos: ひくい (bajo) y やすい (barato). Del clima se dice あつい y さむい; de lo que tocás, あつい y つめたい.',
+            rows: [
+              { jp: 'おおきい', romaji: 'ookii', es: 'grande' },
+              { jp: 'ちいさい', romaji: 'chiisai', es: 'chico' },
+              { jp: 'たかい', romaji: 'takai', es: 'alto / caro' },
+              { jp: 'ひくい', romaji: 'hikui', es: 'bajo' },
+              { jp: 'やすい', romaji: 'yasui', es: 'barato' },
+              { jp: 'あたらしい', romaji: 'atarashii', es: 'nuevo' },
+              { jp: 'ふるい', romaji: 'furui', es: 'viejo' },
+              { jp: 'いい', romaji: 'ii', es: 'bueno' },
+              { jp: 'わるい', romaji: 'warui', es: 'malo' },
+              { jp: 'あつい', romaji: 'atsui', es: 'caluroso / caliente' },
+              { jp: 'さむい', romaji: 'samui', es: 'frío (el clima)' },
+              { jp: 'つめたい', romaji: 'tsumetai', es: 'frío (al tacto)' },
+              { jp: 'むずかしい', romaji: 'muzukashii', es: 'difícil' },
+              { jp: 'やさしい', romaji: 'yasashii', es: 'fácil / amable' },
+              { jp: 'おもしろい', romaji: 'omoshiroi', es: 'interesante' },
+              { jp: 'たのしい', romaji: 'tanoshii', es: 'divertido' },
+              { jp: 'いそがしい', romaji: 'isogashii', es: 'ocupado' },
+              { jp: 'おいしい', romaji: 'oishii', es: 'rico' },
+            ],
+          },
+          {
+            title: 'な けいようし — no terminan en い',
+            note: '⚠️ きれい y ゆうめい terminan en い pero son adjetivos な: hay que aprenderlos así.',
+            rows: [
+              { jp: 'きれい', romaji: 'kirei', es: 'lindo / limpio' },
+              { jp: 'しずか', romaji: 'shizuka', es: 'tranquilo' },
+              { jp: 'にぎやか', romaji: 'nigiyaka', es: 'animado' },
+              { jp: 'ゆうめい', romaji: 'yuumei', es: 'famoso' },
+              { jp: 'しんせつ', romaji: 'shinsetsu', es: 'amable' },
+              { jp: 'げんき', romaji: 'genki', es: 'sano / con energía' },
+              { jp: 'ひま', romaji: 'hima', es: 'libre' },
+              { jp: 'べんり', romaji: 'benri', es: 'práctico' },
+              { jp: 'すてき', romaji: 'suteki', es: 'divino' },
+              { jp: 'ハンサム', romaji: 'hansamu', es: 'buen mozo' },
+            ],
+          },
+          {
+            title: 'El negativo',
+            note: 'Los な se niegan como los sustantivos, con じゃ ありません. Los い cambian la い final por くない y conservan el です. ⚠️ いい es irregular: よくない です.',
+            rows: [
+              { jp: 'この へや は きれい じゃ ありません。', romaji: 'Kono heya wa kirei ja arimasen.', es: 'Este cuarto no está limpio.' },
+              { jp: 'ひらがな は むずかしくない です。', romaji: 'Hiragana wa muzukashikunai desu.', es: 'El hiragana no es difícil.' },
+              { jp: 'この くつ は あたらしくない です。', romaji: 'Kono kutsu wa atarashikunai desu.', es: 'Estos zapatos no son nuevos.' },
+              { jp: 'よくない です。', romaji: 'Yokunai desu.', es: 'No está bien.' },
+            ],
+          },
+          {
+            title: 'Muy y no tanto: とても · あまり',
+            note: 'とても va con el adjetivo en afirmativo; あまり, con el negativo (igual que con los verbos, clase 21).',
+            rows: [
+              { jp: 'とても あつい です。', romaji: 'Totemo atsui desu.', es: 'Hace mucho calor.' },
+              { jp: 'あまり あつくない です。', romaji: 'Amari atsukunai desu.', es: 'No hace tanto calor.' },
+              { jp: 'とても たかい です。', romaji: 'Totemo takai desu.', es: 'Es muy caro.' },
+              { jp: 'あまり やすくない です。', romaji: 'Amari yasukunai desu.', es: 'No es tan barato.' },
             ],
           },
         ],

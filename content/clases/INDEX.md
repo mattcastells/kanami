@@ -1,6 +1,6 @@
 # Índice temático — contenido de las clases (Notion → app)
 
-23 clases reales (Kurasu 1–6, 8–21, 23–25; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
+24 clases reales (Kurasu 1–6, 8–21, 23–26; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
 ## Organización POR TEMAS propuesta para la app (sección "Estudiar")
 
@@ -50,6 +50,7 @@
 ### 6. Números y precios
 - Números 1–100 (K3) · Números grandes ひゃく/せん/まん + excepciones (K8)
 - Precios いくら, monedas (K9)
+- ¿Caro o barato? たかい／やすい con とても y あまり: el precio del ramen (K26)
 
 ### 7. Tiempo y fechas
 - Vocabulario de tiempo: días relativos, semanas/meses/años, partes del día, まい～ (K10)
@@ -60,6 +61,7 @@
 - Frecuencia: いつも · ときどき · あまり／ぜんぜん + negativo (K21)
 - それから para encadenar dos acciones (K21)
 - Ya y todavía no: もう 〜ましたか · いいえ、まだ です · これから／いまから (K25)
+- Estaciones y temperatura: なつ · ふゆ · きおん (K26)
 
 ### 8. Verbos
 - Los 3 grupos y formas じしょ/ます/ました (K14)
@@ -71,6 +73,11 @@
 - きる de cortar (G1 → きります) vs きる de vestir (G2 → きます) · おくる enviar (K23)
 - Dar y recibir del だい7か: あげる/もらう · かす/かりる · おしえる/ならう · おくる · でんわ を かける (K24)
 
+### 8b. Adjetivos
+- Los dos tipos: い けいようし (terminan en い) y な けいようし · きれい y ゆうめい son な aunque terminan en い (K26)
+- [sustantivo] は [adjetivo] です · negativo な: 〜じゃ ありません · negativo い: 〜くない です · いい → よくない (K26)
+- とても + afirmativo · あまり + negativo (K26)
+
 ### 9. Vocabulario (datasets para práctica)
 - Objetos cotidianos (K4/K6) · Lugares de edificio y ciudad (K8) · Tiendas (K9) · Escuelas (K8) · Tiempo (K10)
 - Transporte (K16) · Comida y bebida (K19) · Ver/escuchar y leer/escribir (K19)
@@ -79,6 +86,7 @@
 - Herramientas: はし · スプーン · フォーク · ナイフ · はさみ · かみ · セロテープ · ホッチキス · けしゴム · パソコン · スマホ (K23)
 - Familia (categoría propia) · プレゼント · おかね · でんわ · はな · うた · スタンプ (K24)
 - En la mesa: はしおき · しお · しょうゆ · コップ／カップ · はくぶつかん · むかし (K25)
+- Adjetivos (categoría propia, い y な) · こ · こども · まつり · へや · ふじさん · ねだん (K26)
 
 ### 10. Preguntar
 - Las palabras que preguntan: いつ · だれ · どこ · いくら · なん · なんじ · なんがつ／なんにち (K18, K19)

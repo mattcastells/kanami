@@ -123,6 +123,20 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['せんせいにひらがなをならいます', 'sensei ni hiragana wo naraimasu', 'Aprendo hiragana con el profesor'],
   ['いらっしゃいどうぞおあがりください', 'irasshai douzo oagari kudasai', '¡Bienvenidos! Pasen, por favor'],
   ['しつれいします', 'shitsurei shimasu', 'Con permiso'],
+  // Clase 26. Al final por lo mismo: el id es el índice.
+  ['このかばんはおおきいです', 'kono kaban wa ookii desu', 'Esta valija es grande'],
+  ['このくつはふるいです', 'kono kutsu wa furui desu', 'Estos zapatos son viejos'],
+  ['きょうはあついです', 'kyou wa atsui desu', 'Hoy hace calor'],
+  ['きょうはさむいです', 'kyou wa samui desu', 'Hoy hace frío'],
+  ['このやまはたかいです', 'kono yama wa takai desu', 'Esta montaña es alta'],
+  ['ふじさんはゆうめいです', 'fujisan wa yuumei desu', 'El monte Fuji es famoso'],
+  ['このはなはきれいです', 'kono hana wa kirei desu', 'Esta flor es linda'],
+  ['このへやはきれいじゃありません', 'kono heya wa kirei ja arimasen', 'Este cuarto no está limpio'],
+  ['かんじはむずかしいですか', 'kanji wa muzukashii desu ka', '¿Los kanji son difíciles?'],
+  ['いいえむずかしくないです', 'iie muzukashikunai desu', 'No, no son difíciles'],
+  ['よくないです', 'yokunai desu', 'No está bien'],
+  ['とてもあついです', 'totemo atsui desu', 'Hace mucho calor'],
+  ['あまりさむくないです', 'amari samukunai desu', 'No hace tanto frío'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -182,6 +196,12 @@ const katakanaPhraseData: [string, string, string][] = [
   ['もうレポートをおくりましたか', 'mou repooto wo okurimashita ka', '¿Ya mandaste el informe?'],
   ['メキシコのおみやげです', 'mekishiko no omiyage desu', 'Es un recuerdo de México'],
   ['これはホッチキスです', 'kore wa hotchikisu desu', 'Esto es una abrochadora'],
+  // Clase 26. Van al final por lo mismo que las de hiragana.
+  ['このコーヒーはつめたいです', 'kono koohii wa tsumetai desu', 'Este café está frío'],
+  ['このカメラはやすいです', 'kono kamera wa yasui desu', 'Esta cámara es barata'],
+  ['このパーティーはたのしいです', 'kono paatii wa tanoshii desu', 'Esta fiesta es divertida'],
+  ['ブラッドピットさんはハンサムです', 'buraddo pitto san wa hansamu desu', 'Brad Pitt es buen mozo'],
+  ['このラーメンはあまりたかくないです', 'kono raamen wa amari takakunai desu', 'Este ramen no es tan caro'],
 ];
 
 function createPhraseEntry(

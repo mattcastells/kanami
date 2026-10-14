@@ -9462,5 +9462,991 @@ export const CLASS_NOTES: ClassNote[] = [
         ]
       }
     ]
+  },
+  {
+    "id": "kurasu-26",
+    "number": 26,
+    "title": "Adjetivos い y な",
+    "titleJp": "けいようし・とても・あまり",
+    "date": "2026-10-10",
+    "topics": "los dos tipos de adjetivos, い y な, el vocabulario de adjetivos del だい8か, describir algo con [sustantivo] は [adjetivo] です, el negativo de los な con じゃ ありません, el negativo de los い con 〜くない です, el irregular いい → よくない, muy y no tanto con とても y あまり.",
+    "sections": [
+      {
+        "id": "los-dos-tipos-de-adjetivos",
+        "title": "Los dos tipos de adjetivos",
+        "titleJp": "けいようし",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "En japonés los adjetivos (けいようし) son de dos tipos, y cada tipo se conjuga distinto."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Tipo",
+              "Cómo se reconoce",
+              "Ejemplos"
+            ],
+            "rows": [
+              [
+                "い けいようし (adjetivos い)",
+                "Terminan en い",
+                "おおきい, たかい, あつい"
+              ],
+              [
+                "な けいようし (adjetivos な)",
+                "No terminan en い",
+                "しずか, べんり, ひま"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "Se llaman \"な\" porque llevan un な cuando van delante de un sustantivo. En esta clase van siempre antes de です, así que el な todavía no aparece."
+          }
+        ]
+      },
+      {
+        "id": "adjetivos",
+        "title": "Adjetivos い",
+        "titleJp": "い けいようし",
+        "blocks": [
+          {
+            "kind": "subheading",
+            "text": "Precio, temperatura y dificultad"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "たかい",
+                "Takai",
+                "alto, caro"
+              ],
+              [
+                "ひくい",
+                "Hikui",
+                "bajo"
+              ],
+              [
+                "やすい",
+                "Yasui",
+                "barato"
+              ],
+              [
+                "やさしい",
+                "Yasashii",
+                "fácil"
+              ],
+              [
+                "あつい",
+                "Atsui",
+                "caluroso (el clima)"
+              ],
+              [
+                "あつい",
+                "Atsui",
+                "caliente (las cosas)"
+              ],
+              [
+                "さむい",
+                "Samui",
+                "frío (el clima)"
+              ],
+              [
+                "つめたい",
+                "Tsumetai",
+                "frío (al tacto)"
+              ],
+              [
+                "いそがしい",
+                "Isogashii",
+                "ocupado"
+              ],
+              [
+                "たのしい",
+                "Tanoshii",
+                "divertido"
+              ],
+              [
+                "むずかしい",
+                "Muzukashii",
+                "difícil"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "たかい tiene dos opuestos: ひくい si es \"alto\" (una montaña) y やすい si es \"caro\" (un precio)."
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "El calor y el frío cambian según qué describís. Del clima: あつい y さむい. De lo que tocás: あつい y つめたい. Un café frío es つめたい, nunca さむい. Las dos あつい se escriben distinto en kanji (暑い el clima, 熱い las cosas), pero suenan igual."
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "En la diapositiva やすい aparece también junto a やさしい como \"fácil\". Suelto, やすい se usa para \"barato\": para \"fácil\" quedate con やさしい o con かんたん."
+          },
+          {
+            "kind": "subheading",
+            "text": "Bueno y malo, grande y chico, nuevo y viejo"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "いい",
+                "Ii",
+                "bueno, bien, correcto"
+              ],
+              [
+                "わるい",
+                "Warui",
+                "malo"
+              ],
+              [
+                "おおきい",
+                "Ookii",
+                "grande"
+              ],
+              [
+                "ちいさい",
+                "Chiisai",
+                "chico, pequeño"
+              ],
+              [
+                "おいしい",
+                "Oishii",
+                "rico, delicioso"
+              ],
+              [
+                "まずい",
+                "Mazui",
+                "feo, asqueroso (de sabor)"
+              ],
+              [
+                "すごい",
+                "Sugoi",
+                "increíble"
+              ],
+              [
+                "あぶない",
+                "Abunai",
+                "peligroso"
+              ],
+              [
+                "あたらしい",
+                "Atarashii",
+                "nuevo"
+              ],
+              [
+                "ふるい",
+                "Furui",
+                "viejo"
+              ],
+              [
+                "ふとい",
+                "Futoi",
+                "gordo, grueso"
+              ]
+            ]
+          },
+          {
+            "kind": "subheading",
+            "text": "Largo y corto, sentimientos y carácter"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "ながい",
+                "Nagai",
+                "largo"
+              ],
+              [
+                "みじかい",
+                "Mijikai",
+                "corto"
+              ],
+              [
+                "おもしろい",
+                "Omoshiroi",
+                "interesante"
+              ],
+              [
+                "うるさい",
+                "Urusai",
+                "ruidoso, molesto"
+              ],
+              [
+                "かなしい",
+                "Kanashii",
+                "triste"
+              ],
+              [
+                "うれしい",
+                "Ureshii",
+                "contento"
+              ],
+              [
+                "やさしい",
+                "Yasashii",
+                "amable, bondadoso"
+              ],
+              [
+                "かわいい",
+                "Kawaii",
+                "lindo, tierno"
+              ],
+              [
+                "こわい",
+                "Kowai",
+                "que da miedo"
+              ],
+              [
+                "さびしい",
+                "Sabishii",
+                "solitario"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "やさしい son dos palabras que suenan igual: \"fácil\" (una cuenta) y \"amable\" (una persona). El contexto dice cuál."
+          },
+          {
+            "kind": "subheading",
+            "text": "Luz y colores"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "あかるい",
+                "Akarui",
+                "iluminado, luminoso"
+              ],
+              [
+                "くらい",
+                "Kurai",
+                "oscuro"
+              ],
+              [
+                "くろい",
+                "Kuroi",
+                "negro"
+              ],
+              [
+                "しろい",
+                "Shiroi",
+                "blanco"
+              ],
+              [
+                "あおい",
+                "Aoi",
+                "azul"
+              ],
+              [
+                "あかい",
+                "Akai",
+                "rojo"
+              ],
+              [
+                "きいろい",
+                "Kiiroi",
+                "amarillo"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "adjetivos-2",
+        "title": "Adjetivos な",
+        "titleJp": "な けいようし",
+        "blocks": [
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "きれい",
+                "Kirei",
+                "lindo, limpio"
+              ],
+              [
+                "しずか",
+                "Shizuka",
+                "silencioso, tranquilo"
+              ],
+              [
+                "にぎやか",
+                "Nigiyaka",
+                "animado, bullicioso"
+              ],
+              [
+                "ゆうめい",
+                "Yuumei",
+                "famoso"
+              ],
+              [
+                "すてき",
+                "Suteki",
+                "divino, maravilloso"
+              ],
+              [
+                "しんせつ",
+                "Shinsetsu",
+                "amable, bondadoso"
+              ],
+              [
+                "げんき",
+                "Genki",
+                "sano, con energía"
+              ],
+              [
+                "ひま",
+                "Hima",
+                "libre, desocupado"
+              ],
+              [
+                "べんり",
+                "Benri",
+                "útil, práctico"
+              ],
+              [
+                "ふべん",
+                "Fuben",
+                "poco práctico, incómodo"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "きれい y ゆうめい terminan en い pero son adjetivos な. No hay regla que lo avise: hay que aprenderlos así. Se nota en el negativo: きれいじゃ ありません, nunca きれくない."
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "すてき ya lo veníamos usando como elogio: その とけい、すてき です ね (clase 24). Y げんき es el de おげんき ですか."
+          },
+          {
+            "kind": "subheading",
+            "text": "Los que aparecieron en los ejemplos"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "かんたん",
+                "Kantan",
+                "fácil, simple"
+              ],
+              [
+                "ハンサム",
+                "Hansamu",
+                "buen mozo"
+              ],
+              [
+                "にんき",
+                "Ninki",
+                "popular"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "かんたん es sinónimo de やさしい (\"fácil\"), pero es adjetivo な. ハンサム viene del inglés \"handsome\" y por eso va en katakana. にんき se escribe 人気."
+          },
+          {
+            "kind": "subheading",
+            "text": "Ordenar los adjetivos (かいて おぼえる, p. 35)"
+          },
+          {
+            "kind": "text",
+            "text": "El ejercicio del cuaderno: separar la lista en las dos cajas."
+          },
+          {
+            "kind": "list",
+            "items": [
+              "な けいようし: ハンサム・ひま・べんり・にぎやか・きれい・しんせつ・しずか・すてき・ゆうめい",
+              "い けいようし: おおきい・いい・わるい・ひくい・たかい・ふるい・ちいさい・やすい・むずかしい・おいしい・あつい・つめたい・おもしろい・あたらしい・さむい・いそがしい"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "describir-algo",
+        "title": "Describir algo",
+        "titleJp": "[sustantivo] は [adjetivo] です",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "En afirmativo los dos tipos funcionan igual: el adjetivo va antes de です, sin nada en el medio."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "[sustantivo] は [adjetivo] です。 — [sustantivo] es [adjetivo]."
+            ]
+          },
+          {
+            "kind": "subheading",
+            "text": "Con adjetivos い"
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "この かばん は ちいさい です。 — Este bolso es chico.",
+              "この かばん は おおきい です。 — Esta valija es grande.",
+              "この くつ は あたらしい です。 — Estos zapatos son nuevos.",
+              "この くつ は ふるい です。 — Estos zapatos son viejos.",
+              "きょう は あつい です。 — Hoy hace calor.",
+              "きょう は さむい です。 — Hoy hace frío.",
+              "この コーヒー は あつい です。 — Este café está caliente.",
+              "この コーヒー は つめたい です。 — Este café está frío.",
+              "この こ は いい です。 — Este nene es bueno (planta un árbol).",
+              "この こ は わるい です。 — Este nene es malo (lo patea).",
+              "これ は やさしい です。 — Esto es fácil (7 + 2).",
+              "これ は むずかしい です。 — Esto es difícil (7 + 2 × 29).",
+              "この カメラ は やすい です。 — Esta cámara es barata (1.000 yenes).",
+              "この カメラ は たかい です。 — Esta cámara es cara (150.000 yenes).",
+              "この やま は たかい です。 — Esta montaña es alta.",
+              "この やま は ひくい です。 — Esta montaña es baja.",
+              "この ばんぐみ は おもしろい です。 — Este programa es interesante.",
+              "この ばんぐみ は つまらない です。 — Este programa es aburrido.",
+              "この パーティー は たのしい です。 — Esta fiesta es divertida."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "つまらない (aburrido) es lo contrario de おもしろい. Para \"fácil\" también sirve かんたん: これ は かんたん です。"
+          },
+          {
+            "kind": "subheading",
+            "text": "Con adjetivos な"
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "この でんわ は べんり です。 — Este teléfono es práctico.",
+              "この まつり は にぎやか です。 — Este festival es animado.",
+              "この まつり は しずか です。 — Este festival es tranquilo.",
+              "こども は げんき です。 — Los chicos están llenos de energía.",
+              "ふじさん は ゆうめい です。 — El monte Fuji es famoso.",
+              "ふじさん は にんき です。 — El monte Fuji es popular.",
+              "この こ は しんせつ です。 — Esta nena es amable (le ofrece el asiento a una mamá).",
+              "この ひと は ひま です。 — Este chico está libre (no tiene nada que hacer).",
+              "この はな は きれい です。 — Esta flor es linda.",
+              "この へや は きれい です。 — Este cuarto está limpio.",
+              "ブラッド・ピットさん は ハンサム です。 — Brad Pitt es buen mozo."
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "Junto a しんせつ la diapositiva pone やさしい: dicen casi lo mismo. Y frente al chico ひま está la mujer con un montón de brazos: いそがしい, lo contrario."
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "きれい tiene los dos sentidos: la flor es linda y el cuarto está limpio."
+          },
+          {
+            "kind": "subheading",
+            "text": "Palabras nuevas de los ejemplos"
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "こ",
+                "Ko",
+                "nene, chico"
+              ],
+              [
+                "こども",
+                "Kodomo",
+                "niño, chicos"
+              ],
+              [
+                "まつり",
+                "Matsuri",
+                "festival"
+              ],
+              [
+                "へや",
+                "Heya",
+                "cuarto, habitación"
+              ],
+              [
+                "ふじさん",
+                "Fujisan",
+                "monte Fuji"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "el-negativo-de-los-adjetivos",
+        "title": "El negativo de los adjetivos な",
+        "titleJp": "〜じゃ ありません",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "Los adjetivos な se niegan igual que los sustantivos (clase 2): です pasa a じゃ ありません."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "[sustantivo] は [adjetivo な] じゃ ありません。 — [sustantivo] no es [adjetivo].",
+              "この へや は きれい じゃ ありません。 — Este cuarto no está limpio."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "べんりじゃ ありません。",
+                "Benri ja arimasen.",
+                "No es práctica (la computadora vieja)."
+              ],
+              [
+                "ひまじゃ ありません。",
+                "Hima ja arimasen.",
+                "No está libre (la mujer con un montón de brazos)."
+              ],
+              [
+                "げんきじゃ ありません。",
+                "Genki ja arimasen.",
+                "No está bien (está enferma en la cama)."
+              ],
+              [
+                "しずかじゃ ありません。",
+                "Shizuka ja arimasen.",
+                "No es tranquilo (el tren lleno)."
+              ],
+              [
+                "にぎやかじゃ ありません。",
+                "Nigiyaka ja arimasen.",
+                "No es animado (el campo)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "el-negativo-de-los-adjetivos-2",
+        "title": "El negativo de los adjetivos い",
+        "titleJp": "〜くない です",
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "Los adjetivos い no usan じゃ ありません: se les saca la い del final y se les pone くない. El です queda igual."
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "[sustantivo] は [adjetivo い sin la い]くない です。 — [sustantivo] no es [adjetivo].",
+              "かんじ は むずかしい ですか？ — ¿Los kanji son difíciles?",
+              "はい、むずかしい です。 — Sí, son difíciles.",
+              "ひらがな は むずかしい ですか？ — ¿El hiragana es difícil?",
+              "いいえ、むずかしくない です。 — No, no es difícil."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "やすくない です。",
+                "Yasukunai desu.",
+                "No es barato (un auto de 120.000 yenes)."
+              ],
+              [
+                "あたらしくない です。",
+                "Atarashikunai desu.",
+                "No son nuevos (los zapatos gastados)."
+              ],
+              [
+                "おおきくない です。",
+                "Ookikunai desu.",
+                "No es grande (el bolsito)."
+              ],
+              [
+                "おもしろくない です。",
+                "Omoshirokunai desu.",
+                "No es interesante (el programa aburrido)."
+              ],
+              [
+                "あつくない です。",
+                "Atsukunai desu.",
+                "No hace calor (se muere de frío)."
+              ],
+              [
+                "いそがしくない です。",
+                "Isogashikunai desu.",
+                "No está ocupado (está tirado en el sillón)."
+              ],
+              [
+                "よくない です。",
+                "Yokunai desu.",
+                "No está bien (un examen con 50 puntos)."
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "いい es irregular: el negativo es よくない です, nunca いくない."
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "Cada tipo tiene su negativo y no se cruzan: むずかしい じゃ ありません está mal, y きれくない también."
+          }
+        ]
+      },
+      {
+        "id": "muy-y-no-tanto",
+        "title": "Muy y no tanto",
+        "titleJp": "とても・あまり",
+        "blocks": [
+          {
+            "kind": "quote",
+            "lines": [
+              "とても [adjetivo] です。 — Es muy [adjetivo].",
+              "あまり [adjetivo い sin la い]くない です。 — No es tan [adjetivo].",
+              "あまり [adjetivo な] じゃ ありません。 — No es tan [adjetivo]."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "とても",
+                "Totemo",
+                "muy (+ afirmativo)"
+              ],
+              [
+                "あまり",
+                "Amari",
+                "no muy, no tanto (+ negativo)"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "⚠️",
+            "text": "とても va con el adjetivo en afirmativo y あまり con el negativo. あまり あつい です no existe."
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "あまり ya lo conocíamos de la clase 21 con verbos: あまり えいが を みません. Con adjetivos funciona igual, siempre con negativo."
+          },
+          {
+            "kind": "subheading",
+            "text": "La temperatura en Argentina"
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "アルゼンチン で １２がつ は なつ です。 — En Argentina, diciembre es verano."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "きおん (temperatura)",
+              "Japonés",
+              "Español"
+            ],
+            "rows": [
+              [
+                "35 °C",
+                "とても あつい です",
+                "Hace mucho calor."
+              ],
+              [
+                "30 °C",
+                "あつい です",
+                "Hace calor."
+              ],
+              [
+                "25 °C",
+                "あまり あつくない です",
+                "No hace tanto calor."
+              ],
+              [
+                "20 °C",
+                "あつくない です",
+                "No hace calor."
+              ]
+            ]
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "アルゼンチン で ６がつ は ふゆ です。 — En Argentina, junio es invierno."
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "きおん (temperatura)",
+              "Japonés",
+              "Español"
+            ],
+            "rows": [
+              [
+                "5 °C",
+                "とても さむい です",
+                "Hace mucho frío."
+              ],
+              [
+                "10 °C",
+                "さむい です",
+                "Hace frío."
+              ],
+              [
+                "15 °C",
+                "あまり さむくない です",
+                "No hace tanto frío."
+              ],
+              [
+                "20 °C",
+                "さむくない です",
+                "No hace frío."
+              ]
+            ]
+          },
+          {
+            "kind": "subheading",
+            "text": "El precio del ramen en Tokio"
+          },
+          {
+            "kind": "quote",
+            "lines": [
+              "とうきょう の みせ で ラーメン の ねだん を チェック しましょう！ — ¡Chequeemos el precio del ramen en un local de Tokio!",
+              "たかい ですか？ やすい ですか？ — ¿Es caro? ¿Es barato?"
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "ねだん (precio)",
+              "¿Es caro?",
+              "Español"
+            ],
+            "rows": [
+              [
+                "1500 円",
+                "とても たかい です",
+                "Es muy caro."
+              ],
+              [
+                "1000 円",
+                "たかい です",
+                "Es caro."
+              ],
+              [
+                "600 円",
+                "あまり たかくない です",
+                "No es tan caro."
+              ],
+              [
+                "500 円",
+                "たかくない です",
+                "No es caro."
+              ]
+            ]
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "ねだん (precio)",
+              "¿Es barato?",
+              "Español"
+            ],
+            "rows": [
+              [
+                "600 円",
+                "やすくない です",
+                "No es barato."
+              ],
+              [
+                "500 円",
+                "あまり やすくない です",
+                "No es tan barato."
+              ],
+              [
+                "300 円",
+                "やすい です",
+                "Es barato."
+              ],
+              [
+                "200 円",
+                "とても やすい です",
+                "Es muy barato."
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "💡",
+            "text": "Los 600 yenes aparecen en las dos escalas: son あまり たかくない y también やすくない. \"No es caro\" no quiere decir \"es barato\"."
+          },
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "なつ",
+                "Natsu",
+                "verano"
+              ],
+              [
+                "ふゆ",
+                "Fuyu",
+                "invierno"
+              ],
+              [
+                "きおん",
+                "Kion",
+                "temperatura"
+              ],
+              [
+                "ねだん",
+                "Nedan",
+                "precio"
+              ]
+            ]
+          },
+          {
+            "kind": "note",
+            "tone": "📝",
+            "text": "Tarea: みんな の にほんご — ６９ページ １ と ２ と ３ と ４."
+          }
+        ]
+      },
+      {
+        "id": "frases-esenciales",
+        "title": "Frases esenciales",
+        "blocks": [
+          {
+            "kind": "table",
+            "headers": [
+              "Japonés",
+              "Romaji",
+              "Español"
+            ],
+            "rows": [
+              [
+                "この かばん は おおきい です。",
+                "Kono kaban wa ookii desu.",
+                "Esta valija es grande."
+              ],
+              [
+                "きょう は あつい です。",
+                "Kyou wa atsui desu.",
+                "Hoy hace calor."
+              ],
+              [
+                "この へや は きれい じゃ ありません。",
+                "Kono heya wa kirei ja arimasen.",
+                "Este cuarto no está limpio."
+              ],
+              [
+                "かんじ は むずかしい ですか？",
+                "Kanji wa muzukashii desu ka?",
+                "¿Los kanji son difíciles?"
+              ],
+              [
+                "いいえ、むずかしくない です。",
+                "Iie, muzukashikunai desu.",
+                "No, no son difíciles."
+              ],
+              [
+                "よくない です。",
+                "Yokunai desu.",
+                "No está bien."
+              ],
+              [
+                "とても あつい です。",
+                "Totemo atsui desu.",
+                "Hace mucho calor."
+              ],
+              [
+                "あまり さむくない です。",
+                "Amari samukunai desu.",
+                "No hace tanto frío."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
   }
 ];
