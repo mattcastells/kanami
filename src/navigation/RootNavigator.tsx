@@ -11,6 +11,8 @@ import { ClassNotesScreen } from '../screens/ClassNotesScreen';
 import { DictationGameScreen } from '../screens/DictationGameScreen';
 import { EmojiGameScreen } from '../screens/EmojiGameScreen';
 import { GameScreen } from '../screens/GameScreen';
+import { MeaningGameScreen } from '../screens/MeaningGameScreen';
+import { MeaningSetupScreen } from '../screens/MeaningSetupScreen';
 import { PronunciationGameScreen } from '../screens/PronunciationGameScreen';
 import { ReviewScreen } from '../screens/ReviewScreen';
 import { HiraganaSelectionScreen } from '../screens/HiraganaSelectionScreen';
@@ -59,6 +61,8 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="Vocabulary" component={VocabularyScreen} />
       <PracticeStack.Screen name="EmojiGame" component={EmojiGameScreen} />
       <PracticeStack.Screen name="TimesGame" component={TimesGameScreen} />
+      <PracticeStack.Screen name="Meanings" component={MeaningSetupScreen} />
+      <PracticeStack.Screen name="MeaningGame" component={MeaningGameScreen} />
       <PracticeStack.Screen name="DictationGame" component={DictationGameScreen} />
       <PracticeStack.Screen name="PronunciationGame" component={PronunciationGameScreen} />
       <PracticeStack.Screen name="TranslationGame" component={TranslationGameScreen} />
@@ -77,6 +81,9 @@ function StudyNavigator() {
       <StudyStack.Screen name="ClassQuiz" component={ClassQuizScreen} />
       <StudyStack.Screen name="VocabularyList" component={VocabularyListScreen} />
       <StudyStack.Screen name="VocabularyTheme" component={VocabularyThemeScreen} />
+      {/* Igual que ClassQuiz: se juega sin salir de Estudiar, así el "atrás" vuelve a
+          la temática y no a la grilla de Practicar. */}
+      <StudyStack.Screen name="MeaningGame" component={MeaningGameScreen} />
       {/* La sección Kanji vive en Estudiar: es para aprender y consultar. Practicarlos
           es Kanji Grind, que está en el stack de Practicar. */}
       <StudyStack.Screen name="KanjiList" component={KanjiListScreen} />

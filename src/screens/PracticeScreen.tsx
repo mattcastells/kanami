@@ -48,6 +48,7 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
     },
     { glyph: '漢', title: 'Kanji', onPress: () => navigation.navigate('KanjiGrind') },
     { glyph: '語', title: 'Vocabulario', onPress: () => navigation.navigate('Vocabulary') },
+    { glyph: '意', title: 'Significados', onPress: () => navigation.navigate('Meanings') },
     { glyph: '時', title: 'Horarios', onPress: () => navigation.navigate('TimesGame') },
     {
       glyph: '絵',

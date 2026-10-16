@@ -95,7 +95,12 @@ en el contenido para aprender; los juegos son la segunda pestaña.
   (la práctica de kanji), KanjiDraw,
   **EmojiGame** (matcheo palabra↔emoji), **TimesGame** (leer/escribir horarios 〜時〜分),
   **TranslationGame** (traducir frases enteras en las dos direcciones, ordenando piezas o
-  escribiendo), **Review** (el repaso por errores).
+  escribiendo), **Meanings** + **MeaningGame** (Significados: reconocer palabras de la
+  cursada, 4 opciones, en las dos direcciones), **Review** (el repaso por errores).
+
+  `MeaningGame` también está registrada en el stack de Estudiar: cada temática de
+  `VocabularyTheme` tiene una card "Practicá los significados" que la abre sin cambiar de
+  pestaña (mismo criterio que `ClassQuiz`).
 
   `PracticeScreen` es una **grilla pareja de 2 columnas**: todas las cards miden lo mismo,
   sin subtítulos, y el único destacado es el Repaso. El mosaico bento asimétrico anterior
@@ -153,7 +158,11 @@ de scroll — no asumas un alto fijo, una barra con resumen mide bastante más q
   alimenta el mazo de repaso espaciado: `buildSrsDeck()` lo importa **directo**.
 - `classVocabulary.ts` — vocabulario **de la cursada** (~550): lo visto en las clases 1–26 más
   la sección Vocabulario de Notion. Trae kanji, romaji, nota y `classes` (trazabilidad).
-  Pantalla de consulta: `VocabularyList` en Estudiar.
+  Pantalla de consulta: `VocabularyList` en Estudiar. Es **la base de "lo que sé"**: el juego
+  Significados (`meaningGameEngine`) lee de acá directo, así que cada clase que suma palabras
+  las suma también al juego. Cada temática tiene un tipo de palabra en
+  `CLASS_VOCAB_KIND_BY_CATEGORY` (un `Record`: una temática nueva sin clasificar no compila);
+  los distractores salen del mismo tipo y nunca de un sinónimo u homógrafo de la respuesta.
 - La unión de ambos para práctica se hace en el facade `kana.ts` (`getKanaWordEntries`,
   `getKanaWordCategoryGroups`). **Esa es la razón de que el SRS no se contamine**: si algún día
   querés que el vocabulario de clase entre al repaso espaciado, el cambio va en `srsStore`, no acá.
@@ -289,7 +298,7 @@ Los cinco formatos y cómo los repite el Repaso:
 
 | Formato | Modos | Cómo se repite |
 |---|---|---|
-| `choice` | reading, kanji-grind, times, emoji, fill-blank, class-quiz | prompt + opciones guardadas |
+| `choice` | reading, kanji-grind, times, emoji, fill-blank, class-quiz, meaning | prompt + opciones guardadas |
 | `input` | writing, syllables, word-builder, phrases, translation, kana-board | prompt + escribir |
 | `listen` | dictation | audio + escribir |
 | `draw` | drawing | `DrawingPractice` con pool de un carácter |

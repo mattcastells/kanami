@@ -120,7 +120,9 @@ kanji y a veces gramática nueva, y cada una de esas cosas alimenta actividades 
 4. **Vocabulario** → `src/data/classVocabulary.ts`: las palabras nuevas, **y** sumar `NN` al
    campo `classes` de las que reaparecen (es la trazabilidad de "qué vimos en la clase N").
    Categoría nueva → agregar también el id a `ClassVocabCategoryId` y a `ClassWordCategoryId`
-   (`types/game.ts`). Antes de repetir un `kana` ya existente, chequeá que sea un homógrafo de
+   (`types/game.ts`), y clasificarla en `CLASS_VOCAB_KIND_BY_CATEGORY` (adjetivos / verbos /
+   sustantivos / expresiones; si falta, no compila). Las palabras nuevas entran solas al
+   juego **Significados**, que lee este dataset directo. Antes de repetir un `kana` ya existente, chequeá que sea un homógrafo de
    verdad (着る y 切る, las dos きる) y no la misma palabra cargada dos veces: la derivación a
    práctica arma el id desde el kana y funde los homógrafos en una sola entrada que acepta
    todas sus traducciones.
