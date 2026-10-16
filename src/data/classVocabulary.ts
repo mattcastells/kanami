@@ -778,6 +778,44 @@ export const classVocabCategories: ClassVocabCategory[] = [
   },
 ];
 
+// Tipo de palabra de cada temática. Lo usa el juego de Significados para filtrar
+// ("solo adjetivos") y para sacar distractores del mismo tipo: un verbo en español
+// termina en -ar/-er/-ir y entre sustantivos se adivinaría por la forma.
+// Es un Record a propósito: si sumás una temática nueva, TypeScript no compila hasta
+// que la clasifiques acá. `tiempo` mezcla sustantivos con adverbios (いつも, ときどき):
+// va con sustantivos porque la mayoría lo son.
+export type ClassVocabKind = 'adjetivos' | 'verbos' | 'sustantivos' | 'expresiones';
+
+export const classVocabKinds: { id: ClassVocabKind; label: string }[] = [
+  { id: 'adjetivos', label: 'Adjetivos' },
+  { id: 'verbos', label: 'Verbos' },
+  { id: 'sustantivos', label: 'Sustantivos' },
+  { id: 'expresiones', label: 'Expresiones y saludos' },
+];
+
+export const CLASS_VOCAB_KIND_BY_CATEGORY: Record<ClassVocabCategoryId, ClassVocabKind> = {
+  aula: 'expresiones',
+  saludos: 'expresiones',
+  expresiones: 'expresiones',
+  personas: 'sustantivos',
+  familia: 'sustantivos',
+  paises: 'sustantivos',
+  profesiones: 'sustantivos',
+  hobbies: 'sustantivos',
+  objetos: 'sustantivos',
+  lugares: 'sustantivos',
+  tiempo: 'sustantivos',
+  verbos: 'verbos',
+  adjetivos: 'adjetivos',
+  transporte: 'sustantivos',
+  herramientas: 'sustantivos',
+  comida: 'sustantivos',
+  bebidas: 'sustantivos',
+  medios: 'sustantivos',
+  lectura: 'sustantivos',
+  naturaleza: 'sustantivos',
+};
+
 export const classVocabEntries: (ClassVocabEntry & {
   category: ClassVocabCategoryId;
 })[] = classVocabCategories.flatMap((category) =>

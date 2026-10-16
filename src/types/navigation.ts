@@ -1,6 +1,7 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { ClassVocabCategoryId } from '../data/classVocabulary';
+import { MeaningDirection } from '../features/game/meaningGameEngine';
 import { HiraganaGroupId } from './hiragana';
 import { KanaScript, PracticeMode, WordPracticeCategoryId } from './game';
 import { KanjiCategoryId, KanjiGrindFocus } from './kanji';
@@ -56,6 +57,14 @@ export type RootStackParamList = {
     script: KanaScript;
   };
   TimesGame: undefined;
+  // Significados: reconocer palabras de la cursada. `Meanings` es la selección (en
+  // Practicar); `MeaningGame` también está en el stack de Estudiar para arrancar directo
+  // desde una temática del vocabulario.
+  Meanings: undefined;
+  MeaningGame: {
+    categoryIds: ClassVocabCategoryId[];
+    direction: MeaningDirection;
+  };
   DictationGame: undefined;
   PronunciationGame: undefined;
   Review: undefined;
