@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { StyleSheet, View } from 'react-native';
 
-import { CheckRow } from '../components/practice/CheckRow';
+import { CheckRow, CheckSection } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
-import { AnimatedCollapsible } from '../components/ui/AnimatedCollapsible';
 import { AppText } from '../components/ui/AppText';
+import { SectionStep, Segmented } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { getKanaWordCategoryGroups } from '../data/kana';
@@ -149,7 +148,7 @@ export function VocabularyScreen({
     >
       <ScreenHeader eyebrow="語 · Practicar" title="Vocabulario" />
 
-      <Step title="Qué querés hacer" />
+      <SectionStep n={1}>Qué querés hacer</SectionStep>
 
       <ModeGrid>
         {VOCAB_GAMES.map((game) => (
@@ -163,39 +162,27 @@ export function VocabularyScreen({
         ))}
       </ModeGrid>
 
-      <AppText
-        variant="bodySmall"
-        color={activeTheme.colors.textMuted}
-        style={styles.modeNote}
-      >
+      <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.modeNote}>
         {gameMeta.note}
       </AppText>
 
-      <AppText
-        variant="label"
-        color={activeTheme.colors.textMuted}
-        style={styles.lengthLabel}
-      >
+      <AppText variant="overline" color={activeTheme.colors.textSecondary} style={styles.lengthLabel}>
         Largo de la ronda
       </AppText>
-      <View style={styles.presets}>
-        {SESSION_LENGTH_OPTIONS.map((option) => (
-          <SelectChip
-            key={option.label}
-            label={option.label}
-            grow
-            selected={sessionLength === option.value}
-            onPress={() => setSessionLength(option.value)}
-          />
-        ))}
-      </View>
+      {/* "Todas" es undefined en el juego; el segmentado necesita un valor: 0. */}
+      <Segmented
+        options={SESSION_LENGTH_OPTIONS.map((option) => ({ value: option.value ?? 0, label: option.label }))}
+        value={sessionLength ?? 0}
+        onChange={(value) => setSessionLength(value === 0 ? undefined : value)}
+      />
 
-      <Step title="Con qué" />
+      <View style={styles.step}>
+        <SectionStep n={2}>Con qué</SectionStep>
+      </View>
 
       <View style={styles.presets}>
         <SelectChip
           label="De tus clases"
-          grow
           selected={
             selectedCategoryIds.length === defaultCategoryIds.length &&
             defaultCategoryIds.every((id) => selectedCategoryIds.includes(id))
@@ -204,97 +191,41 @@ export function VocabularyScreen({
         />
         <SelectChip
           label="Todo"
-          grow
           selected={selectedCategoryIds.length === categories.length}
-          onPress={() =>
-            setSelectedCategoryIds(categories.map((category) => category.id))
-          }
+          onPress={() => setSelectedCategoryIds(categories.map((category) => category.id))}
         />
-        <SelectChip
-          label="Limpiar"
-          grow
-          selected={false}
-          onPress={() => setSelectedCategoryIds([])}
-        />
+        <SelectChip label="Limpiar" selected={false} onPress={() => setSelectedCategoryIds([])} />
       </View>
 
-      <View
-        style={[
-          styles.sections,
-          activeTheme.surfaces.card,
-          { backgroundColor: activeTheme.colors.card },
-        ]}
-      >
-        {groups.map((group, groupIndex) => {
+      <View style={styles.sections}>
+        {groups.map((group) => {
           const categoryIds = group.categories.map((category) => category.id);
-          const selectedCount = categoryIds.filter((id) =>
-            selectedCategoryIds.includes(id),
-          ).length;
-          const expanded = expandedGroupIds.includes(group.id);
+          const selectedCount = categoryIds.filter((id) => selectedCategoryIds.includes(id)).length;
 
           return (
-            <View
+            <CheckSection
               key={group.id}
-              style={[
-                styles.section,
-                groupIndex > 0 && {
-                  borderTopWidth: 1,
-                  borderTopColor: activeTheme.colors.line,
-                },
-              ]}
+              title={group.title}
+              state={selectedCount === 0 ? 'off' : selectedCount === categoryIds.length ? 'on' : 'partial'}
+              onToggle={() => toggleGroupSelection(categoryIds)}
+              expanded={expandedGroupIds.includes(group.id)}
+              onToggleExpanded={() =>
+                setExpandedGroupIds((current) =>
+                  current.includes(group.id) ? current.filter((id) => id !== group.id) : [...current, group.id],
+                )
+              }
             >
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionCheck}>
-                  <CheckRow
-                    title={group.title}
-                    state={
-                      selectedCount === 0
-                        ? 'off'
-                        : selectedCount === categoryIds.length
-                          ? 'on'
-                          : 'partial'
-                    }
-                    onPress={() => toggleGroupSelection(categoryIds)}
-                  />
-                </View>
-                <Pressable
-                  onPress={() =>
-                    setExpandedGroupIds((current) =>
-                      current.includes(group.id)
-                        ? current.filter((id) => id !== group.id)
-                        : [...current, group.id],
-                    )
-                  }
-                  hitSlop={8}
-                  style={({ pressed }) => [styles.chevron, pressed && styles.pressed]}
-                >
-                  <MaterialCommunityIcons
-                    name={expanded ? 'chevron-up' : 'chevron-down'}
-                    size={20}
-                    color={activeTheme.colors.textMuted}
-                  />
-                </Pressable>
-              </View>
-
-              <AnimatedCollapsible expanded={expanded}>
-                <View
-                  style={[styles.groupList, { borderTopColor: activeTheme.colors.line }]}
-                >
-                  {group.categories.map((category) => (
-                    <CheckRow
-                      key={category.id}
-                      compact
-                      title={category.label}
-                      hint={`${category.count}`}
-                      state={
-                        selectedCategoryIds.includes(category.id) ? 'on' : 'off'
-                      }
-                      onPress={() => toggleCategory(category.id)}
-                    />
-                  ))}
-                </View>
-              </AnimatedCollapsible>
-            </View>
+              {group.categories.map((category) => (
+                <CheckRow
+                  key={category.id}
+                  compact
+                  title={category.label}
+                  hint={`${category.count}`}
+                  state={selectedCategoryIds.includes(category.id) ? 'on' : 'off'}
+                  onPress={() => toggleCategory(category.id)}
+                />
+              ))}
+            </CheckSection>
           );
         })}
       </View>
@@ -302,26 +233,12 @@ export function VocabularyScreen({
   );
 }
 
-function Step({ title }: { title: string }) {
-
-  return (
-    <View style={styles.step}>
-      <AppText variant="title">{title}</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   step: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
   },
   modeNote: {
-    marginTop: theme.spacing.sm,
-    lineHeight: 18,
+    marginTop: 10,
   },
   lengthLabel: {
     marginTop: theme.spacing.md,
@@ -329,39 +246,11 @@ const styles = StyleSheet.create({
   },
   presets: {
     flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
   },
   sections: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
-    overflow: 'hidden',
-  },
-  section: {
-    paddingHorizontal: theme.spacing.sm,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  sectionCheck: {
-    flex: 1,
-    minWidth: 0,
-  },
-  chevron: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  groupList: {
-    borderTopWidth: 1,
-    paddingVertical: theme.spacing.xxs,
-    paddingLeft: theme.spacing.lg,
-  },
-  pressed: {
-    opacity: 0.7,
+    gap: 8,
   },
 });

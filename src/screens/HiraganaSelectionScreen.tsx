@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { StyleSheet, View } from 'react-native';
 
-import { CheckRow } from '../components/practice/CheckRow';
+import { CheckRow, CheckSection } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
-import { AnimatedCollapsible } from '../components/ui/AnimatedCollapsible';
 import { AppText } from '../components/ui/AppText';
+import { SectionStep, Segmented } from '../components/ui/InkBits';
+import { InkSwitch } from '../components/ui/InkSwitch';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import {
@@ -17,15 +17,15 @@ import {
   getKanaSections,
 } from '../data/kana';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { theme } from '../theme/theme';
 import { KanaScript, PracticeMode } from '../types/game';
 import { HiraganaGroupId, HiraganaSectionId } from '../types/hiragana';
 import { RootStackScreenProps } from '../types/navigation';
 
-const SCRIPTS: { script: KanaScript; label: string }[] = [
-  { script: 'hiragana', label: 'Hiragana' },
-  { script: 'katakana', label: 'Katakana' },
-  { script: 'mixed', label: 'Mixto' },
+const SCRIPTS: { value: KanaScript; label: string }[] = [
+  { value: 'hiragana', label: 'Hiragana' },
+  { value: 'katakana', label: 'Katakana' },
+  { value: 'mixed', label: 'Mixto' },
 ];
 
 // El tablero no es un `PracticeMode` del dataset: tiene pantalla propia y no pasa por
@@ -224,21 +224,13 @@ export function HiraganaSelectionScreen({
         />
       }
     >
-      <ScreenHeader eyebrow="かな" title={scriptLabel} />
+      <ScreenHeader eyebrow="かな · Practicar" title={scriptLabel} />
 
       <View style={styles.scriptRow}>
-        {SCRIPTS.map((option) => (
-          <SelectChip
-            key={option.script}
-            label={option.label}
-            grow
-            selected={script === option.script}
-            onPress={() => setScript(option.script)}
-          />
-        ))}
+        <Segmented options={SCRIPTS} value={script} onChange={setScript} />
       </View>
 
-      <Step title="Qué querés hacer" />
+      <SectionStep n={1}>Qué querés hacer</SectionStep>
 
       <ModeGrid>
         {MODES.map((item) => (
@@ -252,171 +244,77 @@ export function HiraganaSelectionScreen({
         ))}
       </ModeGrid>
 
-      <AppText
-        variant="bodySmall"
-        color={activeTheme.colors.textMuted}
-        style={styles.modeNote}
-      >
-        {invertedActive && modeMeta.invertedNote
-          ? modeMeta.invertedNote(scriptLabelLowercase)
-          : modeMeta.note}
+      <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.modeNote}>
+        {modeMeta.note}
       </AppText>
 
-      {supportsInvertedMode ? (
-        <Pressable
-          onPress={() => setInvertedMode((current) => !current)}
-          style={({ pressed }) => [
-            styles.invertRow,
-            {
-              borderColor: invertedMode
-                ? activeTheme.colors.accent
-                : activeTheme.colors.line,
-              backgroundColor: invertedMode
-                ? hexToRgba(activeTheme.colors.accent, 0.1)
-                : activeTheme.colors.backgroundSecondary,
-            },
-            pressed && styles.pressed,
-          ]}
-        >
-          <MaterialCommunityIcons
-            name="swap-horizontal"
-            size={18}
-            color={
-              invertedMode
-                ? activeTheme.colors.accent
-                : activeTheme.colors.textMuted
-            }
-          />
-          <AppText
-            variant="label"
-            style={styles.invertLabel}
-            color={invertedMode ? activeTheme.colors.accent : undefined}
-          >
-            Modo invertido
-          </AppText>
-          <View
-            style={[
-              styles.invertDot,
-              {
-                borderColor: invertedMode
-                  ? activeTheme.colors.accent
-                  : activeTheme.colors.lineStrong,
-                backgroundColor: invertedMode
-                  ? activeTheme.colors.accent
-                  : 'transparent',
-              },
-            ]}
-          />
-        </Pressable>
-      ) : null}
+      {supportsInvertedMode && modeMeta.invertedNote ? (
+        <View style={[styles.invertRow, { backgroundColor: activeTheme.colors.surface2 }]}>
+          <View style={styles.invertText}>
+            <AppText variant="bodyStrong">Modo invertido</AppText>
+            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
+              {modeMeta.invertedNote(scriptLabelLowercase)}
+            </AppText>
+          </View>
+          <InkSwitch value={invertedMode} onValueChange={setInvertedMode} />
+        </View>
+      ) : (
+        <View style={styles.stepGap} />
+      )}
 
       {usesGroups ? (
         <>
-          <Step title="Con qué" />
+          <SectionStep n={2}>Con qué</SectionStep>
 
           <View style={styles.presets}>
-            <SelectChip
-              label="Todo"
-              grow
-              selected={presetIsAll}
-              onPress={() => setSelectedGroupIds(allGroupIds)}
-            />
+            <SelectChip label="Todo" selected={presetIsAll} onPress={() => setSelectedGroupIds(allGroupIds)} />
             <SelectChip
               label="Solo básico"
-              grow
               selected={presetIsBase}
               onPress={() => setSelectedGroupIds(baseGroupIds)}
             />
-            <SelectChip
-              label="Limpiar"
-              grow
-              selected={false}
-              onPress={() => setSelectedGroupIds([])}
-            />
+            <SelectChip label="Limpiar" selected={false} onPress={() => setSelectedGroupIds([])} />
           </View>
 
-          <View
-            style={[
-              styles.sections,
-              activeTheme.surfaces.card,
-              { backgroundColor: activeTheme.colors.card },
-            ]}
-          >
-            {availableSections.map((section, sectionIndex) => {
+          <View style={styles.sections}>
+            {availableSections.map((section) => {
               const groupIds = section.groups.map((group) => group.id);
-              const selectedCount = groupIds.filter((id) =>
-                selectedGroupIds.includes(id),
-              ).length;
-              const expanded = expandedSections[section.id];
+              const selectedCount = groupIds.filter((id) => selectedGroupIds.includes(id)).length;
+              const characters = getKanaCharactersForGroupIds(script, groupIds);
+              const preview =
+                characters.length > 1
+                  ? `${characters[0].kana}〜${characters[characters.length - 1].kana}`
+                  : undefined;
 
               return (
-                <View
+                <CheckSection
                   key={section.id}
-                  style={[
-                    styles.section,
-                    sectionIndex > 0 && {
-                      borderTopWidth: 1,
-                      borderTopColor: activeTheme.colors.line,
-                    },
-                  ]}
+                  title={section.title}
+                  count={characters.length}
+                  hint={preview}
+                  hintIsGlyph
+                  state={selectedCount === 0 ? 'off' : selectedCount === groupIds.length ? 'on' : 'partial'}
+                  onToggle={() => toggleSectionSelection(groupIds)}
+                  expanded={expandedSections[section.id]}
+                  onToggleExpanded={() =>
+                    setExpandedSections((current) => ({
+                      ...current,
+                      [section.id]: !current[section.id],
+                    }))
+                  }
                 >
-                  <View style={styles.sectionHeader}>
-                    <View style={styles.sectionCheck}>
-                      <CheckRow
-                        title={section.title}
-                        state={
-                          selectedCount === 0
-                            ? 'off'
-                            : selectedCount === groupIds.length
-                              ? 'on'
-                              : 'partial'
-                        }
-                        onPress={() => toggleSectionSelection(groupIds)}
-                      />
-                    </View>
-                    <Pressable
-                      onPress={() =>
-                        setExpandedSections((current) => ({
-                          ...current,
-                          [section.id]: !current[section.id],
-                        }))
-                      }
-                      hitSlop={8}
-                      style={({ pressed }) => [
-                        styles.chevron,
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      <MaterialCommunityIcons
-                        name={expanded ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color={activeTheme.colors.textMuted}
-                      />
-                    </Pressable>
-                  </View>
-
-                  <AnimatedCollapsible expanded={expanded}>
-                    <View
-                      style={[
-                        styles.groupList,
-                        { borderTopColor: activeTheme.colors.line },
-                      ]}
-                    >
-                      {section.groups.map((group) => (
-                        <CheckRow
-                          key={group.id}
-                          compact
-                          title={group.romajiPreview}
-                          hint={group.kanaPreview}
-                          state={
-                            selectedGroupIds.includes(group.id) ? 'on' : 'off'
-                          }
-                          onPress={() => toggleGroup(group.id)}
-                        />
-                      ))}
-                    </View>
-                  </AnimatedCollapsible>
-                </View>
+                  {section.groups.map((group) => (
+                    <CheckRow
+                      key={group.id}
+                      compact
+                      title={group.romajiPreview}
+                      hint={group.kanaPreview}
+                      hintIsGlyph
+                      state={selectedGroupIds.includes(group.id) ? 'on' : 'off'}
+                      onPress={() => toggleGroup(group.id)}
+                    />
+                  ))}
+                </CheckSection>
               );
             })}
           </View>
@@ -426,90 +324,37 @@ export function HiraganaSelectionScreen({
   );
 }
 
-function Step({ title }: { title: string }) {
-
-  return (
-    <View style={styles.step}>
-      <AppText variant="title">{title}</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  step: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-    marginTop: theme.spacing.lg,
-  },
   scriptRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xxs,
-    marginBottom: theme.spacing.xs,
+    marginBottom: 18,
   },
   modeNote: {
-    marginTop: theme.spacing.sm,
-    lineHeight: 18,
+    marginTop: 10,
   },
   invertRow: {
     marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
-    minHeight: 46,
-    paddingHorizontal: theme.spacing.md,
-    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: theme.radii.md,
-    outlineWidth: 0,
-    outlineColor: 'transparent',
   },
-  invertLabel: {
+  invertText: {
     flex: 1,
     minWidth: 0,
   },
-  invertDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexShrink: 0,
+  stepGap: {
+    height: theme.spacing.lg,
   },
   presets: {
     flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
   },
   sections: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
-    overflow: 'hidden',
-  },
-  section: {
-    paddingHorizontal: theme.spacing.sm,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  sectionCheck: {
-    flex: 1,
-    minWidth: 0,
-  },
-  chevron: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  groupList: {
-    borderTopWidth: 1,
-    paddingVertical: theme.spacing.xxs,
-    paddingLeft: theme.spacing.lg,
-  },
-  pressed: {
-    opacity: 0.7,
+    gap: 8,
   },
 });

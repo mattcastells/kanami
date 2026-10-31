@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { StyleSheet, View } from 'react-native';
 
-import { CheckRow } from '../components/practice/CheckRow';
+import { CheckRow, CheckSection } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
-import { AnimatedCollapsible } from '../components/ui/AnimatedCollapsible';
-import { AppText } from '../components/ui/AppText';
+import { SectionStep } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import {
@@ -22,7 +20,6 @@ import {
   MEANING_MIN_POOL,
   MeaningDirection,
 } from '../features/game/meaningGameEngine';
-import { useAppTheme } from '../theme/AppThemeProvider';
 import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
@@ -78,7 +75,6 @@ function sameSelection(a: ClassVocabCategoryId[], b: ClassVocabCategoryId[]) {
 // Mismo flujo que las otras pantallas de selección: primero qué hacer, después con qué,
 // todo preseleccionado y el botón de arranque fijo abajo.
 export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meanings'>) {
-  const { theme: activeTheme } = useAppTheme();
 
   const [direction, setDirection] = useState<MeaningDirection>('jp-to-es');
   const [selectedCategoryIds, setSelectedCategoryIds] =
@@ -139,7 +135,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
     >
       <ScreenHeader eyebrow="意 · Practicar" title="Significados" />
 
-      <Step title="Qué querés hacer" />
+      <SectionStep n={1}>Qué querés hacer</SectionStep>
 
       <ModeGrid wide>
         {DIRECTIONS.map((item) => (
@@ -156,7 +152,9 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
         ))}
       </ModeGrid>
 
-      <Step title="Con qué" />
+      <View style={styles.step}>
+        <SectionStep n={2}>Con qué</SectionStep>
+      </View>
 
       <View style={styles.presets}>
         <SelectChip
@@ -177,92 +175,52 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
         })}
       </View>
 
-      <View
-        style={[
-          styles.sections,
-          activeTheme.surfaces.card,
-          { backgroundColor: activeTheme.colors.card },
-        ]}
-      >
-        {KIND_GROUPS.map((group, groupIndex) => {
+      <View style={styles.sections}>
+        {KIND_GROUPS.map((group) => {
           const categoryIds = group.categories.map((category) => category.id);
-          const selectedCount = categoryIds.filter((id) =>
-            selectedCategoryIds.includes(id),
-          ).length;
-          const wordCount = group.categories.reduce(
-            (total, category) => total + category.count,
-            0,
-          );
+          const selectedCount = categoryIds.filter((id) => selectedCategoryIds.includes(id)).length;
+          const wordCount = group.categories.reduce((total, category) => total + category.count, 0);
+          const state = selectedCount === 0 ? 'off' : selectedCount === categoryIds.length ? 'on' : 'partial';
+
           // Adjetivos y verbos son una sola temática: no hay nada que desplegar.
-          const collapsible = group.categories.length > 1;
-          const expanded = expandedKinds.includes(group.id);
+          if (group.categories.length <= 1) {
+            return (
+              <CheckRow
+                key={group.id}
+                boxed
+                title={group.label}
+                count={wordCount}
+                state={state}
+                onPress={() => toggleGroupSelection(categoryIds)}
+              />
+            );
+          }
 
           return (
-            <View
+            <CheckSection
               key={group.id}
-              style={[
-                styles.section,
-                groupIndex > 0 && {
-                  borderTopWidth: 1,
-                  borderTopColor: activeTheme.colors.line,
-                },
-              ]}
+              title={group.label}
+              count={wordCount}
+              state={state}
+              onToggle={() => toggleGroupSelection(categoryIds)}
+              expanded={expandedKinds.includes(group.id)}
+              onToggleExpanded={() =>
+                setExpandedKinds((current) =>
+                  current.includes(group.id) ? current.filter((id) => id !== group.id) : [...current, group.id],
+                )
+              }
             >
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionCheck}>
-                  <CheckRow
-                    title={group.label}
-                    hint={`${wordCount}`}
-                    state={
-                      selectedCount === 0
-                        ? 'off'
-                        : selectedCount === categoryIds.length
-                          ? 'on'
-                          : 'partial'
-                    }
-                    onPress={() => toggleGroupSelection(categoryIds)}
-                  />
-                </View>
-                {collapsible ? (
-                  <Pressable
-                    onPress={() =>
-                      setExpandedKinds((current) =>
-                        current.includes(group.id)
-                          ? current.filter((id) => id !== group.id)
-                          : [...current, group.id],
-                      )
-                    }
-                    hitSlop={8}
-                    style={({ pressed }) => [styles.chevron, pressed && styles.pressed]}
-                  >
-                    <MaterialCommunityIcons
-                      name={expanded ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color={activeTheme.colors.textMuted}
-                    />
-                  </Pressable>
-                ) : null}
-              </View>
-
-              {collapsible ? (
-                <AnimatedCollapsible expanded={expanded}>
-                  <View
-                    style={[styles.groupList, { borderTopColor: activeTheme.colors.line }]}
-                  >
-                    {group.categories.map((category) => (
-                      <CheckRow
-                        key={category.id}
-                        compact
-                        title={category.label}
-                        hint={`${category.count}`}
-                        state={selectedCategoryIds.includes(category.id) ? 'on' : 'off'}
-                        onPress={() => toggleCategory(category.id)}
-                      />
-                    ))}
-                  </View>
-                </AnimatedCollapsible>
-              ) : null}
-            </View>
+              {group.categories.map((category) => (
+                <CheckRow
+                  key={category.id}
+                  compact
+                  title={category.label}
+                  hint={`${category.count}`}
+                  state={selectedCategoryIds.includes(category.id) ? 'on' : 'off'}
+                  onPress={() => toggleCategory(category.id)}
+                />
+              ))}
+            </CheckSection>
           );
         })}
       </View>
@@ -270,59 +228,17 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
   );
 }
 
-function Step({ title }: { title: string }) {
-  return (
-    <View style={styles.step}>
-      <AppText variant="title">{title}</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   step: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
   },
-
   presets: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    gap: 8,
+    marginBottom: 10,
   },
   sections: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
-    overflow: 'hidden',
-  },
-  section: {
-    paddingHorizontal: theme.spacing.sm,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  sectionCheck: {
-    flex: 1,
-    minWidth: 0,
-  },
-  chevron: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  groupList: {
-    borderTopWidth: 1,
-    paddingVertical: theme.spacing.xxs,
-    paddingLeft: theme.spacing.lg,
-  },
-  pressed: {
-    opacity: 0.7,
+    gap: 8,
   },
 });

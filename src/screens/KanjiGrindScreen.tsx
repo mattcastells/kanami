@@ -5,6 +5,7 @@ import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { AppText } from '../components/ui/AppText';
+import { SectionStep } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { useKanjiProgress } from '../features/kanji/KanjiProgressProvider';
@@ -129,9 +130,9 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
         />
       }
     >
-      <ScreenHeader eyebrow="漢字" title="Kanji" />
+      <ScreenHeader eyebrow="漢字 · Practicar" title="Kanji" />
 
-      <Step title="Qué querés entrenar" />
+      <SectionStep n={1}>Qué querés entrenar</SectionStep>
 
       <ModeGrid wide>
         {FOCUS_OPTIONS.map((option) => (
@@ -147,7 +148,9 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
         ))}
       </ModeGrid>
 
-      <Step title="Con qué kanji" />
+      <View style={styles.step}>
+        <SectionStep n={2}>Con qué kanji</SectionStep>
+      </View>
 
       <View style={styles.presets}>
         {(Object.keys(PRESET_LABELS) as Preset[]).map((option) => (
@@ -163,13 +166,11 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
       <View style={styles.presets}>
         <SelectChip
           label="Todas las categorías"
-          grow
           selected={selectedCategories.length === allCategoryIds.length}
           onPress={() => setSelectedCategories(allCategoryIds)}
         />
         <SelectChip
           label="Limpiar"
-          grow
           selected={false}
           onPress={() => setSelectedCategories([])}
         />
@@ -186,7 +187,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
         ))}
       </View>
 
-      <AppText variant="bodySmall" color={activeTheme.colors.textMuted} style={styles.hint}>
+      <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.hint}>
         {focusMeta.description}. Cada sesión toma un lote chico y prioriza lo que peor te
         sale; los kanji nuevos se presentan antes de preguntártelos.
       </AppText>
@@ -194,33 +195,20 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
   );
 }
 
-function Step({ title }: { title: string }) {
-
-  return (
-    <View style={styles.step}>
-      <AppText variant="title">{title}</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   step: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
   },
   presets: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    gap: 8,
+    marginBottom: 10,
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    gap: 8,
   },
   hint: {
     marginTop: theme.spacing.md,

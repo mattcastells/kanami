@@ -43,7 +43,8 @@ export function ModeTile({ glyph, title, selected, onPress, description, wide = 
         </AppText>
       </View>
       <View style={styles.text}>
-        <AppText variant="bodyStrong" numberOfLines={1} color={selected ? colors.onHighlight : colors.textPrimary}>
+        {/* Dos renglones antes que cortar: "Palabra guiada" no entra en media fila. */}
+        <AppText variant="bodyStrong" numberOfLines={2} color={selected ? colors.onHighlight : colors.textPrimary}>
           {title}
         </AppText>
         {description ? (
