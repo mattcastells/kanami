@@ -97,20 +97,23 @@ Tiene que hacer exactamente esto:
 Composición estándar, en este orden:
 
 ```tsx
-<ScreenBackground scrollable={false}>      // scrollable solo si hay TextInput
-  <ScreenHeader eyebrow="反 · Antónimos" title={...} />
-  <View style={styles.statsRow}>           // 3 StatPill: Aciertos / Fallidos / Racha
-  <GlassCard>                              // el prompt + <SpeakButton /> en la esquina
-  <View style={styles.feedbackSlot}>       // <FeedbackBanner /> con minHeight fijo
-  <View style={styles.answersGrid}>        // <AnswerOptionButton /> por opción
+<ScreenBackground scrollable>                        // la partida ocupa el alto: el pie va abajo
+  <GameHeader eyebrow="反 · Antónimos" title={...} score={stats} />   // + progress si hay largo
+  <PromptCard help="¿Cómo se lee?" bottomRight={<SpeakButton ... />}>  // el prompt (Klee)
+  <View style={styles.answersGrid}>                  // <AnswerOptionButton /> por opción
+                                                     //   o <AnswerInput status={answerState} />
+  <GameFooter feedback={lastFeedback}>               // resultado + acción, abajo
+    <WaitingHint visible={answerState === 'idle'} /> // o SIGUIENTE / ENVIAR
+  </GameFooter>
 </ScreenBackground>
 ```
 
-- El `feedbackSlot` lleva `minHeight` fijo para que la UI no salte cuando aparece el banner.
-- Los colores de los `StatPill`: **leelos de `activeTheme.colors`**
-  (`.success`, `.error`, `.warning`, `.accent`), como hace `AntonymGameScreen`.
-  **No** declares un `const SUCCESS_COLOR = '#3E7D5C'`: fue la deuda D2 (ya limpiada) y
-  rompe el dark mode.
+- `GameFooter` reserva el alto del resultado para que la UI no salte cuando aparece.
+- Colores **siempre de `activeTheme.colors`**; texto chico de color en `*Ink`. **No**
+  declares un `const SUCCESS_COLOR = '#3E7D5C'`: fue la deuda D2 (ya limpiada) y rompe el
+  dark mode.
+- La ruta nueva va en `PLAYING_ROUTES` (`src/navigation/tabBar.ts`): durante la partida la
+  tab bar se oculta. Si te olvidás, la partida queda con la barra de pestañas abajo.
 - Si el contenido es japonés, poné un `<SpeakButton text={...} />`. **El audio no puede dar
   la respuesta**: si lo que se lee es justo lo que se pregunta (una lectura, la palabra que
   falta), el `SpeakButton` aparece **recién después de responder**. En Antónimos puede estar

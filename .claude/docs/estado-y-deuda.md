@@ -169,6 +169,30 @@ Decisión de producto: la teoría se estudia en Notion; la app es para practicar
   - `meaningExtra` y `usage` de `kanji.ts` ya no se muestran en la app.
   - `content/clases/INDEX.md` habla de "la sección Estudiar".
 
+## Séptima pasada — 2026-10-30 · rediseño 版画 Hanga
+
+Reemplazó a "Japón moderno". Paleta única (sin `tints`), contorno + sombra dura en todo lo
+tocable, Dela Gothic One + Zen Maru Gothic + Klee One. Referencia en `handoff/`.
+
+- **Piezas nuevas compartidas**: `GameHeader`, `GamePlay` (`PromptCard`, `GameFooter`,
+  `WaitingHint`), `AnswerInput`, `GameCard`, `ModeGrid`, `CheckSection`, `ReviewItemRow`,
+  `PillButton`, `hasJapanese`. Las partidas siguen el mismo esqueleto: cabecera → prompt →
+  opciones o campo → resultado y acción abajo.
+- **La tab bar se oculta durante la partida** (`PLAYING_ROUTES` en `navigation/tabBar.ts`;
+  la ronda del Repaso con `useHideTabBar`). Un modo nuevo tiene que sumarse a esa lista.
+- **El back lo dibuja la cabecera** (`useScreenBack`), no `ScreenBackground`. Los resúmenes
+  no tienen back: se sale con VOLVER.
+- Cabos sueltos:
+  - **Kyary no se migró** (está escondida): usa `accent` como color de texto y
+    `backgroundSecondary`. Migrarla cuando se rehabilite.
+  - **`Marker` (InkBits) no se usa**: es un `View` y no puede ir dentro de un texto que corta
+    de línea. La oración de la tarjeta learn resalta el kanji con fondo kihada en un `Text`.
+  - **La racha de la partida ya no se muestra**: la cabecera de partida lleva ○/×.
+  - **Los modos sin fin no tienen resumen** (Lectura, Escritura, Dibujo…): no se agregó
+    para no tocar la lógica de los juegos.
+  - El fantasma del lienzo de trazos se dibuja con los trazos de KanjiVG (no con la fuente),
+    porque es contra esos trazos que se corrige.
+
 ## Veredicto
 
 El proyecto está **sano**. `tsc --noEmit` pasa limpio, la separación engine/hook/screen es real

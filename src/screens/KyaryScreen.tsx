@@ -28,7 +28,7 @@ import { speak, stopSpeaking } from '../features/speech/speak';
 import { sendKyaryMessage, KyaryHistoryMessage } from '../services/kyary';
 import { useAppSettings } from '../settings/AppSettingsProvider';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { FONTS, hexToRgba, theme } from '../theme/theme';
 
 type PendingImage = {
   uri: string;
@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   input: {
-    fontFamily: 'ZenKakuGothicNew_400Regular',
+    fontFamily: FONTS.regular,
     fontSize: 15,
     lineHeight: 21,
     maxHeight: 80,

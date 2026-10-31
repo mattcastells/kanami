@@ -64,11 +64,16 @@ Para tareas específicas hay skills más finas: `kanami-modo-practica`, `kanami-
 
 Reusá primero. El inventario real es:
 
-- **ui/**: `ScreenBackground`, `GlassCard`, `AppText`, `PrimaryButton`, `ScreenHeader`,
-  `StatPill`, `SpeakButton`, `AnimatedCollapsible`, `AnimatedRow`, `ThemeCard`
-- **game/**: `AnswerOptionButton`, `FeedbackBanner`, `SessionSummary`, `HintToggle`,
-  `DrawingCanvas`, `DrawingPractice`, `ReadingDrillPlay`
-- **practice/**: `ModeTile`, `SelectChip`, `CheckRow`, `StartBar`, `ReadingDrillSetup`
+- **ui/**: `ScreenBackground` (+ `BackButton`, `useScreenBack`), `GlassCard`, `AppText`,
+  `PrimaryButton` (+ `PillButton`), `ScreenHeader`, `StatPill`, `SpeakButton`,
+  `AnimatedCollapsible`, `AnimatedRow`, `InkPressable`, `InkSwitch`, `InkBits` (`GradeMark`,
+  `ProgressTrack`, `SectionStep`, `Segmented`, `Marker`), `Seigaiha`, `Tanzaku`, `hasJapanese`
+- **game/**: `GameHeader`, `GamePlay` (`PromptCard`, `GameFooter`, `WaitingHint`), `AnswerInput`,
+  `AnswerOptionButton`, `FeedbackBanner`, `SessionSummary`, `HintToggle`, `DrawingCanvas`,
+  `DrawingPractice`, `ReadingDrillPlay`
+- **practice/**: `ModeTile` (+ `ModeGrid`), `GameCard`, `SelectChip`, `CheckRow` (+ `CheckSection`),
+  `StartBar`, `ReadingDrillSetup`
+- **review/**: `ReviewItemRow` (+ `ReviewItemList`, `RoundMarkButton`, `ReviewGroupHeader`)
 - **progress/**: `ProgressCard`
 - **kanji/**: `KanjiStatusChip`
 

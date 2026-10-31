@@ -93,12 +93,17 @@ src/
   settings/     AppSettingsProvider — persiste app-settings.json
   screens/      1 archivo por pantalla
   components/
-    ui/         primitives: ScreenBackground, GlassCard, AppText, PrimaryButton,
-                ScreenHeader, StatPill, SpeakButton, AnimatedCollapsible, AnimatedRow,
-                ThemeCard
-    game/       AnswerOptionButton, FeedbackBanner, SessionSummary, HintToggle,
+    ui/         primitives: ScreenBackground (+ BackButton, useScreenBack), GlassCard,
+                AppText, PrimaryButton (+ PillButton), ScreenHeader, StatPill, SpeakButton,
+                AnimatedCollapsible, AnimatedRow, InkPressable, InkSwitch, InkBits
+                (GradeMark, ProgressTrack, SectionStep, Segmented, Marker), Seigaiha,
+                Tanzaku, japanese (hasJapanese)
+    game/       GameHeader, GamePlay (PromptCard, GameFooter, WaitingHint), AnswerInput,
+                AnswerOptionButton, FeedbackBanner, SessionSummary, HintToggle,
                 DrawingCanvas, DrawingPractice, ReadingDrillPlay
-    practice/   ModeTile, SelectChip, CheckRow, StartBar, ReadingDrillSetup
+    practice/   ModeTile (+ ModeGrid), GameCard, SelectChip, CheckRow (+ CheckSection),
+                StartBar, ReadingDrillSetup
+    review/     ReviewItemRow (+ ReviewItemList, RoundMarkButton, ReviewGroupHeader)
     progress/   ProgressCard
     kanji/      KanjiStatusChip
   features/
@@ -136,7 +141,7 @@ Trío `engine + hook + screen`, uno por archivo. Referencia limpia y corta: **An
 |---|---|---|
 | Engine | `src/features/game/antonymGameEngine.ts` | `createAntonymRound`, `createInitialAntonymState`, `submitAntonymAnswer`, `moveToNextAntonymRound`. Importa `shuffle`, `AnswerState` y `GameStats` de `./gameEngine` |
 | Hook | `src/features/game/useAntonymGame.ts` | `useState` + `stateRef` espejo (decide fuera del updater), `lastFeedback`, haptics, timeout de auto-avance, limpieza en unmount |
-| Screen | `src/screens/AntonymGameScreen.tsx` | `ScreenBackground` + `ScreenHeader` + `StatPill`×3 + `GlassCard` + `FeedbackBanner` + `AnswerOptionButton`×N + `useTrackProgress` + `useTrackWeakItem` |
+| Screen | `src/screens/AntonymGameScreen.tsx` | `ScreenBackground` + `GameHeader` + `PromptCard` + `AnswerOptionButton`×N + `GameFooter` + `useTrackProgress` + `useTrackWeakItem` |
 
 Antónimos no tiene parámetros, así que su hook no se reinicia por `resetKey`. Para un modo
 con selección previa, el mismo trío con reset es **Significados** (`meaningGameEngine` /
@@ -220,17 +225,19 @@ Otras invariantes:
 
 ## 7. Sistema visual
 
-Fuente de verdad: `src/theme/theme.ts`. Paleta **"tinta y bermellón"**; **light es el default**.
+Rediseño **"版画 Hanga"** (2026-10-30). Fuente de verdad: `src/theme/theme.ts` + la sección
+"Sistema visual" de `CLAUDE.md` + la skill `kanami-ui`. Referencia visual (PNG claro/oscuro y
+SPEC con medidas) en `handoff/`.
 
-- Light: bg `#F7F4EF` · texto `#1C1A17` · accent `#C73E2E`
-- Dark ("sumi"): bg `#1B1A17` · texto `#F0EDE6` · accent `#D4553F`
-- Fuentes: `ZenOldMincho` (display/headline/kana) · `ZenKakuGothicNew` (cuerpo/labels/botones)
-- Esquinas casi rectas: `radii.sm = 4`. Sin glass/blur/glow (ese lenguaje fue removido;
-  `GlassCard` conserva el nombre y acepta `glowColor`/`intensity` como no-ops por compatibilidad).
+- Paleta única (sin color por juego): `primary` ruri para la acción, `highlight` kihada para
+  lo elegido, `accent` shu solo decorativo. Texto chico de color en las variantes `*Ink`.
+- Todo lo tocable: contorno 2px de tinta + sombra dura (`InkPressable`, `surfaces.*`).
+- Fuentes: Dela Gothic One (títulos, glifos de tile/tab, números) · Zen Maru Gothic (UI) ·
+  Klee One (`FONTS.glyph`: todo japonés que se lee, escribe o dibuja).
 
 **Regla dark-mode (se rompe fácil):** los colores se leen de `useAppTheme().theme.colors`.
 El `theme` importado estático **siempre es light** y solo sirve para `spacing`, `radii`,
-`typography`. Ejemplo correcto: `FeedbackBanner.tsx:22-23`.
+`typography`.
 
 ## 8. Testing (estado real)
 

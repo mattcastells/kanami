@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import { LayoutChangeEvent, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -20,18 +20,15 @@ type ScreenBackgroundProps = {
 };
 
 // El back lo dibuja la cabecera (`ScreenHeader` / `GameHeader`), en su fila. Acá solo se
-// decide SI hay back y se le pasa a la cabecera por contexto. Si ninguna cabecera lo
-// reclama, queda un back flotante arriba a la izquierda para no dejar la pantalla sin salida.
-type ScreenBack = { canGoBack: boolean; goBack: () => void; claim: () => () => void };
+// decide SI hay back y se le pasa a la cabecera por contexto. Los resúmenes de partida no
+// llevan back: se sale con VOLVER.
+type ScreenBack = { canGoBack: boolean; goBack: () => void };
 
 const ScreenBackContext = createContext<ScreenBack | null>(null);
 
-// Para cabeceras: devuelve si hay back y cómo volver, y le avisa a ScreenBackground que
-// el back ya está dibujado (así no aparece el flotante).
+// Para cabeceras: si hay back y cómo volver.
 export function useScreenBack() {
   const context = useContext(ScreenBackContext);
-  const claim = context?.claim;
-  useLayoutEffect(() => claim?.(), [claim]);
   return { canGoBack: context?.canGoBack ?? false, goBack: context?.goBack ?? (() => undefined) };
 }
 
@@ -47,23 +44,17 @@ export function ScreenBackground({
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const canGoBack = showBack && navigation.canGoBack();
-  const [claims, setClaims] = useState(0);
   // El overlay se mide en vez de asumir un alto fijo: una barra con resumen mide
   // bastante más que una sin él, y un valor fijo tapaba la última fila.
   const [overlayHeight, setOverlayHeight] = useState(96);
 
-  const claim = useCallback(() => {
-    setClaims((count) => count + 1);
-    return () => setClaims((count) => count - 1);
-  }, []);
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
-  const backContext = useMemo(() => ({ canGoBack, goBack, claim }), [canGoBack, goBack, claim]);
-  const floatingBack = canGoBack && claims === 0;
+  const backContext = useMemo(() => ({ canGoBack, goBack }), [canGoBack, goBack]);
 
   // El inset de arriba deja el contenido fuera de la barra de estado. El de abajo es de la
-  // tab bar (toda pantalla vive en una pestaña), así que acá no se suma.
-  const topPadding =
-    insets.top + (floatingBack ? SIZES.backButton + theme.spacing.lg : canGoBack ? 8 : 12);
+  // tab bar (toda pantalla vive en una pestaña), así que acá no se suma. Raíz de pestaña
+  // (sin back): 12; pantalla de stack: 8.
+  const topPadding = insets.top + (canGoBack ? 8 : 12);
   const bottomOverlayPadding = bottomOverlay ? overlayHeight + theme.spacing.md : 0;
 
   const handleOverlayLayout = (event: LayoutChangeEvent) => {
@@ -83,12 +74,6 @@ export function ScreenBackground({
   return (
     <ScreenBackContext.Provider value={backContext}>
       <View style={[styles.root, { backgroundColor: activeTheme.colors.background }]}>
-        {floatingBack ? (
-          <View style={[styles.floatingBack, { top: insets.top + 8 }]}>
-            <BackButton onPress={goBack} />
-          </View>
-        ) : null}
-
         {scrollable ? (
           <ScrollView
             bounces={false}
@@ -144,11 +129,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     overflow: 'hidden',
-  },
-  floatingBack: {
-    position: 'absolute',
-    left: SIZES.screenPaddingX,
-    zIndex: 10,
   },
   backButton: {
     width: SIZES.backButton,
