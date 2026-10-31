@@ -9,7 +9,7 @@ import { AppTheme } from '../../theme/theme';
 
 // El color sale SIEMPRE del theme activo: un hex local acá rompería el dark mode,
 // que es la deuda D2 del repo.
-export function kanjiStatusColor(status: KanjiStatus, activeTheme: AppTheme): string {
+function kanjiStatusColor(status: KanjiStatus, activeTheme: AppTheme): string {
   switch (status) {
     case 'dominado':
       return activeTheme.colors.success;

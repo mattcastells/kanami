@@ -17,6 +17,12 @@ description: Tocar Kyary (la asistente IA con Gemini), el modo voz, TTS/STT o cu
 **Leé la skill `claude-api` primero.** Es obligatoria en este repo para cualquier trabajo sobre
 Kyary o cualquier cosa LLM, incluso si parece un one-liner.
 
+## ⚠️ Kyary está escondida (desde 2026-10-27)
+
+Nadie la usaba: `KYARY_ENABLED = false` en `src/features/flags.ts` saca su pestaña y la
+sección de la API key de Perfil. El código está entero. Para rehabilitarla, ponelo en
+`true` y validá en web que la pestaña aparezca entre Repaso y Perfil.
+
 ## Contexto a leer primero
 
 1. `src/services/kyary.ts` (187 líneas) — el cliente entero

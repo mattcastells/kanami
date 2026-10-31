@@ -143,6 +143,15 @@ function buildRound(
   };
 }
 
+// Una ronda de una palabra puntual, con distractores de toda la cursada. La usa el Repaso
+// para armar las palabras que agregás a mano.
+export function createMeaningRoundFor(
+  entry: MeaningEntry,
+  direction: MeaningDirection,
+): MeaningRound {
+  return buildRound(entry, classVocabEntries, direction);
+}
+
 // Saca la próxima palabra de la vuelta. Al rearmar la vuelta, la que acaba de salir
 // no puede ser la primera de la siguiente.
 function drawNext(

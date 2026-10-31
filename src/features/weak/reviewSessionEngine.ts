@@ -62,8 +62,10 @@ export function buildReviewSession(
   srsStates: Record<string, SrsItemState>,
   today: string,
   size: number = REVIEW_SESSION_SIZE,
+  // Solo estos juegos. undefined = todos (y con relleno del SRS si no alcanza).
+  modeKeys?: string[],
 ): ReviewExercise[] {
-  const fromWeak = selectWeakQueue(weak, size).map<ReviewExercise>((item) => {
+  const fromWeak = selectWeakQueue(weak, size, modeKeys).map<ReviewExercise>((item) => {
     // Un 'choice' sin opciones guardadas (dato viejo o incompleto) se degrada a
     // escribir la respuesta, en vez de quedar sin nada donde tocar.
     const options = item.options.length > 1 ? shuffle(item.options) : [];
@@ -84,7 +86,9 @@ export function buildReviewSession(
   });
 
   const remaining = size - fromWeak.length;
-  if (remaining <= 0) return fromWeak;
+  // Si elegiste juegos puntuales, rellenar con kana sueltos sería meter lo que no pediste.
+  // Con "todos" (size infinito) tampoco: el relleno sería el mazo entero.
+  if (remaining <= 0 || modeKeys || !Number.isFinite(size)) return fromWeak;
 
   // Relleno: primero lo vencido del SRS, después lo que nunca viste.
   const due: SrsItem[] = [];

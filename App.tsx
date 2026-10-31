@@ -10,6 +10,7 @@ import { ZenOldMincho_700Bold } from '@expo-google-fonts/zen-old-mincho/700Bold'
 import { ZenKakuGothicNew_400Regular } from '@expo-google-fonts/zen-kaku-gothic-new/400Regular';
 import { ZenKakuGothicNew_500Medium } from '@expo-google-fonts/zen-kaku-gothic-new/500Medium';
 import { ZenKakuGothicNew_700Bold } from '@expo-google-fonts/zen-kaku-gothic-new/700Bold';
+import { ZenKakuGothicNew_900Black } from '@expo-google-fonts/zen-kaku-gothic-new/900Black';
 
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { KanjiProgressProvider } from './src/features/kanji/KanjiProgressProvider';
@@ -26,6 +27,7 @@ export default function App() {
     ZenKakuGothicNew_400Regular,
     ZenKakuGothicNew_500Medium,
     ZenKakuGothicNew_700Bold,
+    ZenKakuGothicNew_900Black,
   });
 
   if (!fontsLoaded) {

@@ -10,6 +10,9 @@ type GlassCardProps = {
   contentStyle?: StyleProp<ViewStyle>;
 };
 
+// La card base. El nombre es histórico (de cuando era vidrio esmerilado): hoy es una
+// superficie blanca que flota con sombra en claro y lleva borde fino en oscuro
+// (`surfaces.card` del theme decide cuál).
 export function GlassCard({ children, style, contentStyle }: GlassCardProps) {
   const { theme: activeTheme } = useAppTheme();
 
@@ -17,10 +20,8 @@ export function GlassCard({ children, style, contentStyle }: GlassCardProps) {
     <View
       style={[
         styles.card,
-        {
-          borderColor: activeTheme.colors.line,
-          backgroundColor: activeTheme.colors.backgroundSecondary,
-        },
+        activeTheme.surfaces.card,
+        { backgroundColor: activeTheme.colors.card },
         style,
         contentStyle,
       ]}
@@ -32,8 +33,7 @@ export function GlassCard({ children, style, contentStyle }: GlassCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
+    borderRadius: theme.radii.lg,
     padding: theme.spacing.lg,
   },
 });

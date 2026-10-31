@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { theme } from '../../theme/theme';
+import { hexToRgba, theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { AppText } from './AppText';
 
@@ -25,8 +25,9 @@ type PrimaryButtonProps = {
   textStyle?: StyleProp<TextStyle>;
 };
 
-const PRIMARY_TEXT = '#F7F4EF';
-
+// primary/accent → sakura lleno: la acción principal de la pantalla (una sola).
+// secondary      → índigo suave: acciones de apoyo ("VER TU LISTA").
+// ghost          → solo texto: lo que casi nadie toca ("SALTEAR", "BORRAR").
 export function PrimaryButton({
   title,
   onPress,
@@ -37,22 +38,25 @@ export function PrimaryButton({
   icon,
   textStyle,
 }: PrimaryButtonProps) {
-  const { theme: activeTheme } = useAppTheme();
+  const { theme: activeTheme, mode } = useAppTheme();
   const isFilled = variant === 'primary' || variant === 'accent';
   const isSecondary = variant === 'secondary';
   const isCompact = size === 'compact';
+  const { colors } = activeTheme;
+
+  // En oscuro el índigo de marca casi no se separa del fondo: el secundario usa el texto.
+  const secondaryTone = mode === 'dark' ? colors.textPrimary : colors.brand;
 
   const backgroundColor = isFilled
-    ? activeTheme.colors.accent
+    ? colors.accent
     : isSecondary
-      ? activeTheme.colors.backgroundSecondary
+      ? hexToRgba(secondaryTone, mode === 'dark' ? 0.1 : 0.07)
       : 'transparent';
-  const borderColor = isFilled ? activeTheme.colors.accent : activeTheme.colors.line;
   const textColor = isFilled
-    ? PRIMARY_TEXT
+    ? colors.onAccent
     : isSecondary
-      ? activeTheme.colors.textPrimary
-      : activeTheme.colors.textSecondary;
+      ? secondaryTone
+      : colors.textSecondary;
 
   return (
     <Pressable
@@ -62,7 +66,10 @@ export function PrimaryButton({
         styles.button,
         styles.focusReset,
         isCompact ? styles.compact : null,
-        { backgroundColor, borderColor },
+        { backgroundColor },
+        isFilled && !disabled
+          ? { boxShadow: `0 6px 16px ${hexToRgba(colors.accent, mode === 'dark' ? 0.18 : 0.28)}` }
+          : null,
         style,
         pressed && !disabled ? styles.pressed : null,
         disabled ? styles.disabled : null,
@@ -71,7 +78,7 @@ export function PrimaryButton({
       <View style={styles.row}>
         {icon}
         <AppText
-          variant="overline"
+          variant="label"
           color={textColor}
           style={[styles.text, isCompact ? styles.compactText : null, textStyle]}
           numberOfLines={1}
@@ -88,17 +95,16 @@ const styles = StyleSheet.create({
     minHeight: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 14,
-    borderRadius: theme.radii.sm,
-    borderWidth: 1,
+    paddingHorizontal: 18,
+    borderRadius: theme.radii.md,
   },
   focusReset: {
     outlineWidth: 0,
     outlineColor: 'transparent',
   },
   compact: {
-    minHeight: 44,
-    paddingHorizontal: 12,
+    minHeight: 48,
+    paddingHorizontal: 14,
   },
   row: {
     flexDirection: 'row',
@@ -111,19 +117,19 @@ const styles = StyleSheet.create({
   text: {
     flexShrink: 1,
     textAlign: 'center',
-    fontSize: 11,
-    lineHeight: 14,
-    letterSpacing: 1.15,
+    fontSize: 13,
+    lineHeight: 17,
+    letterSpacing: 1,
   },
   compactText: {
-    fontSize: 10,
-    lineHeight: 12,
-    letterSpacing: 1.3,
+    fontSize: 12,
+    lineHeight: 16,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.88,
+    transform: [{ scale: 0.985 }],
   },
   disabled: {
-    opacity: 0.45,
+    opacity: 0.4,
   },
 });

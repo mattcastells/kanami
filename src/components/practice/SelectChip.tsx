@@ -21,7 +21,11 @@ export function SelectChip({
   count,
   grow = false,
 }: SelectChipProps) {
-  const { theme: activeTheme } = useAppTheme();
+  const { theme: activeTheme, mode } = useAppTheme();
+  const { colors } = activeTheme;
+  // Elegido = lleno: índigo en claro, sakura en oscuro (el índigo se pierde en la noche).
+  const fill = mode === 'dark' ? colors.accent : colors.brand;
+  const onFill = mode === 'dark' ? colors.onAccent : colors.onBrand;
 
   return (
     <Pressable
@@ -31,10 +35,9 @@ export function SelectChip({
         styles.focusReset,
         grow && styles.grow,
         {
-          borderColor: selected ? activeTheme.colors.accent : activeTheme.colors.line,
           backgroundColor: selected
-            ? hexToRgba(activeTheme.colors.accent, 0.1)
-            : activeTheme.colors.backgroundSecondary,
+            ? fill
+            : hexToRgba(colors.textPrimary, activeTheme.opacity.tintSoft * 0.5),
         },
         pressed && styles.pressed,
       ]}
@@ -42,9 +45,7 @@ export function SelectChip({
       <AppText
         variant="label"
         numberOfLines={1}
-        color={
-          selected ? activeTheme.colors.accent : activeTheme.colors.textSecondary
-        }
+        color={selected ? onFill : colors.textSecondary}
       >
         {label}
         {count != null ? ` · ${count}` : ''}
@@ -56,9 +57,8 @@ export function SelectChip({
 const styles = StyleSheet.create({
   chip: {
     minHeight: 36,
-    paddingHorizontal: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
     borderRadius: theme.radii.pill,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

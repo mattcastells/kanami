@@ -53,13 +53,11 @@ export function FeedbackBanner({
     <View
       style={[
         styles.container,
-        {
-          backgroundColor: 'transparent',
-          borderColor:
-            status === 'idle'
-              ? activeTheme.colors.line
-              : hexToRgba(tone, 0.48),
-        },
+        // Vacío no ocupa lugar visual (el slot igual reserva el alto); con resultado es
+        // una tira teñida del color del resultado.
+        status === 'idle'
+          ? null
+          : { backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft) },
       ]}
     >
       {status === 'idle' ? null : (
@@ -72,7 +70,7 @@ export function FeedbackBanner({
                   : 'check-circle-outline'
                 : 'close-circle-outline'
             }
-            size={16}
+            size={18}
             color={tone}
           />
           <View style={styles.messageWrap}>
@@ -103,11 +101,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: theme.spacing.xs,
     minHeight: 44,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    shadowOffset: { width: 0, height: 0 },
+    borderRadius: theme.radii.md,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   messageWrap: {
     flex: 1,

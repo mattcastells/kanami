@@ -46,7 +46,7 @@ export function ScreenBackground({
   // owned by the tab bar (every screen lives inside a tab), so we don't add a
   // bottom safe-area inset here — doing so left a dead band that clipped the
   // last card.
-  const topPadding = insets.top + (canGoBack ? 52 : theme.spacing.sm);
+  const topPadding = insets.top + (canGoBack ? 60 : theme.spacing.md);
   const bottomOverlayPadding = bottomOverlay
     ? overlayHeight + theme.spacing.md
     : 0;
@@ -73,10 +73,10 @@ export function ScreenBackground({
           hitSlop={8}
           style={({ pressed }) => [
             styles.backButton,
+            activeTheme.surfaces.card,
             {
-              top: insets.top + theme.spacing.xs,
-              borderColor: activeTheme.colors.line,
-              backgroundColor: activeTheme.colors.backgroundSecondary,
+              top: insets.top + theme.spacing.sm,
+              backgroundColor: activeTheme.colors.card,
             },
             pressed ? styles.backPressed : null,
           ]}
@@ -132,8 +132,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     width: 40,
     height: 40,
-    borderRadius: theme.radii.sm,
-    borderWidth: 1,
+    borderRadius: theme.radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },

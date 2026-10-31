@@ -1,46 +1,45 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '../components/ui/AppText';
+import { KYARY_ENABLED } from '../features/flags';
 import { useAppTheme } from '../theme/AppThemeProvider';
+import { FONTS, hexToRgba } from '../theme/theme';
 import { RootStackParamList } from '../types/navigation';
-import { ClassNoteScreen } from '../screens/ClassNoteScreen';
-import { ClassNotesScreen } from '../screens/ClassNotesScreen';
-import { DictationGameScreen } from '../screens/DictationGameScreen';
+import { AntonymGameScreen } from '../screens/AntonymGameScreen';
+import { DateTimeGameScreen } from '../screens/DateTimeGameScreen';
+import { DateTimeSetupScreen } from '../screens/DateTimeSetupScreen';
 import { EmojiGameScreen } from '../screens/EmojiGameScreen';
 import { GameScreen } from '../screens/GameScreen';
 import { MeaningGameScreen } from '../screens/MeaningGameScreen';
 import { MeaningSetupScreen } from '../screens/MeaningSetupScreen';
-import { PronunciationGameScreen } from '../screens/PronunciationGameScreen';
+import { ReviewAddScreen } from '../screens/ReviewAddScreen';
+import { ReviewListScreen } from '../screens/ReviewListScreen';
 import { ReviewScreen } from '../screens/ReviewScreen';
 import { HiraganaSelectionScreen } from '../screens/HiraganaSelectionScreen';
 import { PracticeScreen } from '../screens/PracticeScreen';
-import { KanjiCategoryScreen } from '../screens/KanjiCategoryScreen';
-import { KanjiDetailScreen } from '../screens/KanjiDetailScreen';
+import { KanasScreen } from '../screens/KanasScreen';
 import { KanjiDrawScreen } from '../screens/KanjiDrawScreen';
 import { KanjiGrindGameScreen } from '../screens/KanjiGrindGameScreen';
 import { KanjiGrindScreen } from '../screens/KanjiGrindScreen';
-import { KanjiListScreen } from '../screens/KanjiListScreen';
 import { KyaryScreen } from '../screens/KyaryScreen';
+import { NumbersGameScreen } from '../screens/NumbersGameScreen';
+import { NumbersSetupScreen } from '../screens/NumbersSetupScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { ClassQuizScreen } from '../screens/ClassQuizScreen';
-import { StudyTopicScreen } from '../screens/StudyTopicScreen';
-import { StudyTopicsScreen } from '../screens/StudyTopicsScreen';
 import { KanaBoardGameScreen } from '../screens/KanaBoardGameScreen';
-import { TimesGameScreen } from '../screens/TimesGameScreen';
 import { TranslationGameScreen } from '../screens/TranslationGameScreen';
-import { VocabularyListScreen } from '../screens/VocabularyListScreen';
-import { VocabularyThemeScreen } from '../screens/VocabularyThemeScreen';
 import { VocabularyScreen } from '../screens/VocabularyScreen';
 
-// Tabs: 練 Practicar · 学 Estudiar · 話 Kyary · 私 Perfil
-// Los stacks de práctica y estudio viven adentro de sus tabs.
+// Tabs: 練 Practicar · 復 Repaso · 私 Perfil
+// La app es SOLO práctica: la teoría (apuntes de clase, fichas de kanji, listas de
+// vocabulario) se estudia en Notion. La pestaña 学 Estudiar se quitó el 2026-10-27.
+// 話 Kyary está escondida detrás de KYARY_ENABLED (features/flags.ts), no borrada.
 
 const Tab = createBottomTabNavigator();
 const PracticeStack = createNativeStackNavigator<RootStackParamList>();
-const StudyStack = createNativeStackNavigator<RootStackParamList>();
+const ReviewStack = createNativeStackNavigator<RootStackParamList>();
 
 const stackScreenOptions = {
   headerShown: false,
@@ -52,6 +51,7 @@ function PracticeNavigator() {
   return (
     <PracticeStack.Navigator initialRouteName="Practice" screenOptions={stackScreenOptions}>
       <PracticeStack.Screen name="Practice" component={PracticeScreen} />
+      <PracticeStack.Screen name="Kanas" component={KanasScreen} />
       <PracticeStack.Screen name="KanaGroups" component={HiraganaSelectionScreen} />
       <PracticeStack.Screen name="KanaGame" component={GameScreen} />
       <PracticeStack.Screen name="KanaBoardGame" component={KanaBoardGameScreen} />
@@ -60,36 +60,15 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="KanjiDraw" component={KanjiDrawScreen} />
       <PracticeStack.Screen name="Vocabulary" component={VocabularyScreen} />
       <PracticeStack.Screen name="EmojiGame" component={EmojiGameScreen} />
-      <PracticeStack.Screen name="TimesGame" component={TimesGameScreen} />
+      <PracticeStack.Screen name="Numbers" component={NumbersSetupScreen} />
+      <PracticeStack.Screen name="NumbersGame" component={NumbersGameScreen} />
+      <PracticeStack.Screen name="DateTime" component={DateTimeSetupScreen} />
+      <PracticeStack.Screen name="DateTimeGame" component={DateTimeGameScreen} />
+      <PracticeStack.Screen name="AntonymGame" component={AntonymGameScreen} />
       <PracticeStack.Screen name="Meanings" component={MeaningSetupScreen} />
       <PracticeStack.Screen name="MeaningGame" component={MeaningGameScreen} />
-      <PracticeStack.Screen name="DictationGame" component={DictationGameScreen} />
-      <PracticeStack.Screen name="PronunciationGame" component={PronunciationGameScreen} />
       <PracticeStack.Screen name="TranslationGame" component={TranslationGameScreen} />
-      <PracticeStack.Screen name="Review" component={ReviewScreen} />
     </PracticeStack.Navigator>
-  );
-}
-
-function StudyNavigator() {
-  return (
-    <StudyStack.Navigator initialRouteName="StudyTopics" screenOptions={stackScreenOptions}>
-      <StudyStack.Screen name="StudyTopics" component={StudyTopicsScreen} />
-      <StudyStack.Screen name="StudyTopic" component={StudyTopicScreen} />
-      <StudyStack.Screen name="ClassNotes" component={ClassNotesScreen} />
-      <StudyStack.Screen name="ClassNote" component={ClassNoteScreen} />
-      <StudyStack.Screen name="ClassQuiz" component={ClassQuizScreen} />
-      <StudyStack.Screen name="VocabularyList" component={VocabularyListScreen} />
-      <StudyStack.Screen name="VocabularyTheme" component={VocabularyThemeScreen} />
-      {/* Igual que ClassQuiz: se juega sin salir de Estudiar, así el "atrás" vuelve a
-          la temática y no a la grilla de Practicar. */}
-      <StudyStack.Screen name="MeaningGame" component={MeaningGameScreen} />
-      {/* La sección Kanji vive en Estudiar: es para aprender y consultar. Practicarlos
-          es Kanji Grind, que está en el stack de Practicar. */}
-      <StudyStack.Screen name="KanjiList" component={KanjiListScreen} />
-      <StudyStack.Screen name="KanjiCategory" component={KanjiCategoryScreen} />
-      <StudyStack.Screen name="KanjiDetail" component={KanjiDetailScreen} />
-    </StudyStack.Navigator>
   );
 }
 
@@ -97,19 +76,29 @@ function StudyNavigator() {
 // dentro del ícono: así el alto lo calcula react-navigation y la etiqueta deja de
 // recortarse. `allowFontScaling={false}` porque el alto de la barra es fijo y el
 // escalado de fuente del sistema la desbordaba en algunos dispositivos.
+// La pestaña activa lleva una pastilla sakura suave detrás del glifo.
 function TabGlyph({ glyph, focused }: { glyph: string; focused: boolean }) {
   const { theme: activeTheme } = useAppTheme();
 
   return (
-    <AppText
-      allowFontScaling={false}
+    <View
       style={[
-        styles.tabGlyph,
-        { color: focused ? activeTheme.colors.accent : activeTheme.colors.textMuted },
+        styles.tabPill,
+        focused && {
+          backgroundColor: hexToRgba(activeTheme.colors.accent, activeTheme.opacity.tintSoft * 1.4),
+        },
       ]}
     >
-      {glyph}
-    </AppText>
+      <AppText
+        allowFontScaling={false}
+        style={[
+          styles.tabGlyph,
+          { color: focused ? activeTheme.colors.accent : activeTheme.colors.textMuted },
+        ]}
+      >
+        {glyph}
+      </AppText>
+    </View>
   );
 }
 
@@ -130,18 +119,38 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   );
 }
 
-// Estudiar va PRIMERA: es la pantalla de entrada. Ahí está el contenido para aprender
-// (clases, kanji, vocabulario, temas); Practicar es solo la grilla de juegos.
-const TABS = [
-  { name: 'StudyTab', component: StudyNavigator, glyph: '学', label: 'Estudiar' },
-  { name: 'PracticeTab', component: PracticeNavigator, glyph: '練', label: 'Practicar' },
-  { name: 'KyaryTab', component: KyaryScreen, glyph: '話', label: 'Kyary' },
-  { name: 'ProfileTab', component: ProfileScreen, glyph: '私', label: 'Perfil' },
-] as const;
+// El Repaso tiene pestaña propia: es la parte de la app que es TUYA (lo que fallaste y lo
+// que elegiste repasar), no un juego más de la grilla.
+function ReviewNavigator() {
+  return (
+    <ReviewStack.Navigator initialRouteName="Review" screenOptions={stackScreenOptions}>
+      <ReviewStack.Screen name="Review" component={ReviewScreen} />
+      <ReviewStack.Screen name="ReviewList" component={ReviewListScreen} />
+      <ReviewStack.Screen name="ReviewAdd" component={ReviewAddScreen} />
+    </ReviewStack.Navigator>
+  );
+}
 
-// Alto de la zona tocable (glifo 26 + etiqueta 14 + respiro). El inset del sistema se
-// suma aparte, nunca se descuenta de acá.
-const TAB_CONTENT_HEIGHT = 52;
+type TabSpec = {
+  name: string;
+  component: () => React.JSX.Element;
+  glyph: string;
+  label: string;
+};
+
+// Practicar va primera: es la pantalla de entrada.
+const TABS: TabSpec[] = [
+  { name: 'PracticeTab', component: PracticeNavigator, glyph: '練', label: 'Practicar' },
+  { name: 'ReviewTab', component: ReviewNavigator, glyph: '復', label: 'Repaso' },
+  ...(KYARY_ENABLED
+    ? [{ name: 'KyaryTab', component: KyaryScreen, glyph: '話', label: 'Kyary' }]
+    : []),
+  { name: 'ProfileTab', component: ProfileScreen, glyph: '私', label: 'Perfil' },
+];
+
+// Alto de la zona tocable (pastilla 30 + etiqueta 14 + respiro). El inset del sistema
+// se suma aparte, nunca se descuenta de acá.
+const TAB_CONTENT_HEIGHT = 60;
 // Piso del inset inferior: si el sistema reporta 0 (algunos Android con botones físicos,
 // o el primer render antes de medir), igual queda separación de la barra del sistema.
 const MIN_BOTTOM_INSET = 8;
@@ -155,16 +164,20 @@ export function RootNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        // Sin borde: la barra se separa del contenido con una sombra hacia arriba (en
+        // oscuro, con el borde fino de las superficies).
         tabBarStyle: {
-          backgroundColor: activeTheme.colors.background,
+          backgroundColor: activeTheme.colors.card,
+          borderTopWidth: activeTheme.mode === 'dark' ? 1 : 0,
           borderTopColor: activeTheme.colors.line,
-          borderTopWidth: 1,
+          boxShadow:
+            activeTheme.mode === 'dark' ? 'none' : '0 -4px 20px rgba(21, 27, 48, 0.06)',
           height: TAB_CONTENT_HEIGHT + bottomInset,
-          paddingTop: 6,
+          paddingTop: 8,
           paddingBottom: bottomInset,
         },
         tabBarItemStyle: { paddingVertical: 0 },
-        tabBarIconStyle: { height: 26 },
+        tabBarIconStyle: { height: 30, width: 56 },
         sceneStyle: { backgroundColor: activeTheme.colors.background },
       }}
     >
@@ -184,16 +197,24 @@ export function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
+  tabPill: {
+    width: 56,
+    height: 30,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   tabGlyph: {
-    fontFamily: 'ZenOldMincho_700Bold',
-    fontSize: 20,
-    lineHeight: 26,
+    fontFamily: FONTS.bold,
+    fontSize: 17,
+    lineHeight: 22,
     textAlign: 'center',
   },
   tabLabel: {
-    fontFamily: 'ZenKakuGothicNew_700Bold',
+    fontFamily: FONTS.bold,
     fontSize: 10,
     lineHeight: 14,
+    marginTop: 2,
     textAlign: 'center',
   },
 });

@@ -15,16 +15,21 @@ Es el tipo de tarea más frecuente del repo. Hay un patrón establecido: seguilo
 
 ## Contexto a leer primero
 
-Leé el trío de **Horarios**, que es la referencia más limpia y corta:
+Leé el trío de **Antónimos**, que es la referencia más limpia y corta:
 
-1. `src/features/game/timesGameEngine.ts` (174 líneas) — engine puro
-2. `src/features/game/useTimesGame.ts` (95 líneas) — hook
-3. `src/screens/TimesGameScreen.tsx` (155 líneas) — pantalla
+1. `src/features/game/antonymGameEngine.ts` (~160 líneas) — engine puro
+2. `src/features/game/useAntonymGame.ts` (~85 líneas) — hook
+3. `src/screens/AntonymGameScreen.tsx` (~175 líneas) — pantalla
+
+Antónimos no tiene parámetros, así que no tiene pantalla de selección ni reset por
+`resetKey`. Si tu modo los necesita, mirá **Significados** (`meaningGameEngine`,
+`useMeaningGame`, `MeaningSetupScreen` + `MeaningGameScreen`): mismo patrón, con reset.
 
 Otros tríos del mismo patrón, por si tu caso se parece más a alguno:
-`emojiGameEngine` (matcheo con imagen), `dictationGameEngine` (escuchar y escribir),
+`emojiGameEngine` (matcheo con imagen), `readingDrillEngine` (cifras ↔ lectura, con fuente enchufable),
 `kanjiGrindEngine` (sesión por lote con fase de presentación), `fillBlankEngine`,
-`wordBuilderEngine`.
+`wordBuilderEngine`. Si es "algo escrito con cifras ↔ su lectura", no hagas un trío nuevo:
+escribí un `DrillSource` para `readingDrillEngine` (así están Números y Fechas y hora).
 
 ## Regla de ubicación
 
@@ -56,29 +61,35 @@ export function moveToNext<Nombre>Round(state, mode): <Nombre>SessionState
 
 Reglas del engine:
 
-- **Reusá `AnswerState` y `GameStats`** de `./gameEngine`. No definas tipos paralelos.
+- **Reusá `AnswerState`, `GameStats` y `shuffle`** de `./gameEngine`. No definas tipos
+  paralelos ni otra copia de `shuffle`.
 - `submit*Answer` **devuelve el estado sin cambios si `answerState !== 'idle'`**
-  (evita el doble tap). Ver `timesGameEngine.ts:146`.
+  (evita el doble tap). Ver `antonymGameEngine.ts:139`.
 - `create*Round` recibe el `previousId` y lo **excluye del pool** para no repetir seguido.
 - **Opción múltiple: deduplicá las opciones por el texto que se muestra.** Es un bug real ya
   pagado: じ/ぢ comparten romaji "ji", ず/づ comparten "zu", y en modo `mixed` あ/ア comparten
   todo. Si no deduplicás, tocar la opción visualmente correcta cuenta como error porque la
-  comparación es por id. Ver `gameEngine.ts:51-68` y `timesGameEngine.ts:106-113`.
+  comparación es por id. Ver `gameEngine.ts:53-70` y `antonymGameEngine.ts:98-112`.
 - `stats` se actualiza igual en todos lados: `correct`/`incorrect` suman, `streak` se
   reinicia a 0 en el fallo, `answered` siempre suma.
 
 ### 2. Hook — `src/features/game/use<Nombre>Game.ts`
 
-Copiá la estructura de `useTimesGame.ts`. Tiene que hacer exactamente esto:
+Copiá la estructura de `useAntonymGame.ts` (o `useMeaningGame.ts` si hay parámetros).
+Tiene que hacer exactamente esto:
 
 - `useState` inicializado con la función (`useState(() => createInitial...)`), no con el valor.
+- Un `stateRef` espejo + `commit(next)`: `answer` decide leyendo el ref y dispara haptics y
+  timer **afuera** de `setState`, nunca adentro del updater.
 - `lastFeedback` en su propio `useState` para alimentar `FeedbackBanner`.
-- `useEffect([mode, resetKey])` → limpia el timeout pendiente y reinicia estado + feedback.
+- Si el modo tiene parámetros: `useEffect([..., resetKey])` → limpia el timeout pendiente y
+  reinicia estado + feedback.
 - `useEffect(() => () => clearTimeout(...), [])` → limpieza en unmount. **No lo omitas.**
 - Haptics condicionados por `useAppSettings().settings.hapticsEnabled`, con
   `Haptics.NotificationFeedbackType.Success` / `.Error`.
-- Auto-avance con `setTimeout` (los tiempos usados hoy: ~180-260ms en acierto, ~260-520ms en
-  fallo — más tiempo cuando hay que leer la corrección).
+- Auto-avance con `setTimeout` (los tiempos usados hoy: ~180-260ms en acierto y ~260-700ms
+  en fallo en los modos de kana y Significados; Antónimos usa 700/1500ms porque después de
+  responder muestra las dos palabras con su traducción — más tiempo cuanto más hay que leer).
 - Devolvé `{ state, answer, lastFeedback }` (y `next` si el modo permite avance manual).
 
 ### 3. Pantalla — `src/screens/<Nombre>GameScreen.tsx`
@@ -87,7 +98,7 @@ Composición estándar, en este orden:
 
 ```tsx
 <ScreenBackground scrollable={false}>      // scrollable solo si hay TextInput
-  <ScreenHeader eyebrow="時 · Horarios" title={...} actionLabel="Invertir" onActionPress={...} />
+  <ScreenHeader eyebrow="反 · Antónimos" title={...} />
   <View style={styles.statsRow}>           // 3 StatPill: Aciertos / Fallidos / Racha
   <GlassCard>                              // el prompt + <SpeakButton /> en la esquina
   <View style={styles.feedbackSlot}>       // <FeedbackBanner /> con minHeight fijo
@@ -97,10 +108,13 @@ Composición estándar, en este orden:
 
 - El `feedbackSlot` lleva `minHeight` fijo para que la UI no salte cuando aparece el banner.
 - Los colores de los `StatPill`: **leelos de `activeTheme.colors`**
-  (`.success`, `.error`, `.warning`, `.accent`), como hace `KanjiGrindGameScreen`.
-  **No** copies el `const SUCCESS_COLOR = '#3E7D5C'` que aparece en otras pantallas: es la
-  deuda D2 y rompe el dark mode.
-- Si el contenido es japonés, poné un `<SpeakButton text={...} />`.
+  (`.success`, `.error`, `.warning`, `.accent`), como hace `AntonymGameScreen`.
+  **No** declares un `const SUCCESS_COLOR = '#3E7D5C'`: fue la deuda D2 (ya limpiada) y
+  rompe el dark mode.
+- Si el contenido es japonés, poné un `<SpeakButton text={...} />`. **El audio no puede dar
+  la respuesta**: si lo que se lee es justo lo que se pregunta (una lectura, la palabra que
+  falta), el `SpeakButton` aparece **recién después de responder**. En Antónimos puede estar
+  siempre porque lee la consigna y la respuesta es la otra palabra.
 
 ### 4. Ruta
 
@@ -111,17 +125,20 @@ Composición estándar, en este orden:
 ### 5. Progreso
 
 - Elegí un `modeKey` corto en kebab-case.
-- Agregalo a `PROGRESS_MODE_LABELS` en `src/features/progress/progressStore.ts:92-106`
+- Agregalo a `PROGRESS_MODE_LABELS` en `src/features/progress/progressStore.ts:39-59`
   con su etiqueta en español.
 - En la pantalla: `useTrackProgress('<modeKey>', state.stats);`
   Registra la sesión al desmontar y acumula el mejor streak solo.
+- En la pantalla: `useTrackWeakItem('<modeKey>', answerState, { itemId, format, prompt,
+  answer, options?, speakText? })` para que los errores lleguen al **Repaso**. Sin esto el
+  modo no existe para el Repaso. Ver `AntonymGameScreen.tsx:33-40`.
 
 ### 6. Entrada en la grilla de Practicar
 
 `src/screens/PracticeScreen.tsx` → agregá un objeto al array `cards`:
 
 ```ts
-{ glyph: '時', title: 'Horarios', onPress: () => navigation.navigate('TimesGame') },
+{ glyph: '反', title: 'Antónimos', onPress: () => navigation.navigate('AntonymGame') },
 ```
 
 El `glyph` es un kanji temático de un carácter. **No lleva subtítulo**: la grilla es pareja
@@ -140,6 +157,8 @@ Si el modo no está en esa grilla, no existe para el usuario.
 - [ ] Los colores salen de `activeTheme.colors`, no de constantes hex locales
 - [ ] La ruta está tipada en `RootStackParamList`
 - [ ] El `modeKey` está en `PROGRESS_MODE_LABELS`
+- [ ] La pantalla llama `useTrackWeakItem` (los errores llegan al Repaso)
+- [ ] El `SpeakButton` no dice la respuesta antes de responder
 - [ ] Hay una card en `PracticeScreen`
 - [ ] `npx tsc --noEmit` pasa
 

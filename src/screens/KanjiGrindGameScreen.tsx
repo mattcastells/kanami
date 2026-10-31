@@ -22,7 +22,7 @@ import { useKanjiGrind } from '../features/game/useKanjiGrind';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { FONTS, hexToRgba, theme } from '../theme/theme';
 import { KanjiEntry } from '../types/kanji';
 import { RootStackScreenProps } from '../types/navigation';
 
@@ -383,15 +383,15 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   promptText: {
-    fontFamily: 'ZenKakuGothicNew_700Bold',
+    fontFamily: FONTS.bold,
     fontSize: 26,
     lineHeight: 36,
     textAlign: 'center',
   },
   promptKanji: {
     fontSize: 76,
-    lineHeight: 88,
-    fontFamily: 'ZenOldMincho_700Bold',
+    lineHeight: 92,
+    fontFamily: FONTS.medium,
   },
   // La frase entera necesita bajar de cuerpo o se come tres renglones y empuja las
   // opciones fuera de pantalla.
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   kanjiOptionLabel: {
-    fontFamily: 'ZenOldMincho_700Bold',
+    fontFamily: FONTS.medium,
     fontSize: 34,
     lineHeight: 44,
   },
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   learnGlyph: {
-    fontFamily: 'ZenOldMincho_700Bold',
+    fontFamily: FONTS.medium,
     fontSize: 104,
     lineHeight: 120,
     textAlign: 'center',
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
   },
   summaryGlyph: {
-    fontFamily: 'ZenOldMincho_700Bold',
+    fontFamily: FONTS.bold,
     fontSize: 30,
     lineHeight: 38,
     width: 40,

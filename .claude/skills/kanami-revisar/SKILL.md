@@ -24,14 +24,15 @@ Y tené a mano `.claude/docs/estado-y-deuda.md`: si encontrás algo que ya está
 deuda conocida (D1-D12), no lo reportes como hallazgo nuevo — decí que el diff la agranda o
 la achica.
 
-## Los 10 defectos reales de este repo
+## Los 12 defectos reales de este repo
 
 ### 1. Color de estado hardcodeado → dark mode roto (el más frecuente)
 
 ```ts
 const SUCCESS_COLOR = '#3E7D5C';   // ❌ es el valor de light; en dark debe ser #5AA47C
 ```
-Ya pasa en 9 archivos (deuda D2). Correcto: `activeTheme.colors.success` / `.error` / `.accent`.
+Pasó en 9 archivos (deuda D2, ya limpiada: hoy esos hex solo viven en `theme.ts`). Que no
+vuelva. Correcto: `activeTheme.colors.success` / `.error` / `.accent`.
 También cuenta como defecto usar el `theme` **estático importado** para un color:
 ese objeto siempre es light.
 
@@ -44,8 +45,9 @@ Buscá `setTimeout` en el diff y confirmá que hay un `useEffect(() => () => cle
 
 Haptics, `setTimeout` u otro `setX` dentro del callback de `setState` rompe bajo StrictMode.
 El efecto va en un `useEffect` keyed por el estado.
-(Nota: `useHiraganaGame` y `useTimesGame` escriben variables del closure dentro del updater —
-patrón tolerado por ahora, deuda D12. **No lo repliques** en código nuevo.)
+(Nota: `useHiraganaGame` escribe variables del closure dentro del updater — patrón tolerado
+por ahora, deuda D12. **No lo repliques** en código nuevo: el patrón bueno es el `stateRef`
+espejo de `useAntonymGame` / `useMeaningGame`.)
 
 ### 4. Opciones de respuesta sin deduplicar por texto
 
@@ -79,9 +81,22 @@ Ese archivo ya tiene 1825 líneas y es legacy. Los modos nuevos van a pantalla p
 
 ### 10. Modo sin cerrar el circuito
 
-Un modo nuevo tiene 6 puntos de integración. Chequealos todos:
-ruta tipada · registrada en `RootNavigator` · `useTrackProgress` · `modeKey` en
-`PROGRESS_MODE_LABELS` · card en `PracticeScreen` · engine + hook separados.
+Un modo nuevo tiene 7 puntos de integración. Chequealos todos:
+ruta tipada · registrada en `RootNavigator` · `useTrackProgress` · `useTrackWeakItem` (si no,
+sus errores no llegan al Repaso) · `modeKey` en `PROGRESS_MODE_LABELS` · card en
+`PracticeScreen` · engine + hook separados.
+
+### 11. El audio da la respuesta
+
+Un `SpeakButton` visible antes de responder que lee justo lo que se pregunta (una lectura,
+la palabra que falta, la palabra que hay que armar) regala el ejercicio. Tiene que aparecer
+**recién después de responder**. Vale para los modos y para el Repaso (`ReviewScreen`). Si
+lee la consigna y la respuesta es otra cosa (Antónimos), puede estar siempre.
+
+### 12. Pantalla de teoría / consulta nueva
+
+La app es solo práctica desde el 2026-10-27: apuntes, fichas, listas y temas viven en
+Notion. Una pantalla de lectura nueva va contra esa decisión; marcala.
 
 ## Higiene
 

@@ -38,8 +38,7 @@ export function AnswerOptionButton({
   labelStyle,
   fullWidth = false,
 }: AnswerOptionButtonProps) {
-  const { theme: activeTheme, mode } = useAppTheme();
-  const isDark = mode === 'dark';
+  const { theme: activeTheme } = useAppTheme();
 
   // Correct: subtle scale pulse 1 -> 1.02 -> 1 (180ms).
   // Incorrect: horizontal shake +/-4px, 3 cycles (240ms).
@@ -100,27 +99,24 @@ export function AnswerOptionButton({
         pressed && !disabled ? styles.pressed : null,
       ]}
     >
+      {/* idle: card que flota; correcta/incorrecta: teñida y con borde del color del
+          resultado; muted: se apaga para que la vista vaya a las dos que importan. */}
       <Animated.View
         style={[
           styles.container,
-          {
-            borderColor:
-              visualState === 'idle'
-                ? isDark
-                  ? hexToRgba(activeTheme.colors.white, 0.28)
-                  : hexToRgba(activeTheme.colors.black, 0.15)
-                : visualState === 'muted'
-                  ? isDark
-                    ? hexToRgba(activeTheme.colors.white, 0.12)
-                    : hexToRgba(activeTheme.colors.black, 0.08)
-                  : tone,
-            backgroundColor:
-              visualState === 'muted'
-                ? isDark
-                  ? hexToRgba(activeTheme.colors.white, 0.02)
-                  : hexToRgba(activeTheme.colors.black, 0.02)
-                : activeTheme.colors.backgroundSecondary,
-          },
+          visualState === 'idle' ? activeTheme.surfaces.card : null,
+          visualState === 'correct' || visualState === 'incorrect'
+            ? {
+                borderWidth: 1.5,
+                borderColor: tone,
+                backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft),
+              }
+            : {
+                backgroundColor:
+                  visualState === 'muted'
+                    ? activeTheme.colors.backgroundTertiary
+                    : activeTheme.colors.card,
+              },
           animatedStyle,
         ]}
       >
@@ -130,7 +126,9 @@ export function AnswerOptionButton({
             color={
               isMuted
                 ? activeTheme.colors.textMuted
-                : activeTheme.colors.textPrimary
+                : visualState === 'idle'
+                  ? activeTheme.colors.textPrimary
+                  : tone
             }
             style={[styles.label, labelStyle]}
             numberOfLines={1}
@@ -155,7 +153,6 @@ const styles = StyleSheet.create({
   container: {
     minHeight: 64,
     borderRadius: theme.radii.md,
-    borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 10,
     justifyContent: 'center',

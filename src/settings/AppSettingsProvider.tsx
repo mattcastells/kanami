@@ -10,11 +10,12 @@ import {
 } from 'react';
 import { File, Paths } from 'expo-file-system';
 
-import { ThemeMode } from '../theme/theme';
+import { ThemePreference } from '../theme/theme';
 
 type AppSettings = {
   hapticsEnabled: boolean;
-  themeMode: ThemeMode;
+  // 'system' sigue al teléfono. Es el default desde el rediseño "Japón moderno".
+  themeMode: ThemePreference;
   // API key propia de Gemini (BYOK). Si está vacía, Kyary usa la embebida en el bundle.
   geminiApiKey: string;
   // Recordatorio diario (notificación local).
@@ -28,7 +29,7 @@ type AppSettings = {
 type AppSettingsContextValue = {
   settings: AppSettings;
   setHapticsEnabled: (enabled: boolean) => void;
-  setThemeMode: (mode: ThemeMode) => void;
+  setThemeMode: (mode: ThemePreference) => void;
   setGeminiApiKey: (key: string) => void;
   setReminderEnabled: (enabled: boolean) => void;
   setReminderHour: (hour: number) => void;
@@ -37,7 +38,7 @@ type AppSettingsContextValue = {
 
 const DEFAULT_SETTINGS: AppSettings = {
   hapticsEnabled: false,
-  themeMode: 'light',
+  themeMode: 'system',
   geminiApiKey: '',
   reminderEnabled: false,
   reminderHour: 20,
@@ -101,7 +102,7 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     }));
   }, []);
 
-  const setThemeMode = useCallback((mode: ThemeMode) => {
+  const setThemeMode = useCallback((mode: ThemePreference) => {
     userTouchedRef.current = true;
     setSettings((currentSettings) => ({
       ...currentSettings,
@@ -201,7 +202,10 @@ function normalizeSettings(value: unknown): AppSettings {
 
   return {
     hapticsEnabled: candidate.hapticsEnabled === true,
-    themeMode: record.themeMode === 'dark' ? 'dark' : 'light',
+    themeMode:
+      record.themeMode === 'dark' || record.themeMode === 'light'
+        ? record.themeMode
+        : 'system',
     geminiApiKey:
       typeof record.geminiApiKey === 'string' ? record.geminiApiKey : '',
     reminderEnabled: record.reminderEnabled === true,

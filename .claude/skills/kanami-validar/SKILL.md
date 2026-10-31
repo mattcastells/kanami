@@ -33,7 +33,8 @@ Revisá a mano:
 - [ ] Cero `console.log` / `console.warn` / `console.error` nuevos
 - [ ] Cero imports sin usar y cero entradas huérfanas en `StyleSheet.create`
 - [ ] Cero colores hex nuevos en pantallas o componentes (deben salir de `activeTheme.colors`)
-- [ ] Cero `shuffle`/`pickRandom` nuevos (ya hay 20 copias)
+- [ ] Cero `shuffle`/`pickRandom` nuevos: `shuffle` se importa de `gameEngine.ts`
+      (`pickRandom` todavía no está exportado; ya hay 12 copias)
 - [ ] Los comentarios que explican *por qué* siguen ahí (los de `ScreenBackground`, `speak.ts`,
       `gameEngine.ts` documentan bugs ya pagados — borrarlos los hace volver)
 - [ ] Nada de secretos ni `.env`
@@ -51,17 +52,21 @@ con el `tsc` que ya está instalado, sin agregar ninguna dependencia.
 
 ```bash
 # 1. compilar el engine (arrastra sus imports)
-npx tsc src/features/game/timesGameEngine.ts --outDir .tmp-check \
+npx tsc src/features/game/antonymGameEngine.ts --outDir .tmp-check \
   --module commonjs --target es2020 --skipLibCheck --rootDir .
 
 # 2. escribir un harness JS
 cat > .tmp-check/run.js <<'EOF'
-const e = require('./src/features/game/timesGameEngine.js');
-const r = e.createTimesRound('time-to-reading');
+const e = require('./src/features/game/antonymGameEngine.js');
+const r = e.createAntonymRound();
 console.log('opciones sin texto repetido:',
   new Set(r.options.map(o => o.text)).size === r.options.length);
-const s = e.submitTimesAnswer(e.createInitialTimesState('time-to-reading'), 'bogus');
+console.log('no repite la ronda anterior:',
+  e.createAntonymRound(r.roundId).roundId !== r.roundId);
+const s = e.submitAntonymAnswer(e.createInitialAntonymState(), 'bogus');
 console.log('stats tras fallo:', JSON.stringify(s.stats));
+console.log('el segundo tap no cuenta:',
+  e.submitAntonymAnswer(s, s.round.correctOptionId) === s);
 EOF
 
 # 3. correr y limpiar
@@ -69,7 +74,10 @@ node .tmp-check/run.js
 rm -rf .tmp-check
 ```
 
-Verificado el 2026-08-08 con `timesGameEngine`. **Node ESM directo no funciona**
+Verificado el 2026-10-27 con `antonymGameEngine` (arrastra `classVocabulary` y
+`antonyms`; salen `true` los tres chequeos y `{"correct":0,"incorrect":1,"streak":0,"answered":1}`).
+Si querés el árbol limpio, usá un `--outDir` fuera del repo (el scratchpad) y ajustá las
+rutas del `require` y del `node`. **Node ESM directo no funciona**
 (`node --experimental-strip-types` falla): los imports del repo son sin extensión y Node no
 los resuelve. Compilá a CommonJS como arriba.
 
@@ -80,7 +88,7 @@ Qué chequear según lo que tocaste:
 | Engine de opción múltiple | Opciones sin texto duplicado · no repite el prompt anterior · `submit` ignora el segundo tap · `streak` se reinicia al fallar |
 | `normalize*` de un store | Sobrevive a `null`, `{}`, `[]`, tipos equivocados y campos faltantes |
 | `wordVocabulary` | `kanaSyllables.join('') === kana` y misma longitud que `syllables`, para **todas** las entries |
-| Racha diaria | `applyDailyActivity` suma 1 solo por día; con gap > 1 día reinicia |
+| `antonyms.ts` | `ANTONYM_PAIR_COUNT` de `antonymGameEngine` = cantidad de pares cargados (un id inexistente descarta el par en silencio) |
 
 `.tmp-check/` es descartable — **borralo siempre** (no está en `.gitignore`).
 
@@ -119,7 +127,8 @@ explícito.**
 Checklist según el cambio:
 
 - **Modo de práctica**: ~10 rondas con aciertos y fallos · doble tap rápido (no debe contar
-  dos veces) · salir y volver → el progreso quedó registrado en Perfil
+  dos veces) · salir y volver → el progreso quedó registrado en Perfil · si el audio lee
+  lo que se pregunta, el `SpeakButton` aparece recién después de responder
 - **UI**: probalo en **light y dark** (Perfil → tema). El 90% de los bugs visuales de este repo
   son colores hardcodeados que solo se ven en dark
 - **Persistencia**: hacé el cambio, **recargá la página**, confirmá que sobrevivió

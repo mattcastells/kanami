@@ -1,9 +1,13 @@
 # Arquitectura real de Kanami
 
-> Actualizado el **2026-08-24**: sistema de kanji completo (dataset único con fichas,
-> sección Kanji en Estudiar, Kanji Grind en Practicar) y reordenamiento de la navegación —
-> **Estudiar pasó a ser la pantalla de entrada** y Practicar quedó como grilla pareja de
-> juegos, reemplazando al mosaico bento asimétrico.
+> Actualizado el **2026-10-27**: **la app pasa a ser solo práctica.** Se quitó la pestaña
+> 学 Estudiar entera (apuntes de clase, temas, vocabulario y kanji de consulta, quiz por
+> clase): la teoría vive en Notion. Quedan 3 tabs y 練 Practicar es la pantalla de entrada.
+> Horarios se reemplazó por **Fechas y hora** (motor compartido con **Números**) y se sumó
+> **Antónimos**.
+>
+> Historia: el 2026-08-24 entró el sistema de kanji (dataset único, Kanji Grind) y Estudiar
+> fue la pantalla de entrada hasta el 2026-10-27.
 >
 > Documento de referencia verificado contra el código el **2026-08-08** (commit `97ac8e6`).
 > Describe cómo está implementado el proyecto **hoy**, no cómo debería estar.
@@ -21,7 +25,7 @@
 | Test runner | **No hay** |
 | Único gate automático | `npx tsc --noEmit` — **hoy pasa limpio (exit 0)** |
 | Validación primaria | `npm run web` (web-first) |
-| Generadores | `npm run clases:generate` (apuntes) · `npm run kanji:generate` (procedencia de kanji) · `npm run kanji:strokes` (trazos) |
+| Generadores | `npm run kanji:generate` (valida `kanji.ts` + procedencia de kanji) · `npm run kanji:strokes` (trazos). `clases:generate` ya no existe (2026-10-27). |
 | Target de release | Android APK `arm64-v8a` por GitHub Actions |
 | Node local | v24.14.1 |
 
@@ -52,24 +56,31 @@ Las fuentes Zen se cargan con `useFonts` y la app renderiza `null` hasta que est
 
 ## 3. Navegación (`src/navigation/RootNavigator.tsx`)
 
-4 bottom tabs, `headerShown: false`, animación `fade`, sin labels nativos (glifos kanji
-dibujados con `TabGlyph`).
+3 bottom tabs, `headerShown: false`, animación `fade`. Glifo y etiqueta van en los slots
+nativos (`TabGlyph` en `tabBarIcon`, `TabLabel` en `tabBarLabel`), con
+`allowFontScaling={false}`.
 
 ```
-StudyTab    (学)  → PANTALLA DE ENTRADA. StudyStack: StudyTopics (la home: saludo +
-                    clases/kanji/vocabulario + temas) · StudyTopic · ClassNotes · ClassNote
-                    · ClassQuiz · VocabularyList · KanjiList · KanjiDetail
-PracticeTab (練)  → PracticeStack: Practice (grilla pareja de juegos) · KanaGroups · KanaGame
-                    · KanjiGrind · KanjiGrindGame · KanjiDraw · Vocabulary · EmojiGame
-                    · TimesGame · DictationGame · PronunciationGame · TranslationGame · Review
-KyaryTab    (話)  → KyaryScreen (sin stack)
+PracticeTab (練)  → PANTALLA DE ENTRADA. PracticeStack: Practice (grilla pareja de juegos)
+                    · KanaGroups · KanaGame · KanaBoardGame · KanjiGrind · KanjiGrindGame
+                    · KanjiDraw · Vocabulary · EmojiGame · Numbers · NumbersGame · DateTime
+                    · DateTimeGame · AntonymGame · Meanings · MeaningGame
+                    · TranslationGame (+ Kanas: puerta a Hiragana/Katakana/Kanji)
+ReviewTab   (復)  → ReviewStack: Review · ReviewList · ReviewAdd (el repaso del usuario)
+KyaryTab    (話)  → KyaryScreen — ESCONDIDA: solo existe con KYARY_ENABLED (features/flags.ts)
 ProfileTab  (私)  → ProfileScreen (= OptionsScreen, `src/screens/ProfileScreen.tsx` es un alias de 7 líneas)
 ```
 
+La pestaña 学 Estudiar (StudyTopics, StudyTopic, ClassNotes, ClassNote, ClassQuiz,
+VocabularyList, VocabularyTheme, KanjiList, KanjiCategory, KanjiDetail) **se quitó el
+2026-10-27**. No vuelvas a sumar pantallas de lectura/consulta: lo que haya que aprender,
+que sea jugando.
+
 - Todas las rutas y sus params viven en `src/types/navigation.ts` (`RootStackParamList`).
   Las pantallas se tipan con `RootStackScreenProps<'Ruta'>`.
-- **Cruzar de tab** requiere `navigation.getParent()`. Ejemplo real:
-  `StudyTopicScreen.tsx:152-169` (`parent?.navigate('PracticeTab', { screen: 'KanaGroups', params: {...} })`).
+- **Cruzar de tab** requiere `navigation.getParent()`:
+  `navigation.getParent()?.navigate('PracticeTab', { screen: '...', params: {...} })`. Hoy
+  ninguna pantalla lo hace (el único caso, Estudiar → Practicar, se fue con Estudiar).
 - El back button es automático: lo dibuja `ScreenBackground` cuando `navigation.canGoBack()`.
   Se desactiva con `showBack={false}` en pantallas raíz de tab.
 
@@ -83,14 +94,19 @@ src/
   screens/      1 archivo por pantalla
   components/
     ui/         primitives: ScreenBackground, GlassCard, AppText, PrimaryButton,
-                ScreenHeader, StatPill, SpeakButton, AnimatedCollapsible, AnimatedRow
-    game/       AnswerOptionButton, FeedbackBanner, SessionSummary,
-                DrawingCanvas, DrawingPractice
-    practice/   ModeTile, SelectChip, CheckRow, StartBar
+                ScreenHeader, StatPill, SpeakButton, AnimatedCollapsible, AnimatedRow,
+                ThemeCard
+    game/       AnswerOptionButton, FeedbackBanner, SessionSummary, HintToggle,
+                DrawingCanvas, DrawingPractice, ReadingDrillPlay
+    practice/   ModeTile, SelectChip, CheckRow, StartBar, ReadingDrillSetup
     progress/   ProgressCard
-    study/      ClassBlockView, ClassImage
+    kanji/      KanjiStatusChip
   features/
     game/       *Engine.ts (lógica PURA, sin React) + use*Game.ts (estado/timers/haptics)
+                + *DrillSource.ts (fuentes de ítems de readingDrillEngine)
+    kanji/      kanjiCatalog (única puerta de lectura) + KanjiProgressProvider + kanjiProgressStore
+    weak/       WeakProvider + weakStore + reviewSessionEngine + useTrackWeakItem + reviewCatalog
+                (el Repaso; la lista se edita en ReviewList / ReviewAdd)
     progress/   ProgressProvider + progressStore (puro) + useTrackProgress (solo byMode)
     srs/        SrsProvider + srsStore (puro)
     speech/     speak.ts (TTS expo-speech)
@@ -114,15 +130,26 @@ Existen **dos formas** en el repo, y hay que saber cuál usar:
 
 ### 5.1 Modo con pantalla propia — **este es el patrón a seguir**
 
-Trío `engine + hook + screen`, uno por archivo. Referencia limpia: **Horarios**.
+Trío `engine + hook + screen`, uno por archivo. Referencia limpia y corta: **Antónimos**.
 
 | Pieza | Archivo | Qué hace |
 |---|---|---|
-| Engine | `src/features/game/timesGameEngine.ts` | `TIMES_POOL`, `createTimesRound`, `createInitialTimesState`, `submitTimesAnswer`, `moveToNextTimesRound` |
-| Hook | `src/features/game/useTimesGame.ts` | `useState` del estado, `lastFeedback`, haptics, timeout de auto-avance, limpieza en unmount |
-| Screen | `src/screens/TimesGameScreen.tsx` | `ScreenBackground` + `ScreenHeader` + `StatPill`×3 + `GlassCard` + `FeedbackBanner` + `AnswerOptionButton`×N |
+| Engine | `src/features/game/antonymGameEngine.ts` | `createAntonymRound`, `createInitialAntonymState`, `submitAntonymAnswer`, `moveToNextAntonymRound`. Importa `shuffle`, `AnswerState` y `GameStats` de `./gameEngine` |
+| Hook | `src/features/game/useAntonymGame.ts` | `useState` + `stateRef` espejo (decide fuera del updater), `lastFeedback`, haptics, timeout de auto-avance, limpieza en unmount |
+| Screen | `src/screens/AntonymGameScreen.tsx` | `ScreenBackground` + `ScreenHeader` + `StatPill`×3 + `GlassCard` + `FeedbackBanner` + `AnswerOptionButton`×N + `useTrackProgress` + `useTrackWeakItem` |
 
-Otros ejemplos del mismo trío: `emoji`, `dictation`, `kanjiGrind`, `fill-blank`, `word-builder`.
+Antónimos no tiene parámetros, así que su hook no se reinicia por `resetKey`. Para un modo
+con selección previa, el mismo trío con reset es **Significados** (`meaningGameEngine` /
+`useMeaningGame` / `MeaningSetupScreen` + `MeaningGameScreen`).
+
+Otros ejemplos: `emoji`, `kanjiGrind`, `fill-blank`, `word-builder`.
+
+**Variante con fuente enchufable — Números y Fechas y hora.** Son el mismo ejercicio (cifra
+↔ lectura), así que comparten engine (`readingDrillEngine.ts`, que recibe un `DrillSource`),
+hook (`useReadingDrill`), partida (`components/game/ReadingDrillPlay`) y selección
+(`components/practice/ReadingDrillSetup`). Lo propio de cada uno es la fuente
+(`numberDrillSource`, `dateTimeDrillSource`) y sus tablas de lecturas (`data/numbers.ts`,
+`data/dateTime.ts`). Fechas y hora conserva el `modeKey` `times` del viejo Horarios.
 
 ### 5.2 Modos de kana dentro de `GameScreen.tsx` — **legacy, 1825 líneas**
 
@@ -217,8 +244,9 @@ node .tmp-check/run.js     # harness JS que hace require('./src/features/game/<e
 rm -rf .tmp-check
 ```
 
-Verificado el 2026-08-08 con `timesGameEngine` (108 entradas en el pool, dedupe de opciones OK).
-Node ESM directo **no** funciona: los imports del repo son sin extensión.
+Verificado el 2026-10-27 con `antonymGameEngine` (34 pares resueltos, opciones sin texto
+repetido, el segundo tap no cuenta). Node ESM directo **no** funciona: los imports del repo
+son sin extensión. Harness completo en la skill `kanami-validar`.
 
 ## 9. Integraciones externas
 
@@ -228,7 +256,7 @@ Node ESM directo **no** funciona: los imports del repo son sin extensión.
 | GitHub Releases | `src/features/update/releaseClient.ts` | Consulta `mattcastells/kanami` `/releases/latest`; exige un asset `.apk`. |
 | Instalación APK | `src/features/update/androidUpdater.ts` | `expo-intent-launcher` + `FLAG_GRANT_READ_URI_PERMISSION`. **Solo Android.** |
 | TTS | `src/features/speech/speak.ts` | `expo-speech`, `ja-JP`, rate 0.85. Gratis. |
-| STT | `expo-speech-recognition` | Web Speech API en web, reconocedor nativo en Android. Gratis. Usado en modo voz de Kyary y en `PronunciationGameScreen`. |
+| STT | `expo-speech-recognition` | Web Speech API en web, reconocedor nativo en Android. Gratis. Usado solo en el modo voz de Kyary (Pronunciación se quitó el 2026-10-27). |
 | Audio (grabación) | `expo-av` (`Audio`) | **Solo** en `KyaryScreen.tsx:15`. Paquete legacy. |
 
 ## 10. Release
@@ -241,66 +269,31 @@ Node ESM directo **no** funciona: los imports del repo son sin extensión.
 - Todas las APKs deben usar **la misma key** o Android no actualiza encima.
 - Doc extendida: `docs/release-and-versioning.md`.
 
-## 11. Contenido de estudio ← Notion
+## 11. Contenido de las clases ← Notion
 
-La pestaña **学 Estudiar** tiene **dos vistas del mismo material**, y conviene no confundirlas:
-
-### 11.1 Por clase — apuntes literales (agregado 2026-08-08)
-
-```
-content/clases/kurasu-NN.md  ─┐
-content/repaso.md            ─┴─> scripts/generate-class-notes.mjs
-                                  ├─> src/data/classNotes.generated.ts
-                                  │   ├─ CLASS_NOTES  (15 clases: 1-6, 8-16)
-                                  │   └─ QUICK_REVIEW (hoja de repaso)
-                                  └─> src/data/classImages.generated.ts
-                                      └─ CLASS_IMAGES (require() por imagen)
-                                         ↑ archivos en assets/clases/
-```
-
-Los apuntes aceptan imágenes con `![epígrafe](archivo.png)`. El generador **falla** si el
-archivo no está en `assets/clases/`, en vez de dejar un hueco mudo en el apunte. El mapa de
-`require()` se genera porque Metro resuelve assets en build y exige rutas literales.
-Render: `src/components/study/ClassImage.tsx` (aspect ratio real + zoom a pantalla completa).
-
-Son la transcripción de las clases reales de Notion, una por una, sin reordenar. El markdown
-es la fuente editable; el `.generated.ts` **no se toca a mano**. Regenerar con
-`npm run clases:generate`. Detalle completo en la skill `kanami-clases`.
-
-Pantallas: `ClassNotesScreen` (lista + buscador) · `ClassNoteScreen` (detalle, con los kanji
-de esa clase y el acceso al quiz) · `ClassQuizScreen`. Renderer compartido:
-`src/components/study/ClassBlockView.tsx`. Helpers puros: `src/features/classes/classNotes.ts`.
-
-La hoja de repaso global (`QuickReviewScreen`) se quitó el 2026-08-16: el repaso es por clase.
-
-**No existe Kurasu 7**: esa clase nunca se dictó.
-
-### 11.2 Por tema — reagrupación curada
-
-`src/data/studyTopics.ts:1-3` lo dice explícitamente:
+**Desde el 2026-10-27 la app no muestra teoría.** Apuntes, temas, fichas de kanji y listas de
+vocabulario se estudian en Notion (`日本語 | Nihongo > Clases`). Una clase llega a la app
+solo por lo que se puede practicar:
 
 ```
-// Temas de estudio generados desde las 14 clases de Notion (Kurasu 1–6, 8–15).
+Notion (Kurasu NN) ──> content/clases/kurasu-NN.md   transcripción, NO se bundlea
+                              │
+                              └─> scripts/generate-kanji-links.mjs  (npm run kanji:generate)
+src/data/classVocabulary.ts ──┘      └─> src/data/kanjiClasses.generated.ts
+       │                                 (en qué clases apareció cada kanji)
+       ├─> Significados (meaningGameEngine, lee el dataset directo)
+       ├─> Antónimos (pares por id en src/data/antonyms.ts)
+       └─> modos de palabra (vía la facade kana.ts) · Imágenes (si hay emoji)
 ```
 
-Los 9 temas son una reagrupación **temática** de las clases (cada `StudyTopic` lleva
-`sourceClasses: number[]` para trazabilidad):
+- `content/clases/*.md` se queda en el repo como **input de `kanji:generate`** (el número de
+  clase sale del nombre del archivo) y como referencia para cargar vocabulario. Clases: 1-6,
+  8-21, 23-26. **No existe Kurasu 7** (nunca se dictó) y de la 22 no hay material.
+- No hay generador de apuntes: `clases:generate`, `classNotes.generated.ts`,
+  `classImages.generated.ts`, `assets/clases/` y `content/repaso.md` se borraron.
+- Cuando entra una clase nueva, **la app no se actualiza sola**. Primero Notion
+  (`clase-a-notion`), después vocabulario + kanji + antónimos (skill `kanami-clases`).
 
-| # | id | título | sourceClasses |
-|---|---|---|---|
-| 一 | `fundamentos` | Fundamentos y escritura | 1, 2 |
-| 二 | `presentarse` | Presentarse y personas | 1, 3, 5, 9 |
-| 三 | `saludos` | Saludos y vida cotidiana | 1, 3, 9, 13 |
-| 四 | `particulas` | Partículas | 1, 2, 3, 5, 6, 11, 13, 15 |
-| 五 | `demostrativos` | Demostrativos y ubicación | 2, 4, 5, 8, 9 |
-| 六 | `numeros` | Números y precios | 3, 8, 9 |
-| 七 | `tiempo` | Tiempo y fechas | 10, 11, 12, 15 |
-| 八 | `verbos` | Verbos | 13, 14, 15 |
-| 九 | `vocabulario` | Vocabulario | 4, 6, 8, 9, 10 |
-
-**Consecuencia:** cuando entra una clase nueva a Notion, la app **no se actualiza sola**.
-Hay dos pasos independientes:
-
-1. Sumar `content/clases/kurasu-NN.md` + regenerar → aparece en **Mis clases** (skill `kanami-clases`).
-2. Si el tema aporta a uno de los 9 temas, editar `studyTopics.ts` → aparece en **Por tema**
-   (skill `kanami-contenido`). Esto se pregunta antes de hacerlo.
+Historia: entre el 2026-08-08 y el 2026-10-27 la pestaña 学 Estudiar tenía "Mis clases"
+(apuntes renderizados desde el markdown, con imágenes y un quiz por clase), 9 temas curados
+en `studyTopics.ts`, y las secciones de consulta de Kanji y Vocabulario.

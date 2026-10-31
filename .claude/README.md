@@ -20,8 +20,8 @@ porque el repo la cumple o porque romperla ya causó un bug.
 | `kanami-arquitectura` | No sabés dónde va el código nuevo. Contexto base. |
 | `kanami-modo-practica` | Agregás o modificás un modo de juego. **La tarea más común.** |
 | `kanami-ui` | Cualquier cambio visual, componente o pantalla. |
-| `kanami-contenido` | Sumás kana, vocabulario, kanji, frases o temas de Estudiar. |
-| `kanami-clases` | Sumás una clase o editás la hoja de repaso dentro de la app. |
+| `kanami-contenido` | Sumás kana, vocabulario, antónimos, kanji o frases. |
+| `kanami-clases` | Sumás una clase a la app (vocabulario + kanji; ya no hay apuntes). |
 | `kanami-persistencia` | Estado que sobrevive al cierre de la app; providers y stores. |
 | `kanami-kyary` | Gemini/BYOK, modo voz, integraciones externas. |
 | `kanami-validar` | **Siempre**, antes de dar algo por terminado. |
@@ -47,20 +47,18 @@ porque el repo la cumple o porque romperla ya causó un bug.
 
 ## Vínculo app ↔ Notion
 
-Las clases reales viven en Notion (`日本語 | Nihongo > Clases`) y llegan a la app por **dos
-caminos distintos**:
+**Kanami es solo práctica** (desde el 2026-10-27): la teoría — apuntes de clase, fichas de
+kanji, listas de vocabulario, temas — vive en Notion (`日本語 | Nihongo > Clases`). La app ya
+no tiene pestaña Estudiar, ni apuntes, ni quiz por clase.
 
-1. **Mis clases** — apuntes literales. `content/clases/kurasu-NN.md` + `content/repaso.md`
-   → `npm run clases:generate` → `src/data/classNotes.generated.ts`. Skill: `kanami-clases`.
-2. **Por tema** — reagrupación curada en `src/data/studyTopics.ts` (9 temas con
-   `sourceClasses`). Skill: `kanami-contenido`.
+Una clase nueva llega a la app **solo por lo que se puede practicar**, y nada se actualiza
+solo. El orden:
 
-Ninguno de los dos se actualiza solo. Cuando entra una clase nueva: primero Notion
-(`clase-a-notion`), después el markdown de la app (`kanami-clases`), y **preguntá** antes de
-tocar `studyTopics.ts`.
-
-`content/repaso.md` es la **fuente de repaso progresiva**: la chuleta que se mantiene al día
-clase a clase y que la app muestra en Estudiar → Repaso rápido.
+1. **Notion** — la página Kurasu (`clase-a-notion` + `apuntes-notion-estilo`).
+2. **La app** — skill `kanami-clases`: la transcripción en `content/clases/kurasu-NN.md` (no
+   se muestra, pero es input de `npm run kanji:generate`), el vocabulario en
+   `classVocabulary.ts`, los kanji en `kanji.ts` + `kanji:generate`, y los pares de opuestos
+   en `antonyms.ts`.
 
 ## Mantenimiento de este directorio
 

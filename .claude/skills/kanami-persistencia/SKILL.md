@@ -29,7 +29,7 @@ No hay base de datos ni backend. Cinco archivos JSON en `Paths.document`, escrit
 | `AppSettingsProvider` | `app-settings.json` | inline | tema, haptics, API key Gemini, recordatorio |
 | `ProgressProvider` | `progress.json` | `progressStore.ts` | stats por modo (sin racha ni meta) |
 | `SrsProvider` | `srs.json` | `srsStore.ts` | cajas Leitner por ítem |
-| `WeakProvider` | `weak-items.json` | `weakStore.ts` | los ejercicios que venís fallando |
+| `WeakProvider` | `weak-items.json` | `weakStore.ts` | los ejercicios que venís fallando + lo que agregaste a mano (`pinned`; campo aditivo, sin bump de versión) |
 | `KanjiProgressProvider` | `kanji-progress.json` | `kanjiProgressStore.ts` | qué sabés de cada kanji, por destreza |
 
 Dos claves distintas que conviene no confundir: `progress.json` se indexa por **modo de

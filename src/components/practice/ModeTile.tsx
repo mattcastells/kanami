@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { FONTS, hexToRgba, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 
 type ModeTileProps = {
@@ -12,10 +12,13 @@ type ModeTileProps = {
   // Para modos cuyo nombre no entra en media fila (ej. "Kanji → Significado").
   description?: string;
   wide?: boolean;
+  // Color del juego (theme.tints) para el cuadrito del glifo. Sin tint, gris neutro.
+  tint?: string;
 };
 
-// Tile de "qué querés hacer": glifo grande + nombre corto. Van en una grilla que
-// envuelve, así que crecen para llenar la fila cuando quedan impares.
+// Tile de "qué querés hacer": el glifo en su cuadrito + nombre. Van en una grilla que
+// envuelve, así que crecen para llenar la fila cuando quedan impares. Elegido: borde y
+// fondo sakura.
 export function ModeTile({
   glyph,
   title,
@@ -23,8 +26,11 @@ export function ModeTile({
   onPress,
   description,
   wide = false,
+  tint,
 }: ModeTileProps) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
+  const tone = selected ? colors.accent : tint ?? colors.textSecondary;
 
   return (
     <Pressable
@@ -33,43 +39,44 @@ export function ModeTile({
         styles.tile,
         styles.focusReset,
         wide && styles.wide,
-        selected
-          ? {
-              borderColor: activeTheme.colors.accent,
-              backgroundColor: hexToRgba(activeTheme.colors.accent, 0.1),
-            }
-          : {
-              borderColor: activeTheme.colors.line,
-              backgroundColor: activeTheme.colors.backgroundSecondary,
-            },
+        activeTheme.surfaces.card,
+        { backgroundColor: colors.card },
+        selected && {
+          borderWidth: 1.5,
+          borderColor: colors.accent,
+          backgroundColor: hexToRgba(colors.accent, activeTheme.opacity.tintSoft * 0.7),
+        },
         pressed && styles.pressed,
       ]}
     >
-      <AppText
+      <View
         style={[
-          styles.glyph,
+          styles.badge,
           {
-            color: selected
-              ? activeTheme.colors.accent
-              : hexToRgba(
-                  activeTheme.colors.textPrimary,
-                  activeTheme.opacity.glyphMuted,
-                ),
+            backgroundColor: selected
+              ? colors.accent
+              : tint
+                ? hexToRgba(tint, activeTheme.opacity.tintSoft)
+                : hexToRgba(colors.textPrimary, activeTheme.opacity.tintSoft * 0.6),
           },
         ]}
       >
-        {glyph}
-      </AppText>
+        <AppText
+          style={[styles.glyph, { color: selected ? colors.onAccent : tone }]}
+        >
+          {glyph}
+        </AppText>
+      </View>
       <View style={styles.text}>
         <AppText
           variant="bodyStrong"
           numberOfLines={1}
-          color={selected ? activeTheme.colors.accent : undefined}
+          color={selected ? colors.accent : undefined}
         >
           {title}
         </AppText>
         {description ? (
-          <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+          <AppText variant="bodySmall" color={colors.textMuted}>
             {description}
           </AppText>
         ) : null}
@@ -83,8 +90,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexBasis: '47%',
     minWidth: 128,
-    minHeight: 64,
-    borderWidth: 1,
+    minHeight: 68,
     borderRadius: theme.radii.md,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
@@ -99,11 +105,18 @@ const styles = StyleSheet.create({
     outlineWidth: 0,
     outlineColor: 'transparent',
   },
+  badge: {
+    width: 42,
+    height: 42,
+    borderRadius: theme.radii.sm + 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   glyph: {
-    fontFamily: 'ZenOldMincho_700Bold',
-    fontSize: 28,
-    lineHeight: 34,
-    width: 32,
+    fontFamily: FONTS.bold,
+    fontSize: 20,
+    lineHeight: 26,
     textAlign: 'center',
   },
   text: {

@@ -21,7 +21,7 @@ import { useTranslationGame } from '../features/game/useTranslationGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { FONTS, hexToRgba, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>) {
@@ -125,10 +125,8 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
           <View
             style={[
               styles.slot,
-              {
-                borderColor: activeTheme.colors.line,
-                backgroundColor: activeTheme.colors.backgroundSecondary,
-              },
+              activeTheme.surfaces.card,
+              { backgroundColor: activeTheme.colors.card },
             ]}
           >
             {placed.length === 0 ? (
@@ -169,10 +167,8 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
                   disabled={answered}
                   style={({ pressed }) => [
                     styles.tile,
-                    {
-                      borderColor: activeTheme.colors.line,
-                      backgroundColor: activeTheme.colors.backgroundSecondary,
-                    },
+                    activeTheme.surfaces.card,
+                    { backgroundColor: activeTheme.colors.card },
                     pressed && styles.pressed,
                   ]}
                 >
@@ -189,7 +185,10 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
           <View
             style={[
               styles.inputUnderline,
-              { borderBottomColor: hexToRgba(activeTheme.colors.textPrimary, 0.38) },
+              {
+                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
+                borderColor: activeTheme.colors.lineStrong,
+              },
             ]}
           >
             <TextInput
@@ -275,7 +274,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   jpPrompt: {
-    fontFamily: 'ZenOldMincho_400Regular',
+    fontFamily: FONTS.medium,
     fontSize: 28,
     lineHeight: 40,
     textAlign: 'center',
@@ -316,11 +315,15 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   inputUnderline: {
-    width: '92%',
-    borderBottomWidth: 1,
-    paddingBottom: 6,
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1.5,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   input: {
+    outlineWidth: 0,
     fontFamily: 'ZenKakuGothicNew_500Medium',
     fontSize: 20,
     lineHeight: 28,

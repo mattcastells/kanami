@@ -137,7 +137,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
         />
       }
     >
-      <ScreenHeader eyebrow="意 · Significados" title="Practicar" />
+      <ScreenHeader eyebrow="意 · Practicar" title="Significados" />
 
       <Step title="Qué querés hacer" />
 
@@ -180,10 +180,8 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
       <View
         style={[
           styles.sections,
-          {
-            borderColor: activeTheme.colors.line,
-            backgroundColor: activeTheme.colors.backgroundSecondary,
-          },
+          activeTheme.surfaces.card,
+          { backgroundColor: activeTheme.colors.card },
         ]}
       >
         {KIND_GROUPS.map((group, groupIndex) => {

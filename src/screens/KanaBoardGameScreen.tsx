@@ -243,7 +243,13 @@ export function KanaBoardGameScreen({
 
         <View style={styles.promptInputWrap}>
           <View
-            style={[styles.inputUnderline, { borderBottomColor: activeTheme.colors.line }]}
+            style={[
+              styles.inputUnderline,
+              {
+                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
+                borderColor: activeTheme.colors.line,
+              },
+            ]}
           >
             <TextInput
               ref={inputRef}
@@ -404,10 +410,15 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   inputUnderline: {
-    borderBottomWidth: 2,
-    paddingBottom: theme.spacing.xxs,
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1.5,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   input: {
+    outlineWidth: 0,
     fontFamily: 'ZenKakuGothicNew_500Medium',
     fontSize: 22,
     lineHeight: 28,

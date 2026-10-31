@@ -138,11 +138,14 @@ Obligatorio, no opcional:
 
 ## Paso 7 — ¿Y la app?
 
-`src/data/studyTopics.ts` fue generado desde estas clases y **no se actualiza solo**.
-Si la clase nueva aporta contenido a uno de los 9 temas de la pestaña 学 Estudiar, avisale al
-usuario y ofrecé incorporarlo (ver la skill `kanami-contenido`): normalmente es sumar un
-`subtopic` o `section` al tema que corresponde y agregar el número de clase a `sourceClasses`.
-**Es un paso aparte, y se pregunta antes de hacerlo.**
+La app **no muestra teoría** (desde el 2026-10-27): la página de Notion que acabás de
+publicar es el único lugar donde se estudia la clase. Nada de esta página se copia a la app
+como apunte, tema ni quiz.
+
+Lo que sí llega a la app es lo que se puede practicar, y **no se actualiza solo**: la
+transcripción en `content/clases/kurasu-NN.md` (input de la procedencia de kanji), el
+vocabulario nuevo, los kanji y los pares de opuestos. Es un paso aparte: seguí con la skill
+**`kanami-clases`**.
 
 ## Errores a evitar
 

@@ -27,6 +27,7 @@ Pasada de producto, no de deuda. Lo que cambió:
 - **Los apuntes de clase aceptan imágenes.** Pipeline completo (sintaxis, validación, mapa de
   `require()`, renderer con zoom). **Notion no tiene ninguna imagen hoy**: se revisaron las
   páginas Kurasu y son texto y tablas puras, así que `assets/clases/` arranca vacía.
+  *(Historia: el pipeline de apuntes entero se borró el 2026-10-27, ver Sexta pasada.)*
 
 ## Segunda pasada — 2026-08-16 (misma auditoría)
 
@@ -34,12 +35,16 @@ Pasada de producto, no de deuda. Lo que cambió:
   El SRS quedó relegado a relleno; si algún día el usuario tiene errores de sobra, el mazo
   Leitner deja de aparecer y habría que decidir si se borra.
 - **Se quitó la hoja de repaso global** y se reemplazó por un quiz por clase (`ClassQuizScreen`)
-  al final de cada apunte. `content/repaso.md` quedó sin consumir.
+  al final de cada apunte. `content/repaso.md` quedó sin consumir. *(El quiz y `repaso.md` se
+  borraron el 2026-10-27.)*
 - **Horarios acepta 〜半**: `TimeEntry.readings` es una lista y los distractores filtran por
   todas las lecturas del ítem, para que la forma equivalente no salga como opción incorrecta.
+  *(Horarios se reemplazó por Fechas y hora el 2026-10-27; el engine nuevo conserva la idea:
+  un ítem puede tener varias lecturas válidas.)*
 - **Dictado muestra el silabario** (ひらがな / カタカナ): el audio no lo distingue y escribir en
   kana era adivinar.
 - **`VocabularyListScreen`**: la fila de chips horizontal se reemplazó por bloques plegables.
+  *(Pantalla borrada el 2026-10-27.)*
 - **Opacidades de marca de agua tokenizadas** (`theme.opacity`), porque el mismo alpha no
   sirve en papel y en sumi.
 - **Safe area endurecido**: `initialWindowMetrics` + piso del inset inferior en la tab bar.
@@ -103,6 +108,7 @@ Feedback de producto sobre la primera versión del sistema de kanji. Lo que camb
 - **La app abre en 学 Estudiar, no en Practicar.** La separación es ahora explícita:
   Estudiar = contenido para aprender (clases, fichas de kanji, vocabulario, temas);
   Practicar = solo juegos. Antes la "Home" era la raíz de Practicar y mezclaba las dos cosas.
+  *(Revertido el 2026-10-27: Estudiar se quitó y Practicar volvió a ser la entrada.)*
 - **El mosaico bento se reemplazó por una grilla pareja de 2 columnas** (`PracticeScreen`).
   El bento tenía tiles de cinco tamaños distintos, subtítulos en algunos sí y otros no, y
   **cortaba los títulos largos** ("Hirag...", "Katak...", "Pronunciac..."). La jerarquía de
@@ -116,6 +122,52 @@ Feedback de producto sobre la primera versión del sistema de kanji. Lo que camb
   direcciones inversas (significado→kanji, lectura→kanji): preguntaban lo mismo al revés.
 - **La sesión se partió en dos fases**: presentar todo el lote nuevo primero, practicar
   después. Antes la tarjeta de presentación caía en el medio del drill.
+
+## Sexta pasada — 2026-10-27 · la app pasa a ser solo práctica
+
+Decisión de producto: la teoría se estudia en Notion; la app es para practicar jugando.
+
+- **Se quitaron Dictado y Pronunciación** (no interesaban): `DictationGameScreen`,
+  `dictationGameEngine`, `useDictationGame`, `PronunciationGameScreen`, `PronunciationRound`,
+  `pronunciation.ts`, y con ellos los formatos `listen`/`speak` del Repaso (`normalizeWeak`
+  descarta los ítems viejos) y la dirección "dictado" de Números/Fechas. Lo que dicen las
+  pasadas anteriores sobre esos modos es historia.
+- **Hiragana, Katakana y Kanji son una sola card, "Kanas"** (`KanasScreen`), que abre las
+  tres selecciones de siempre.
+
+- **Se borró la pestaña 学 Estudiar entera**: `StudyTopicsScreen`, `StudyTopicScreen`,
+  `ClassNotesScreen`, `ClassNoteScreen`, `ClassQuizScreen`, `VocabularyListScreen`,
+  `VocabularyThemeScreen`, `KanjiListScreen`, `KanjiCategoryScreen`, `KanjiDetailScreen`;
+  `components/study/` (`ClassBlockView`, `ClassImage`, `VocabRow`) y `components/kanji/KanjiRow`;
+  `studyTopics.ts`, `classNotes.generated.ts`, `classImages.generated.ts`,
+  `features/classes/`, `classQuizEngine.ts`, `types/classNotes.ts`;
+  `scripts/generate-class-notes.mjs` con su script `clases:generate`, `assets/clases/README.md`
+  y `content/repaso.md` (deja de ser deuda: estaba huérfano desde el 2026-08-16).
+- **Se podaron los helpers que solo usaban esas pantallas**: en `kanjiCatalog` (`searchKanji`,
+  `groupByCategory`, `getKanjiForClass`, `getKanjiClassWords`, `getStrokeCount`,
+  `canDrawKanji`, `kanjiTotal`), en `classVocabulary` (`searchClassVocab`,
+  `getClassVocabByCategory`, `classVocabTotal`) y en `kanjiProgressStore`
+  (`KANJI_SKILL_LABELS`, `getKanjiEntry`).
+- **3 tabs**: 練 Practicar (entrada) · 話 Kyary · 私 Perfil.
+- **`content/clases/*.md` se queda**: es input de `kanji:generate` y referencia para cargar
+  vocabulario. Una clase nueva llega a la app solo por vocabulario + kanji (+ antónimos).
+- **Horarios → Fechas y hora**, con motor compartido con **Números** (`readingDrillEngine` +
+  `DrillSource` enchufable, `useReadingDrill`, `ReadingDrillPlay`, `ReadingDrillSetup`). Se
+  borraron `TimesGameScreen`, `timesGameEngine` y `useTimesGame`. El `modeKey` `times` se
+  conservó para no perder el progreso.
+- **Juego nuevo: Antónimos** (`antonyms.ts`, pares por id de `classVocabulary`). Es la
+  referencia más corta del trío engine + hook + screen.
+- **El audio no puede dar la respuesta**: si el `SpeakButton` lee lo que se pregunta, aparece
+  recién después de responder (modos de `GameScreen`, `EmojiGame`, `ReviewScreen`,
+  `ReadingDrillPlay`).
+- Cabos sueltos que dejó la poda, sin arreglar todavía:
+  - `class-quiz` queda en `PROGRESS_MODE_LABELS` a propósito (historial y ítems viejos del
+    Repaso).
+  - `KANJI_CLASS_WORDS` se sigue generando y ya no lo lee nadie.
+  - `setStudied` del `KanjiProgressProvider` (el estado `estudiando`) ya no lo llama ninguna
+    pantalla: lo marcaba la ficha.
+  - `meaningExtra` y `usage` de `kanji.ts` ya no se muestran en la app.
+  - `content/clases/INDEX.md` habla de "la sección Estudiar".
 
 ## Veredicto
 
@@ -155,16 +207,18 @@ Se borraron `numbersGameEngine.ts`, `useNumbersGame.ts` y la label `numbers` de
 `hiraganaBaseCharacters`, `getExpectedStrokeCount`, `getKanjiByCategory`, las props no-op
 `glowColor`/`intensity` de `GlassCard` y `guidelines.md`.
 
-**D2 · Colores de estado hardcodeados y duplicados en 9 archivos.**
-`#3E7D5C` (success), `#B03A2E` (error) y `#356E8E` (streak) están redeclarados como constantes
+**~~D2 · Colores de estado hardcodeados y duplicados en 9 archivos.~~ RESUELTO** — verificado
+el 2026-10-27: `#3E7D5C`/`#B03A2E`/`#356E8E` ya solo aparecen en `src/theme/theme.ts`
+(`CLAUDE.md` todavía dice "en 8 archivos"). Se deja la descripción original como historia:
+
+`#3E7D5C` (success), `#B03A2E` (error) y `#356E8E` (streak) estaban redeclarados como constantes
 locales en: `GameScreen`, `TimesGameScreen`, `EmojiGameScreen`, `DictationGameScreen`,
 `PronunciationGameScreen`, `ReviewScreen`, `KanjiGameScreen`, `ProgressCard`, `SessionSummary`.
 Viola la regla "no hardcodear colores" del `CLAUDE.md` y **rompe el dark mode**: los valores
 son los de light, mientras el theme dark define `success: #5AA47C` y `error: #C96A57`.
 El patrón correcto ya existe y está aplicado en `KanjiGameScreen.tsx:66-71`,
 `DrawingPractice.tsx:69-79` y `FeedbackBanner.tsx:22-23` (leen de `activeTheme.colors`).
-→ Falta `streak` como token del theme. Al tocarlo: agregar `streak` a ambas paletas y
-reemplazar las 21 constantes locales.
+→ Se resolvió sin token `streak`: las pantallas pintan la racha con `colors.warning`.
 
 ### Media
 
@@ -173,8 +227,9 @@ Se borró el campo del tipo y los 52 valores hex de la paleta cyan vieja en `hir
 `katakana.ts`. Esos dos archivos ya no tienen ningún hex.
 
 **D13 · Kurasu 10 no tiene fecha completa.** En Notion figura solo `📅 2026年` y en
-`content/clases/kurasu-10.md` quedó como `2026`. El parser y la UI toleran la fecha parcial y
-la muestran tal cual. → Si aparece la fecha real, completala en el markdown y regenerá.
+`content/clases/kurasu-10.md` quedó como `2026`. Desde el 2026-10-27 la app ya no muestra
+fechas de clase, así que solo importa para Notion y para el markdown. → Si aparece la fecha
+real, completala en los dos lados.
 (Por la cadencia semanal debería ser el 2026-05-16, pero **no está confirmado**.)
 
 **D14 · Kurasu 13 está mal ubicado en Notion.** Vive bajo `Gramatica` con el título "Clase 14"
@@ -185,6 +240,9 @@ página, y eso se pregunta antes.
 **D4 · `shuffle`/`pickRandom` duplicados 20 veces.**
 Implementaciones idénticas (Fisher-Yates) en 11 engines + `srsStore`. Firmas levemente distintas
 (`items` vs `arr`, con y sin tipo de retorno explícito).
+*Avance (verificado el 2026-10-27):* `shuffle` ya está **exportado** de `gameEngine.ts` y lo
+importan los engines nuevos (Antónimos, Significados, Tablero, `readingDrillEngine` y sus dos
+fuentes). Quedan 8 copias privadas de `shuffle` y 12 de `pickRandom` (que todavía no se exporta).
 → Candidato claro a `src/features/game/random.ts`. Es un cambio mecánico y seguro, pero toca
 muchos archivos: hacerlo en un commit propio, no mezclado con una feature.
 
@@ -223,10 +281,11 @@ Líneas 38 y 40 apuntan a `/Users/matiasgulincastells/Documents/hanami/...`. Mis
 Queda un link muerto a él en `README.md:23`, junto con los links absolutos de D10.
 
 **D12 · `useHiraganaGame` usa un patrón más frágil que sus pares.**
-`useHiraganaGame.ts:67-86` (y `useTimesGame.ts:50-61`) escriben variables del closure exterior
-**adentro del updater de `setState`** para después usarlas afuera. El updater sigue siendo puro,
-pero bajo StrictMode se invoca dos veces y el patrón es fácil de romper. La versión más segura
-está en `useDrawingGame` / `useWritingHiraganaGame` (efecto keyed por estado).
+`useHiraganaGame.ts:67-86` escribe variables del closure exterior **adentro del updater de
+`setState`** para después usarlas afuera (`useTimesGame` hacía lo mismo y se borró el
+2026-10-27). El updater sigue siendo puro, pero bajo StrictMode se invoca dos veces y el patrón
+es fácil de romper. La versión más segura está en `useDrawingGame` / `useWritingHiraganaGame`
+(efecto keyed por estado) y en el `stateRef` espejo de `useAntonymGame` / `useMeaningGame`.
 → No urgente. Si escribís un hook nuevo, seguí el patrón bueno.
 
 ## Seguridad
@@ -249,9 +308,11 @@ está en `useDrawingGame` / `useWritingHiraganaGame` (efecto keyed por estado).
 - **`SessionResult` fuera del modo activo:** `useTrackProgress` registra la sesión en el cleanup
   del efecto. Si la pantalla se desmonta por un cambio de `modeKey`, el efecto se re-ejecuta y
   registra con el `modeKey` **anterior** — correcto, pero depende de que `modeKey` sea constante
-  por pantalla. `TimesGameScreen` cambia de sub-modo sin desmontar, así que ambos sub-modos suman
-  a `times`. Es el comportamiento deseado hoy; tenelo en cuenta si separás métricas.
-- **`applyDailyActivity` con cambio de zona horaria/viaje:** usa `localDayString` sobre la fecha
-  local. Un cambio de huso puede saltar o repetir un día. Impacto bajo.
+  por pantalla. `DateTimeGameScreen` registra todo (hora, días, meses, fechas, en cualquier
+  dirección) bajo `times`, y `NumbersGameScreen` todo bajo `numbers`. Es el comportamiento
+  deseado hoy; tenelo en cuenta si separás métricas.
+- **`localDayString` con cambio de zona horaria/viaje:** el SRS fecha las revisiones con la
+  fecha local. Un cambio de huso puede saltar o repetir un día. Impacto bajo. (Antes afectaba
+  también a `applyDailyActivity`, que se fue con la racha el 2026-08-16.)
 - **`buildSrsDeck()` se reconstruye entero** en cada uso (recorre todos los grupos + vocabulario).
   Hoy es barato, pero si el mazo crece conviene memoizarlo.

@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 
 type CheckState = 'on' | 'off' | 'partial';
@@ -26,7 +26,6 @@ export function CheckRow({
 }: CheckRowProps) {
   const { theme: activeTheme } = useAppTheme();
   const active = state !== 'off';
-  const tint = active ? activeTheme.colors.accent : activeTheme.colors.textMuted;
 
   return (
     <Pressable
@@ -41,19 +40,16 @@ export function CheckRow({
       <View
         style={[
           styles.box,
-          {
-            borderColor: active ? activeTheme.colors.accent : activeTheme.colors.lineStrong,
-            backgroundColor: active
-              ? hexToRgba(activeTheme.colors.accent, 0.14)
-              : 'transparent',
-          },
+          active
+            ? { borderColor: activeTheme.colors.accent, backgroundColor: activeTheme.colors.accent }
+            : { borderColor: activeTheme.colors.lineStrong, backgroundColor: 'transparent' },
         ]}
       >
         {state === 'off' ? null : (
           <MaterialCommunityIcons
             name={state === 'partial' ? 'minus' : 'check'}
-            size={13}
-            color={tint}
+            size={14}
+            color={activeTheme.colors.onAccent}
           />
         )}
       </View>
@@ -92,10 +88,10 @@ const styles = StyleSheet.create({
     outlineColor: 'transparent',
   },
   box: {
-    width: 20,
-    height: 20,
-    borderRadius: theme.radii.sm,
-    borderWidth: 1,
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

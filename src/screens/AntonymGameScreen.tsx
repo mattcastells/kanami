@@ -3,63 +3,54 @@ import { StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
 import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { HintToggle } from '../components/game/HintToggle';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
 import { StatPill } from '../components/ui/StatPill';
-import { TimesGameMode } from '../features/game/timesGameEngine';
-import { useTimesGame } from '../features/game/useTimesGame';
+import { AntonymWord } from '../features/game/antonymGameEngine';
+import { useAntonymGame } from '../features/game/useAntonymGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
-export function TimesGameScreen(_: RootStackScreenProps<'TimesGame'>) {
+function describe(word: AntonymWord) {
+  return `${[word.kanji, word.kana].filter(Boolean).join(' · ')} — ${word.es}`;
+}
+
+export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
   const { theme: activeTheme } = useAppTheme();
-  const [mode, setMode] = useState<TimesGameMode>('time-to-reading');
+  const [hintEnabled, setHintEnabled] = useState(false);
+  const { state, answer, lastFeedback } = useAntonymGame();
+  const { round, answerState, selectedOptionId, stats } = state;
+  const answered = answerState !== 'idle';
 
-  const resetKey = `times:${mode}`;
-  const { state, answer, lastFeedback } = useTimesGame(mode, resetKey);
-  useTrackProgress('times', state.stats);
-
-  // El id incluye la lectura elegida: fallar 11:30 en 〜はん y fallarlo en 〜さんじゅっぷん
-  // son dos cosas distintas para practicar.
-  useTrackWeakItem('times', state.answerState, {
-    itemId: `${state.round.entryId}:${state.round.promptIsReading ? 'r2t' : 't2r'}:${state.round.reading}`,
+  useTrackProgress('antonyms', stats);
+  useTrackWeakItem('antonyms', answerState, {
+    itemId: `${round.prompt.id}>${round.answer.id}`,
     format: 'choice',
-    prompt: state.round.promptText,
-    answer: state.round.promptIsReading ? state.round.display : state.round.reading,
-    options: state.round.options.map((option) => option.text),
-    speakText: state.round.reading,
+    prompt: round.prompt.kana,
+    answer: round.answer.kana,
+    options: round.options.map((option) => option.text),
+    speakText: round.prompt.kana,
   });
 
-  const toggleMode = () =>
-    setMode((current) =>
-      current === 'time-to-reading' ? 'reading-to-time' : 'time-to-reading',
-    );
-
-  const { round, answerState, selectedOptionId, stats } = state;
-
   const getOptionState = (optionId: string) => {
-    if (answerState === 'idle') return 'idle' as const;
+    if (!answered) return 'idle' as const;
     if (optionId === round.correctOptionId) return 'correct' as const;
     if (optionId === selectedOptionId) return 'incorrect' as const;
     return 'muted' as const;
   };
 
-  const showAnswer = answerState !== 'idle';
+  const optionsFullWidth = round.options.some((option) => option.text.length > 5);
 
   return (
-    <ScreenBackground scrollable={false}>
-      <ScreenHeader
-        eyebrow="時 · Horarios"
-        title={mode === 'time-to-reading' ? 'Hora → Lectura' : 'Lectura → Hora'}
-        actionLabel="Invertir"
-        onActionPress={toggleMode}
-      />
+    <ScreenBackground scrollable>
+      <ScreenHeader eyebrow="反 · Antónimos" title="¿Cuál es el opuesto?" />
 
       <View style={styles.statsRow}>
         <StatPill label="Aciertos" value={stats.correct} accentColor={activeTheme.colors.success} />
@@ -68,34 +59,37 @@ export function TimesGameScreen(_: RootStackScreenProps<'TimesGame'>) {
       </View>
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <SpeakButton text={round.reading} style={styles.speakCorner} />
+        <HintToggle
+          enabled={hintEnabled}
+          onToggle={() => setHintEnabled((current) => !current)}
+          style={styles.hintCorner}
+        />
+        {/* Escuchar la consigna no da la respuesta: la respuesta es la OTRA palabra. */}
+        <SpeakButton text={round.prompt.kana} style={styles.speakCorner} />
         <View style={styles.promptWrap}>
-          <AppText
-            variant={round.promptIsReading ? 'kana' : 'display'}
-            style={round.promptIsReading ? styles.readingPrompt : styles.timePrompt}
-          >
-            {round.promptText}
-          </AppText>
-        </View>
-        {showAnswer ? (
-          <>
-            <AppText
-              variant="bodySmall"
-              color={activeTheme.colors.textSecondary}
-              style={styles.answerLine}
-            >
-              {round.display} · {round.reading}
+          {round.prompt.kanji ? (
+            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+              {round.prompt.kanji}
             </AppText>
-            {round.alternateReadings.length > 0 ? (
-              <AppText
-                variant="bodySmall"
-                color={activeTheme.colors.textMuted}
-                style={styles.alternateLine}
-              >
-                También: {round.alternateReadings.join(' · ')}
-              </AppText>
-            ) : null}
-          </>
+          ) : null}
+          <AppText variant="kana" style={styles.prompt}>
+            {round.prompt.kana}
+          </AppText>
+          {hintEnabled || answered ? (
+            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
+              {round.prompt.es}
+            </AppText>
+          ) : null}
+        </View>
+        {answered ? (
+          <View style={styles.reveal}>
+            <AppText variant="overline" color={activeTheme.colors.textMuted}>
+              EL OPUESTO
+            </AppText>
+            <AppText variant="option" style={styles.centered}>
+              {describe(round.answer)}
+            </AppText>
+          </View>
         ) : null}
       </GlassCard>
 
@@ -112,10 +106,10 @@ export function TimesGameScreen(_: RootStackScreenProps<'TimesGame'>) {
           <AnswerOptionButton
             key={option.id}
             label={option.text}
-            disabled={answerState !== 'idle'}
+            disabled={answered}
             visualState={getOptionState(option.id)}
             onPress={() => answer(option.id)}
-            fullWidth={!round.promptIsReading}
+            fullWidth={optionsFullWidth}
           />
         ))}
       </View>
@@ -136,6 +130,12 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     alignItems: 'center',
   },
+  hintCorner: {
+    position: 'absolute',
+    top: theme.spacing.xs,
+    left: theme.spacing.xs,
+    zIndex: 2,
+  },
   speakCorner: {
     position: 'absolute',
     top: theme.spacing.xs,
@@ -146,23 +146,20 @@ const styles = StyleSheet.create({
     minHeight: 120,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 2,
+    paddingHorizontal: theme.spacing.xl,
   },
-  timePrompt: {
-    fontSize: 64,
-    lineHeight: 74,
+  prompt: {
+    fontSize: 46,
+    lineHeight: 56,
     textAlign: 'center',
   },
-  readingPrompt: {
-    fontSize: 40,
-    lineHeight: 50,
-    textAlign: 'center',
-  },
-  answerLine: {
+  reveal: {
     marginTop: theme.spacing.sm,
-    textAlign: 'center',
+    alignItems: 'center',
+    gap: 2,
   },
-  alternateLine: {
-    marginTop: 2,
+  centered: {
     textAlign: 'center',
   },
   feedbackSlot: {

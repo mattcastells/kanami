@@ -147,7 +147,7 @@ export function VocabularyScreen({
         />
       }
     >
-      <ScreenHeader eyebrow="語 · Vocabulario" title="Practicar" />
+      <ScreenHeader eyebrow="語 · Practicar" title="Vocabulario" />
 
       <Step title="Qué querés hacer" />
 
@@ -221,10 +221,8 @@ export function VocabularyScreen({
       <View
         style={[
           styles.sections,
-          {
-            borderColor: activeTheme.colors.line,
-            backgroundColor: activeTheme.colors.backgroundSecondary,
-          },
+          activeTheme.surfaces.card,
+          { backgroundColor: activeTheme.colors.card },
         ]}
       >
         {groups.map((group, groupIndex) => {

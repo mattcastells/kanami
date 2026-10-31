@@ -46,8 +46,11 @@ export const PROGRESS_MODE_LABELS: Record<string, string> = {
   phrases: 'Frases',
   kanji: 'Kanji',
   'kanji-grind': 'Kanji Grind',
-  times: 'Horarios',
+  times: 'Fechas y hora',
+  numbers: 'Números',
+  antonyms: 'Antónimos',
   emoji: 'Imágenes',
+  // dictation, pronunciation y class-quiz ya no existen: quedan para el historial.
   dictation: 'Dictado',
   pronunciation: 'Pronunciación',
   'class-quiz': 'Quiz de clase',

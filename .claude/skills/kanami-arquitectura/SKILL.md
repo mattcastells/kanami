@@ -33,7 +33,7 @@ Para tareas específicas hay skills más finas: `kanami-modo-practica`, `kanami-
 
 3. **Todo timer se limpia** en el reset y en el unmount. Patrón:
    `nextRoundTimeoutRef` + `useEffect(() => () => clearTimeout(...), [])`.
-   Ver `src/features/game/useTimesGame.ts:27-43`.
+   Ver `src/features/game/useMeaningGame.ts:37-60` (reset + unmount).
 
 4. **Los colores se leen de `useAppTheme().theme.colors`**, nunca del `theme` importado
    estático (ese siempre es light y rompe el dark mode). El `theme` estático solo sirve
@@ -55,7 +55,7 @@ Para tareas específicas hay skills más finas: `kanami-modo-practica`, `kanami-
 | Un patrón visual que ya apareció 2+ veces | `src/components/ui/` |
 | UI específica del loop de juego | `src/components/game/` |
 | Cards de selección (grupos, modos, categorías) | `src/components/practice/` |
-| Datos estáticos (kana, vocab, kanji, frases, temas) | `src/data/` |
+| Datos estáticos (kana, vocab, antónimos, kanji, frases, números, fechas) | `src/data/` |
 | Estado global persistido | `src/features/<dominio>/` con Provider + store puro |
 | Llamada a una API externa | `src/services/` |
 | Tipos compartidos entre capas | `src/types/` |
@@ -65,11 +65,12 @@ Para tareas específicas hay skills más finas: `kanami-modo-practica`, `kanami-
 Reusá primero. El inventario real es:
 
 - **ui/**: `ScreenBackground`, `GlassCard`, `AppText`, `PrimaryButton`, `ScreenHeader`,
-  `StatPill`, `SpeakButton`, `AnimatedCollapsible`
-- **game/**: `AnswerOptionButton`, `FeedbackBanner`, `SessionSummary`, `DrawingCanvas`,
-  `DrawingPractice`
-- **practice/**: `GroupSelectorCard`, `ModeSelectorCard`, `PracticeVariantCard`, `WordCategoryCard`
-- **progress/**: `ProgressCard`, `StreakCard`
+  `StatPill`, `SpeakButton`, `AnimatedCollapsible`, `AnimatedRow`, `ThemeCard`
+- **game/**: `AnswerOptionButton`, `FeedbackBanner`, `SessionSummary`, `HintToggle`,
+  `DrawingCanvas`, `DrawingPractice`, `ReadingDrillPlay`
+- **practice/**: `ModeTile`, `SelectChip`, `CheckRow`, `StartBar`, `ReadingDrillSetup`
+- **progress/**: `ProgressCard`
+- **kanji/**: `KanjiStatusChip`
 
 Si ninguno sirve, primero preguntate si el que más se le parece admite una prop. `StatPill`
 ya tiene `accentColor`; `AnswerOptionButton` ya tiene `fullWidth` y `visualState`.
@@ -79,11 +80,14 @@ ya tiene `accentColor`; `AnswerOptionButton` ya tiene `fullWidth` y `visualState
 - Meter un modo nuevo adentro de `GameScreen.tsx` porque "ahí están los otros". Ese archivo
   ya tiene 1825 líneas y es legacy. Los modos nuevos van a pantalla propia.
 - Importar `theme` estático y pintar un color de estado con él → dark mode roto.
-- Declarar `const SUCCESS_COLOR = '#3E7D5C'` arriba de una pantalla. Ya pasó en 9 archivos
-  (ver deuda D2). No sumes el décimo.
-- Reimplementar `shuffle`/`pickRandom` (ya hay 20 copias, D4). Si necesitás uno, copiá el de
-  `gameEngine.ts` y anotá que sigue duplicado; no inventes una firma nueva.
+- Declarar `const SUCCESS_COLOR = '#3E7D5C'` arriba de una pantalla. Pasó en 9 archivos
+  (deuda D2, ya limpiada): no lo vuelvas a traer.
+- Reimplementar `shuffle`/`pickRandom` (D4). `shuffle` se importa de `gameEngine.ts`;
+  `pickRandom` todavía no está exportado (12 copias): si lo necesitás, copialo con la misma
+  firma y no inventes otra.
 - Cruzar de tab con `navigation.navigate('OtraTab')` sin `getParent()`. No funciona.
+- Sumar una pantalla de lectura/consulta (apuntes, fichas, listas). La app es solo práctica
+  desde el 2026-10-27: la teoría vive en Notion.
 
 ## Cómo validar
 

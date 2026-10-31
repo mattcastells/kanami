@@ -13,6 +13,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Application from 'expo-application';
 
 import appConfig from '../../app.json';
+import { SelectChip } from '../components/practice/SelectChip';
 import { ProgressCard } from '../components/progress/ProgressCard';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
@@ -30,8 +31,9 @@ import {
   type AppRelease,
 } from '../features/update/releaseClient';
 import { useAppSettings } from '../settings/AppSettingsProvider';
+import { KYARY_ENABLED } from '../features/flags';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { hexToRgba, theme, ThemePreference } from '../theme/theme';
 
 const REMINDER_HOURS = [8, 13, 18, 20, 21];
 
@@ -43,8 +45,18 @@ type UpdateState =
   | { kind: 'installing'; currentVersion: string; release: AppRelease }
   | { kind: 'error'; currentVersion: string; message: string };
 
+const THEME_OPTIONS: { id: ThemePreference; label: string }[] = [
+  { id: 'system', label: 'Sistema' },
+  { id: 'light', label: 'Claro' },
+  { id: 'dark', label: 'Oscuro' },
+];
+
 export function OptionsScreen() {
-  const { theme: activeTheme, mode } = useAppTheme();
+  const { theme: activeTheme, mode, preference } = useAppTheme();
+  // Filas de ajuste: un tono apenas distinto de la card, sin borde.
+  const rowSurface = {
+    backgroundColor: hexToRgba(activeTheme.colors.textPrimary, mode === 'dark' ? 0.05 : 0.035),
+  };
   const {
     settings: { hapticsEnabled, geminiApiKey, reminderEnabled, reminderHour },
     setHapticsEnabled,
@@ -158,7 +170,7 @@ export function OptionsScreen() {
 
   return (
     <ScreenBackground showBack={false} scrollable>
-      <ScreenHeader title="Perfil" />
+      <ScreenHeader eyebrow="私 · Ajustes" title="Perfil" />
 
       <ProgressCard />
 
@@ -168,13 +180,7 @@ export function OptionsScreen() {
         <View
           style={[
             styles.settingRow,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor:
-                Platform.OS === 'android'
-                  ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
-                  : hexToRgba(activeTheme.colors.black, 0.14),
-            },
+            rowSurface,
           ]}
         >
           <View style={styles.settingCopy}>
@@ -184,7 +190,7 @@ export function OptionsScreen() {
           <Switch
             value={hapticsEnabled}
             onValueChange={setHapticsEnabled}
-            thumbColor={'#F7F4EF'}
+            thumbColor={activeTheme.colors.white}
             trackColor={{
               false: activeTheme.colors.lineStrong,
               true: activeTheme.colors.accent,
@@ -196,46 +202,36 @@ export function OptionsScreen() {
         <View
           style={[
             styles.settingRow,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor:
-                Platform.OS === 'android'
-                  ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
-                  : hexToRgba(activeTheme.colors.black, 0.14),
-            },
+            rowSurface,
           ]}
         >
           <View style={styles.settingCopy}>
-            <AppText variant="bodyStrong">Tema claro</AppText>
+            <AppText variant="bodyStrong">Tema</AppText>
             <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {mode === 'light' ? 'Papel' : 'Sumi'}
+              {preference === 'system'
+                ? `Como el teléfono (ahora ${mode === 'dark' ? 'oscuro' : 'claro'})`
+                : mode === 'dark'
+                  ? 'Oscuro'
+                  : 'Claro'}
             </AppText>
           </View>
-
-          <Switch
-            value={mode === 'light'}
-            onValueChange={(enabled) =>
-              setThemeMode(enabled ? 'light' : 'dark')
-            }
-            thumbColor={'#F7F4EF'}
-            trackColor={{
-              false: activeTheme.colors.lineStrong,
-              true: activeTheme.colors.accent,
-            }}
-            ios_backgroundColor={activeTheme.colors.lineStrong}
-          />
+        </View>
+        <View style={styles.chipRow}>
+          {THEME_OPTIONS.map((option) => (
+            <SelectChip
+              key={option.id}
+              label={option.label}
+              grow
+              selected={preference === option.id}
+              onPress={() => setThemeMode(option.id)}
+            />
+          ))}
         </View>
 
         <View
           style={[
             styles.settingRow,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor:
-                Platform.OS === 'android'
-                  ? hexToRgba(activeTheme.colors.backgroundSecondary, 0.88)
-                  : hexToRgba(activeTheme.colors.black, 0.14),
-            },
+            rowSurface,
           ]}
         >
           <View style={styles.settingCopy}>
@@ -251,7 +247,7 @@ export function OptionsScreen() {
             value={reminderEnabled}
             onValueChange={(enabled) => void handleToggleReminder(enabled)}
             disabled={Platform.OS === 'web'}
-            thumbColor={'#F7F4EF'}
+            thumbColor={activeTheme.colors.white}
             trackColor={{
               false: activeTheme.colors.lineStrong,
               true: activeTheme.colors.accent,
@@ -262,37 +258,14 @@ export function OptionsScreen() {
 
         {reminderEnabled && Platform.OS !== 'web' ? (
           <View style={styles.chipRow}>
-            {REMINDER_HOURS.map((hour) => {
-              const selected = reminderHour === hour;
-              return (
-                <Pressable
-                  key={hour}
-                  onPress={() => handleSelectHour(hour)}
-                  style={[
-                    styles.chip,
-                    {
-                      borderColor: selected
-                        ? activeTheme.colors.accent
-                        : activeTheme.colors.line,
-                      backgroundColor: selected
-                        ? hexToRgba(activeTheme.colors.accent, 0.1)
-                        : 'transparent',
-                    },
-                  ]}
-                >
-                  <AppText
-                    variant="label"
-                    color={
-                      selected
-                        ? activeTheme.colors.accent
-                        : activeTheme.colors.textSecondary
-                    }
-                  >
-                    {hour}:00
-                  </AppText>
-                </Pressable>
-              );
-            })}
+            {REMINDER_HOURS.map((hour) => (
+              <SelectChip
+                key={hour}
+                label={`${hour}:00`}
+                selected={reminderHour === hour}
+                onPress={() => handleSelectHour(hour)}
+              />
+            ))}
           </View>
         ) : null}
 
@@ -368,101 +341,106 @@ export function OptionsScreen() {
         ) : null}
       </GlassCard>
 
-      <View style={styles.optionsSpacer} />
+      {/* Kyary está escondida (features/flags.ts): sin pestaña, la key no tiene uso. */}
+      {KYARY_ENABLED ? (
+        <>
+          <View style={styles.optionsSpacer} />
 
-      <GlassCard contentStyle={styles.cardContent}>
-        <View style={styles.keyHeader}>
-          <AppText variant="title">Kyary (IA)</AppText>
-          <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-            Kyary usa Gemini. Poné tu propia API key (gratis) para usar el chat.
-            Se guarda solo en este dispositivo.
-          </AppText>
-        </View>
+          <GlassCard contentStyle={styles.cardContent}>
+            <View style={styles.keyHeader}>
+              <AppText variant="title">Kyary (IA)</AppText>
+              <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+                Kyary usa Gemini. Poné tu propia API key (gratis) para usar el chat.
+                Se guarda solo en este dispositivo.
+              </AppText>
+            </View>
 
-        <View
-          style={[
-            styles.keyInputRow,
-            {
-              borderColor: activeTheme.colors.line,
-              backgroundColor: hexToRgba(
-                activeTheme.colors.backgroundSecondary,
-                0.6,
-              ),
-            },
-          ]}
-        >
-          <TextInput
-            value={keyDraft}
-            onChangeText={(value) => {
-              setKeyDraft(value);
-              setKeySaved(false);
-            }}
-            placeholder="Pegá tu API key de Gemini"
-            placeholderTextColor={activeTheme.colors.textMuted}
-            secureTextEntry={!showKey}
-            autoCapitalize="none"
-            autoCorrect={false}
-            selectionColor={activeTheme.colors.accent}
-            style={[styles.keyInput, { color: activeTheme.colors.textPrimary }]}
-          />
-          <Pressable onPress={() => setShowKey((current) => !current)} hitSlop={8}>
-            <MaterialCommunityIcons
-              name={showKey ? 'eye-off-outline' : 'eye-outline'}
-              size={20}
-              color={activeTheme.colors.textMuted}
-            />
-          </Pressable>
-        </View>
+            <View
+              style={[
+                styles.keyInputRow,
+                {
+                  borderColor: activeTheme.colors.line,
+                  backgroundColor: hexToRgba(
+                    activeTheme.colors.backgroundSecondary,
+                    0.6,
+                  ),
+                },
+              ]}
+            >
+              <TextInput
+                value={keyDraft}
+                onChangeText={(value) => {
+                  setKeyDraft(value);
+                  setKeySaved(false);
+                }}
+                placeholder="Pegá tu API key de Gemini"
+                placeholderTextColor={activeTheme.colors.textMuted}
+                secureTextEntry={!showKey}
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor={activeTheme.colors.accent}
+                style={[styles.keyInput, { color: activeTheme.colors.textPrimary }]}
+              />
+              <Pressable onPress={() => setShowKey((current) => !current)} hitSlop={8}>
+                <MaterialCommunityIcons
+                  name={showKey ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={activeTheme.colors.textMuted}
+                />
+              </Pressable>
+            </View>
 
-        {keySaved ? (
-          <AppText variant="bodySmall" color={activeTheme.colors.success}>
-            Key guardada. Ya podés hablar con Kyary.
-          </AppText>
-        ) : geminiApiKey ? (
-          <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-            Hay una key guardada en este dispositivo.
-          </AppText>
-        ) : (
-          <AppText variant="bodySmall" color={activeTheme.colors.warning}>
-            Sin key, Kyary no puede responder.
-          </AppText>
-        )}
+            {keySaved ? (
+              <AppText variant="bodySmall" color={activeTheme.colors.success}>
+                Key guardada. Ya podés hablar con Kyary.
+              </AppText>
+            ) : geminiApiKey ? (
+              <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+                Hay una key guardada en este dispositivo.
+              </AppText>
+            ) : (
+              <AppText variant="bodySmall" color={activeTheme.colors.warning}>
+                Sin key, Kyary no puede responder.
+              </AppText>
+            )}
 
-        <View style={styles.keyActions}>
-          <PrimaryButton
-            title="GUARDAR"
-            size="compact"
-            disabled={!keyDirty}
-            onPress={() => {
-              setGeminiApiKey(keyDraft.trim());
-              setKeySaved(true);
-            }}
-            style={styles.keyActionFlex}
-          />
-          {geminiApiKey ? (
+            <View style={styles.keyActions}>
+              <PrimaryButton
+                title="GUARDAR"
+                size="compact"
+                disabled={!keyDirty}
+                onPress={() => {
+                  setGeminiApiKey(keyDraft.trim());
+                  setKeySaved(true);
+                }}
+                style={styles.keyActionFlex}
+              />
+              {geminiApiKey ? (
+                <PrimaryButton
+                  title="BORRAR"
+                  variant="ghost"
+                  size="compact"
+                  onPress={() => {
+                    setGeminiApiKey('');
+                    setKeyDraft('');
+                    setKeySaved(false);
+                  }}
+                  style={styles.keyActionFlex}
+                />
+              ) : null}
+            </View>
+
             <PrimaryButton
-              title="BORRAR"
-              variant="ghost"
+              title="CONSEGUIR UNA API KEY"
+              variant="secondary"
               size="compact"
               onPress={() => {
-                setGeminiApiKey('');
-                setKeyDraft('');
-                setKeySaved(false);
+                void Linking.openURL('https://aistudio.google.com/apikey');
               }}
-              style={styles.keyActionFlex}
             />
-          ) : null}
-        </View>
-
-        <PrimaryButton
-          title="CONSEGUIR UNA API KEY"
-          variant="secondary"
-          size="compact"
-          onPress={() => {
-            void Linking.openURL('https://aistudio.google.com/apikey');
-          }}
-        />
-      </GlassCard>
+          </GlassCard>
+        </>
+      ) : null}
 
       <AppText
         variant="bodySmall"
@@ -521,8 +499,7 @@ const styles = StyleSheet.create({
     height: theme.spacing.md,
   },
   settingRow: {
-    borderWidth: 1,
-    borderRadius: theme.radii.lg,
+    borderRadius: theme.radii.md,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     flexDirection: 'row',
@@ -584,14 +561,7 @@ const styles = StyleSheet.create({
   },
   chipRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: theme.spacing.xs,
-  },
-  chip: {
-    flex: 1,
-    minHeight: 40,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

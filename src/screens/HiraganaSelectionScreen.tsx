@@ -338,10 +338,8 @@ export function HiraganaSelectionScreen({
           <View
             style={[
               styles.sections,
-              {
-                borderColor: activeTheme.colors.line,
-                backgroundColor: activeTheme.colors.backgroundSecondary,
-              },
+              activeTheme.surfaces.card,
+              { backgroundColor: activeTheme.colors.card },
             ]}
           >
             {availableSections.map((section, sectionIndex) => {

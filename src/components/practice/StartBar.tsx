@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { theme } from '../../theme/theme';
+import { hexToRgba, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 import { PrimaryButton } from '../ui/PrimaryButton';
 
@@ -23,7 +23,7 @@ export function StartBar({ title, summary, disabled = false, onPress }: StartBar
         styles.bar,
         {
           backgroundColor: activeTheme.colors.background,
-          borderTopColor: activeTheme.colors.line,
+          boxShadow: `0 -8px 24px ${hexToRgba(activeTheme.colors.background, 0.9)}`,
         },
       ]}
     >
@@ -50,7 +50,6 @@ export function StartBar({ title, summary, disabled = false, onPress }: StartBar
 
 const styles = StyleSheet.create({
   bar: {
-    borderTopWidth: 1,
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.md,

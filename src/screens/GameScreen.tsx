@@ -308,7 +308,11 @@ function ReadingGameView({
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
         <PromptBoard
-          topRight={<SpeakButton text={state.round.prompt.kana} />}
+          topRight={
+            state.answerState !== 'idle' ? (
+              <SpeakButton text={state.round.prompt.kana} />
+            ) : null
+          }
         >
           <View style={styles.kanaWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, kanaTextAnimatedStyle]}>
@@ -462,7 +466,7 @@ function WritingGameView({
     state.answerState === 'idle' &&
     sanitizeWritingInput(state.inputValue, answerKind).length > 0;
 
-  const neutralInputLineColor = hexToRgba(activeTheme.colors.textPrimary, 0.38);
+  const neutralInputLineColor = activeTheme.colors.lineStrong;
   const inputLineColor = inputLineTransition.interpolate({
     inputRange: [0, 1],
     outputRange: [
@@ -487,9 +491,11 @@ function WritingGameView({
         <PromptBoard
           style={styles.writingPromptBoard}
           topRight={
-            <SpeakButton
-              text={state.round.prompts.map((prompt) => prompt.kana).join('')}
-            />
+            state.answerState !== 'idle' ? (
+              <SpeakButton
+                text={state.round.prompts.map((prompt) => prompt.kana).join('')}
+              />
+            ) : null
           }
         >
           <View style={styles.writingPromptWrap}>
@@ -513,7 +519,8 @@ function WritingGameView({
           style={[
             styles.inputUnderline,
             {
-              borderBottomColor: inputFeedbackTone
+              backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
+              borderColor: inputFeedbackTone
                 ? inputLineColor
                 : neutralInputLineColor,
             },
@@ -691,7 +698,7 @@ function WordSyllablesGameView({
     state.answerState === 'idle' &&
     sanitizeWordPracticeInput(state.inputValue, answerKind).length > 0;
 
-  const neutralInputLineColor = hexToRgba(activeTheme.colors.textPrimary, 0.38);
+  const neutralInputLineColor = activeTheme.colors.lineStrong;
   const inputLineColor = inputLineTransition.interpolate({
     inputRange: [0, 1],
     outputRange: [
@@ -733,7 +740,11 @@ function WordSyllablesGameView({
               onToggle={() => setWordHintEnabled(!wordHintEnabled)}
             />
           }
-          topRight={<SpeakButton text={state.round.word.kana} />}
+          topRight={
+            state.answerState !== 'idle' ? (
+              <SpeakButton text={state.round.word.kana} />
+            ) : null
+          }
         >
           <View style={styles.syllablesPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
@@ -759,7 +770,8 @@ function WordSyllablesGameView({
           style={[
             styles.inputUnderline,
             {
-              borderBottomColor: inputFeedbackTone
+              backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
+              borderColor: inputFeedbackTone
                 ? inputLineColor
                 : neutralInputLineColor,
             },
@@ -926,7 +938,7 @@ function PhraseGameView({
     state.answerState === 'idle' &&
     sanitizePhraseInput(state.inputValue, answerKind).length > 0;
 
-  const neutralInputLineColor = hexToRgba(activeTheme.colors.textPrimary, 0.38);
+  const neutralInputLineColor = activeTheme.colors.lineStrong;
   const inputLineColor = inputLineTransition.interpolate({
     inputRange: [0, 1],
     outputRange: [
@@ -966,7 +978,11 @@ function PhraseGameView({
         </AppText>
         <PromptBoard
           style={styles.writingPromptBoard}
-          topRight={<SpeakButton text={state.round.phrase.kana} />}
+          topRight={
+            state.answerState !== 'idle' ? (
+              <SpeakButton text={state.round.phrase.kana} />
+            ) : null
+          }
         >
           <View style={styles.phrasePromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
@@ -1020,7 +1036,8 @@ function PhraseGameView({
           style={[
             styles.inputUnderline,
             {
-              borderBottomColor: inputFeedbackTone
+              backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
+              borderColor: inputFeedbackTone
                 ? inputLineColor
                 : neutralInputLineColor,
             },
@@ -1191,7 +1208,13 @@ function FillBlankGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <PromptBoard topRight={<SpeakButton text={state.round.word.kana} />}>
+        <PromptBoard
+          topRight={
+            state.answerState !== 'idle' ? (
+              <SpeakButton text={state.round.word.kana} />
+            ) : null
+          }
+        >
           <View style={styles.kanaWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
               <View style={styles.fillBlankRow}>
@@ -1322,7 +1345,13 @@ function WordBuilderGameView({
       />
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <PromptBoard topRight={<SpeakButton text={state.round.word.kana} />}>
+        <PromptBoard
+          topRight={
+            state.answerState !== 'idle' ? (
+              <SpeakButton text={state.round.word.kana} />
+            ) : null
+          }
+        >
           <View style={styles.wordBuilderPromptWrap}>
             <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
               <PromptGlyph style={styles.wordTranslationPrompt}>
@@ -1472,7 +1501,7 @@ function GameTopBlock({
 
   return (
     <View style={styles.topBlock}>
-      <AppText variant="title" style={styles.title}>
+      <AppText variant="headline" style={styles.title}>
         {title}
       </AppText>
 
@@ -1552,19 +1581,8 @@ function PromptBoard({
   topLeft?: ReactNode;
   topRight?: ReactNode;
 }) {
-  const { theme: activeTheme } = useAppTheme();
-
   return (
-    <View
-      style={[
-        styles.promptBoard,
-        {
-          backgroundColor: hexToRgba(activeTheme.colors.backgroundTertiary, 0.96),
-          borderColor: hexToRgba(activeTheme.colors.textPrimary, 0.06),
-        },
-        style,
-      ]}
-    >
+    <View style={[styles.promptBoard, style]}>
       {topLeft ? <View style={styles.boardCornerLeft}>{topLeft}</View> : null}
       {topRight ? <View style={styles.boardCornerRight}>{topRight}</View> : null}
       {children}
@@ -1670,9 +1688,9 @@ const styles = StyleSheet.create({
   topBlock: {
     marginBottom: theme.spacing.xs,
   },
+  // Alineado a la izquierda, como ScreenHeader en el resto de la app.
   title: {
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1709,8 +1727,6 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
   },
   promptBoard: {
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
   },
@@ -1833,12 +1849,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inputUnderline: {
-    minWidth: 180,
-    maxWidth: '88%',
-    borderBottomWidth: 1,
-    paddingBottom: 6,
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1.5,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   input: {
+    outlineWidth: 0,
     fontFamily: 'ZenKakuGothicNew_500Medium',
     fontSize: 22,
     lineHeight: 28,

@@ -1,61 +1,144 @@
-import { TextStyle } from 'react-native';
+import { TextStyle, ViewStyle } from 'react-native';
 
 export type ThemeMode = 'dark' | 'light';
+// Lo que elige el usuario. 'system' sigue al teléfono (default desde el rediseño).
+export type ThemePreference = ThemeMode | 'system';
 
-// Rediseño "tinta y bermellón" — reemplaza dark glass/cyan.
-// Light = papel (default). Dark = sumi.
+// Rediseño "Japón moderno" (2026-10-27) — reemplaza a "tinta y bermellón".
+//
+// Índigo profundo (藍) como color de marca: cabeceras, selección, lo estructural.
+// Sakura (桜) como acento: la acción principal de cada pantalla.
+// Claro = papel frío casi blanco. Oscuro = noche índigo, nunca negro puro.
 const lightColors = {
-  background: '#F7F4EF',
+  background: '#F4F5FA',
   backgroundSecondary: '#FFFFFF',
-  backgroundTertiary: '#ECE8E0',
+  backgroundTertiary: '#EAECF5',
   card: '#FFFFFF',
   cardStrong: '#FFFFFF',
-  textPrimary: '#1C1A17',
-  textSecondary: '#6B655C',
-  textMuted: '#8A8378',
-  line: 'rgba(28, 26, 23, 0.12)',
-  lineStrong: 'rgba(28, 26, 23, 0.18)',
-  accent: '#C73E2E',
-  success: '#3E7D5C',
-  error: '#B03A2E',
-  warning: '#A87B2F',
+  textPrimary: '#151B30',
+  textSecondary: '#535B77',
+  textMuted: '#868CA6',
+  line: 'rgba(21, 27, 48, 0.08)',
+  lineStrong: 'rgba(21, 27, 48, 0.16)',
+  // Marca: índigo. `onBrand` es el texto que va encima.
+  brand: '#1E2A4A',
+  brandRaised: '#2B3B68',
+  onBrand: '#FFFFFF',
+  // Acento: sakura profundo, lo bastante oscuro para llevar texto blanco (4.5:1).
+  accent: '#CF3866',
+  onAccent: '#FFFFFF',
+  success: '#1F9D74',
+  error: '#D93F55',
+  warning: '#C77D12',
   black: '#000000',
   white: '#FFFFFF',
 };
 
 const darkColors: typeof lightColors = {
-  background: '#1B1A17',
-  backgroundSecondary: '#242220',
-  backgroundTertiary: '#141311',
-  card: '#242220',
-  cardStrong: '#242220',
-  textPrimary: '#F0EDE6',
-  textSecondary: '#B7B1A4',
-  textMuted: '#989285',
-  line: 'rgba(240, 237, 230, 0.14)',
-  lineStrong: 'rgba(240, 237, 230, 0.22)',
-  accent: '#D4553F',
-  success: '#5AA47C',
-  error: '#C96A57',
-  warning: '#C29A54',
+  background: '#0E1322',
+  backgroundSecondary: '#171E33',
+  backgroundTertiary: '#0A0E1A',
+  card: '#171E33',
+  cardStrong: '#1C2440',
+  textPrimary: '#ECEEF7',
+  textSecondary: '#A8AFC9',
+  textMuted: '#7B829E',
+  line: 'rgba(236, 238, 247, 0.09)',
+  lineStrong: 'rgba(236, 238, 247, 0.17)',
+  brand: '#26335E',
+  brandRaised: '#33427A',
+  onBrand: '#FFFFFF',
+  // En oscuro el sakura va claro y el texto encima, oscuro: blanco sobre rosa claro no
+  // se lee.
+  accent: '#F28FA8',
+  onAccent: '#2A0C17',
+  success: '#4FCB9E',
+  error: '#F26B7F',
+  warning: '#F2B04A',
   black: '#000000',
   white: '#FFFFFF',
 };
 
-// Opacidad de las marcas de agua (el kanji grande detrás de los tiles). En sumi el
-// bermellón sobre fondo oscuro rinde mucho menos que la tinta sobre papel, así que
-// necesita bastante más alpha para leerse igual. No unificar en un solo valor.
+// Un color tradicional por juego (伝統色). Le dan identidad a cada card de la grilla sin
+// pelearse con el acento: se usan en baja opacidad o en el glifo, nunca de fondo pleno.
+export type TintName = 'ai' | 'sakura' | 'matcha' | 'kohaku' | 'fuji' | 'sora' | 'beni' | 'cha';
+
+const lightTints: Record<TintName, string> = {
+  ai: '#3F57B5',
+  sakura: '#CF3866',
+  matcha: '#2E8B5E',
+  kohaku: '#C47A10',
+  fuji: '#7A5CC7',
+  sora: '#1F86BF',
+  beni: '#C2453B',
+  cha: '#8A5A3C',
+};
+
+const darkTints: typeof lightTints = {
+  ai: '#8EA2F0',
+  sakura: '#F28FA8',
+  matcha: '#6FCF9E',
+  kohaku: '#F2B04A',
+  fuji: '#B9A4F2',
+  sora: '#7CC6EE',
+  beni: '#F2877D',
+  cha: '#D7A27F',
+};
+
+// Opacidad de los kanji-ilustración (el glifo grande detrás de las cards). En oscuro
+// rinden menos sobre el fondo y necesitan más alpha. No unificar en un solo valor.
 const lightOpacity = {
-  watermarkSoft: 0.14,
-  watermarkStrong: 0.2,
+  watermarkSoft: 0.1,
+  watermarkStrong: 0.16,
   glyphMuted: 0.35,
+  // Fondo de los badges y estados suaves (chip, opción elegida, glifo en su cuadrito).
+  tintSoft: 0.1,
 };
 
 const darkOpacity: typeof lightOpacity = {
-  watermarkSoft: 0.34,
-  watermarkStrong: 0.46,
+  watermarkSoft: 0.16,
+  watermarkStrong: 0.24,
   glyphMuted: 0.55,
+  tintSoft: 0.16,
 };
+
+// Superficies: en claro las cards flotan con sombra y sin borde; en oscuro la sombra no
+// se ve, así que llevan un borde fino. Por eso es un token por modo y no un estilo fijo.
+const lightSurfaces = {
+  card: {
+    borderWidth: 0,
+    borderColor: 'transparent',
+    boxShadow: '0 1px 2px rgba(21, 27, 48, 0.05), 0 8px 24px rgba(21, 27, 48, 0.06)',
+  } satisfies ViewStyle,
+  raised: {
+    borderWidth: 0,
+    borderColor: 'transparent',
+    boxShadow: '0 2px 4px rgba(21, 27, 48, 0.06), 0 12px 32px rgba(21, 27, 48, 0.1)',
+  } satisfies ViewStyle,
+};
+
+const darkSurfaces: typeof lightSurfaces = {
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(236, 238, 247, 0.08)',
+    boxShadow: 'none',
+  },
+  raised: {
+    borderWidth: 1,
+    borderColor: 'rgba(236, 238, 247, 0.12)',
+    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.35)',
+  },
+};
+
+// Sans japonesa en todo: Zen Kaku Gothic New. El mincho (Zen Old Mincho) queda SOLO
+// para los kanji-ilustración, donde el trazo con remates es decoración, no lectura.
+export const FONTS = {
+  regular: 'ZenKakuGothicNew_400Regular',
+  medium: 'ZenKakuGothicNew_500Medium',
+  bold: 'ZenKakuGothicNew_700Bold',
+  black: 'ZenKakuGothicNew_900Black',
+  illustration: 'ZenOldMincho_700Bold',
+} as const;
 
 const sharedTheme = {
   spacing: {
@@ -68,65 +151,67 @@ const sharedTheme = {
     xxl: 32,
     xxxl: 40,
   },
-  // Esquinas casi rectas; pill queda para chips y el botón de voz.
+  // Redondeado y blando: cards en lg, controles en md, chips en pill.
   radii: {
-    sm: 4,
-    md: 6,
-    lg: 8,
-    xl: 12,
+    sm: 8,
+    md: 14,
+    lg: 20,
+    xl: 28,
     pill: 999,
   },
   typography: {
     overline: {
-      fontFamily: 'ZenKakuGothicNew_700Bold',
-      fontSize: 12,
-      lineHeight: 16,
-      letterSpacing: 1.6,
+      fontFamily: FONTS.bold,
+      fontSize: 11,
+      lineHeight: 15,
+      letterSpacing: 1.4,
       textTransform: 'uppercase',
     } satisfies TextStyle,
     label: {
-      fontFamily: 'ZenKakuGothicNew_700Bold',
+      fontFamily: FONTS.bold,
       fontSize: 12,
       lineHeight: 16,
-      letterSpacing: 1,
+      letterSpacing: 0.4,
     } satisfies TextStyle,
     bodySmall: {
-      fontFamily: 'ZenKakuGothicNew_400Regular',
+      fontFamily: FONTS.regular,
       fontSize: 13,
       lineHeight: 19,
     } satisfies TextStyle,
     body: {
-      fontFamily: 'ZenKakuGothicNew_400Regular',
+      fontFamily: FONTS.regular,
       fontSize: 15,
       lineHeight: 23,
     } satisfies TextStyle,
     bodyStrong: {
-      fontFamily: 'ZenKakuGothicNew_700Bold',
+      fontFamily: FONTS.bold,
       fontSize: 15,
-      lineHeight: 23,
+      lineHeight: 22,
     } satisfies TextStyle,
     title: {
-      fontFamily: 'ZenKakuGothicNew_700Bold',
+      fontFamily: FONTS.bold,
       fontSize: 18,
-      lineHeight: 25,
+      lineHeight: 24,
     } satisfies TextStyle,
     headline: {
-      fontFamily: 'ZenOldMincho_700Bold',
+      fontFamily: FONTS.black,
       fontSize: 26,
-      lineHeight: 34,
+      lineHeight: 32,
+      letterSpacing: -0.3,
     } satisfies TextStyle,
     display: {
-      fontFamily: 'ZenOldMincho_700Bold',
+      fontFamily: FONTS.black,
       fontSize: 34,
-      lineHeight: 42,
+      lineHeight: 40,
+      letterSpacing: -0.6,
     } satisfies TextStyle,
     kana: {
-      fontFamily: 'ZenOldMincho_400Regular',
+      fontFamily: FONTS.medium,
       fontSize: 96,
-      lineHeight: 108,
+      lineHeight: 112,
     } satisfies TextStyle,
     option: {
-      fontFamily: 'ZenKakuGothicNew_500Medium',
+      fontFamily: FONTS.medium,
       fontSize: 20,
       lineHeight: 26,
     } satisfies TextStyle,
@@ -136,17 +221,22 @@ const sharedTheme = {
 export const theme = {
   ...sharedTheme,
   colors: lightColors,
+  tints: lightTints,
   opacity: lightOpacity,
+  surfaces: lightSurfaces,
 };
 
 export type AppTheme = typeof theme & { mode: ThemeMode };
 export type TextVariant = keyof typeof theme.typography;
 
 export function createTheme(mode: ThemeMode = 'light'): AppTheme {
+  const dark = mode === 'dark';
   return {
     ...sharedTheme,
-    colors: mode === 'dark' ? darkColors : lightColors,
-    opacity: mode === 'dark' ? darkOpacity : lightOpacity,
+    colors: dark ? darkColors : lightColors,
+    tints: dark ? darkTints : lightTints,
+    opacity: dark ? darkOpacity : lightOpacity,
+    surfaces: dark ? darkSurfaces : lightSurfaces,
     mode,
   };
 }

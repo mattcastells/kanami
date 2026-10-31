@@ -238,7 +238,7 @@ export function DrawingCanvas({
                   x={(stroke[0][0] / 100) * size}
                   y={(stroke[0][1] / 100) * size + 3.5}
                   textAnchor="middle"
-                  fill={isNext ? '#F7F4EF' : activeTheme.colors.textMuted}
+                  fill={isNext ? activeTheme.colors.onAccent : activeTheme.colors.textMuted}
                   fontSize={10}
                   fontWeight="bold"
                 >

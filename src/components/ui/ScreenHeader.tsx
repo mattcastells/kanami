@@ -17,6 +17,8 @@ type ScreenHeaderProps = {
   rightSlot?: ReactNode;
 };
 
+// Cabecera de pantalla alineada a la izquierda (antes era centrada): el título manda y
+// la acción ("Invertir", "Salir") queda a su derecha, a mano del pulgar.
 export function ScreenHeader({
   title,
   subtitle,
@@ -27,96 +29,78 @@ export function ScreenHeader({
   leftSlot,
   rightSlot,
 }: ScreenHeaderProps) {
-  const { theme: activeTheme } = useAppTheme();
-  const showTopRow = Boolean(
-    leftSlot || rightSlot || onBack || (actionLabel && onActionPress),
-  );
+  const { theme: activeTheme, mode } = useAppTheme();
+  const { colors } = activeTheme;
+  const actionTone = mode === 'dark' ? colors.textPrimary : colors.brand;
+
+  const right = rightSlot ? (
+    rightSlot
+  ) : actionLabel && onActionPress ? (
+    <Pressable
+      onPress={onActionPress}
+      hitSlop={6}
+      style={({ pressed }) => [
+        styles.actionButton,
+        { backgroundColor: hexToRgba(actionTone, mode === 'dark' ? 0.1 : 0.07) },
+        pressed && styles.pressed,
+      ]}
+    >
+      <AppText variant="label" color={actionTone}>
+        {actionLabel}
+      </AppText>
+    </Pressable>
+  ) : null;
 
   return (
     <View style={styles.container}>
-      {showTopRow ? (
-        <View style={styles.topRow}>
-          {leftSlot ? (
-            leftSlot
-          ) : onBack ? (
+      {leftSlot || onBack ? (
+        <View style={styles.leftRow}>
+          {leftSlot ?? (
             <Pressable
               onPress={onBack}
-              style={[
-                styles.iconButton,
-                {
-                  borderColor: activeTheme.colors.line,
-                  backgroundColor: hexToRgba(activeTheme.colors.white, 0.05),
-                },
-              ]}
+              style={[styles.iconButton, activeTheme.surfaces.card, { backgroundColor: colors.card }]}
             >
-              <MaterialCommunityIcons
-                name="chevron-left"
-                size={20}
-                color={activeTheme.colors.textPrimary}
-              />
+              <MaterialCommunityIcons name="chevron-left" size={22} color={colors.textPrimary} />
             </Pressable>
-          ) : (
-            <View style={styles.spacer} />
-          )}
-
-          {rightSlot ? (
-            rightSlot
-          ) : actionLabel && onActionPress ? (
-            <Pressable
-              onPress={onActionPress}
-              style={[
-                styles.actionButton,
-                {
-                  borderColor: activeTheme.colors.line,
-                  backgroundColor: hexToRgba(activeTheme.colors.white, 0.04),
-                },
-              ]}
-            >
-              <AppText variant="label" color={activeTheme.colors.textSecondary}>
-                {actionLabel}
-              </AppText>
-            </Pressable>
-          ) : (
-            <View style={styles.spacer} />
           )}
         </View>
       ) : null}
 
-      {eyebrow ? (
-        <AppText
-          variant="overline"
-          color={activeTheme.colors.accent}
-          style={[styles.eyebrow, styles.centerText]}
-        >
-          {eyebrow}
-        </AppText>
-      ) : null}
-
-      <AppText variant="headline" style={[styles.title, styles.centerText]}>
-        {title}
-      </AppText>
-      {subtitle ? (
-        <AppText
-          variant="body"
-          color={activeTheme.colors.textSecondary}
-          style={styles.centerText}
-        >
-          {subtitle}
-        </AppText>
-      ) : null}
+      <View style={styles.mainRow}>
+        <View style={styles.titleBlock}>
+          {eyebrow ? (
+            <AppText variant="overline" color={colors.accent} style={styles.eyebrow}>
+              {eyebrow}
+            </AppText>
+          ) : null}
+          <AppText variant="headline">{title}</AppText>
+          {subtitle ? (
+            <AppText variant="body" color={colors.textSecondary} style={styles.subtitle}>
+              {subtitle}
+            </AppText>
+          ) : null}
+        </View>
+        {right}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  leftRow: {
     marginBottom: theme.spacing.md,
+  },
+  mainRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.spacing.sm,
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
   },
   iconButton: {
     width: 40,
@@ -124,25 +108,20 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
   },
   actionButton: {
+    marginTop: 2,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: 10,
     borderRadius: theme.radii.pill,
-    borderWidth: 1,
-  },
-  spacer: {
-    width: 40,
-    height: 40,
   },
   eyebrow: {
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.xxs,
   },
-  title: {
-    marginBottom: theme.spacing.xs,
+  subtitle: {
+    marginTop: theme.spacing.xxs,
   },
-  centerText: {
-    textAlign: 'center',
+  pressed: {
+    opacity: 0.7,
   },
 });

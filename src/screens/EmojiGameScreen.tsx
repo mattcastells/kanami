@@ -83,7 +83,10 @@ export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
       </View>
 
       <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <SpeakButton text={round.kana} style={styles.speakCorner} />
+        {/* Imagen → palabra: escuchar la palabra antes de elegir sería darte la respuesta. */}
+        {!round.promptIsEmoji || showTranslation ? (
+          <SpeakButton text={round.kana} style={styles.speakCorner} />
+        ) : null}
         <View style={styles.promptWrap}>
           {round.promptIsEmoji ? (
             <Text style={styles.emojiPrompt}>{round.promptText}</Text>

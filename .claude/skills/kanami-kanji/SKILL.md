@@ -1,9 +1,9 @@
 ---
 name: kanami-kanji
-description: Mantener el sistema de kanji de Kanami — el dataset único (src/data/kanji.ts), la sección Kanji, Kanji Grind, la relación con las clases y el espejo en Notion. Usala cuando el pedido sea "agregá/corregí un kanji", "faltan kanji de la clase N", "sumá el mazo N4" o al tocar la ficha, el grind o el progreso por kanji.
+description: Mantener el sistema de kanji de Kanami — el dataset único (src/data/kanji.ts), Kanji Grind, la relación con las clases y el espejo en Notion. Usala cuando el pedido sea "agregá/corregí un kanji", "faltan kanji de la clase N", "sumá el mazo N4" o al tocar el grind, la tarjeta de presentación o el progreso por kanji.
 ---
 
-# Kanji: dataset, sección y Kanji Grind
+# Kanji: dataset y Kanji Grind
 
 Todo el kanji de la app sale de **un solo archivo**. Esta skill existe para que siga
 siendo así.
@@ -13,8 +13,12 @@ siendo así.
 - "Agregá el kanji X", "corregí la lectura de 時", "faltan ejemplos en 語".
 - "Sumá los kanji de la clase 17."
 - "Ampliemos a N4."
-- Tocás la ficha, el índice, Kanji Grind o el progreso por kanji.
+- Tocás Kanji Grind (incluida la tarjeta `learn`) o el progreso por kanji.
 - Vas a espejar los kanji en Notion.
+
+**No hay sección Kanji de consulta** (lista + ficha): se quitó con la pestaña Estudiar el
+2026-10-27. Las tarjetas `learn` de Kanji Grind son la única presentación de un kanji en la
+app; la ficha completa, si hace falta, va a Notion (§ Notion).
 
 ## La regla que no se rompe
 
@@ -26,19 +30,18 @@ src/data/kanji.ts          ← ÚNICA definición de un kanji. Se edita a mano.
         │
         └─ features/kanji/kanjiCatalog.ts   ← ÚNICA puerta de lectura
                     │
-      sección Kanji · Kanji Grind · apuntes de clase · Repaso · trazos
+              Kanji Grind · Repaso · Trazos (KanjiDraw)
 ```
 
 **Ningún otro archivo define un kanji.** Ni las clases, ni el vocabulario, ni una skill,
 ni Notion. Si necesitás un dato de kanji en algún lado, se lee del catálogo.
 
-Tres cosas que parecen kanji pero **no lo son** y no hay que mover a `kanji.ts`:
+Dos cosas que parecen kanji pero **no lo son** y no hay que mover a `kanji.ts`:
 
 - El campo `kanji` de `classVocabulary.ts` es la **grafía de una palabra** (失礼します), no
   una ficha. Se queda ahí. El cruce lo calcula el generador.
-- Los kanji sueltos en el texto de `content/clases/*.md` son **prosa**. El generador los
-  detecta solo.
-- `studyTopics.ts` usa kanji dentro de tablas de contenido. No se tocan.
+- Los kanji sueltos en el texto de `content/clases/*.md` son **prosa** (la transcripción de
+  la clase, que la app ya no muestra). El generador los detecta solo.
 
 ## El dataset — `src/data/kanji.ts`
 
@@ -49,7 +52,7 @@ Tres cosas que parecen kanji pero **no lo son** y no hay que mover a `kanji.ts`:
 {
   char: '時',                                  // el id ES el carácter
   meaning: 'hora',                             // corto: es la respuesta en los juegos
-  meaningExtra: '...',                         // opcional, solo para la ficha
+  meaningExtra: '...',                         // opcional; hoy no lo muestra la app (era de la ficha)
   on: [{ kana: 'ジ', romaji: 'ji' }],           // katakana
   kun: [{ kana: 'とき', romaji: 'toki' }],      // hiragana, okurigana entre paréntesis
   primary: 'on',                               // qué familia se pregunta
@@ -60,7 +63,7 @@ Tres cosas que parecen kanji pero **no lo son** y no hay que mover a `kanji.ts`:
     romaji: 'ima nanji desu ka.',
     es: '¿Qué hora es?',
   },
-  usage: '...',                                // opcional: cuándo va cada lectura
+  usage: '...',                                // opcional: cuándo va cada lectura (hoy no se muestra)
   mnemonic: '...',                             // opcional: SOLO si aporta
   category: 'tiempo',
   deck: 'n5-core',
@@ -82,7 +85,7 @@ Reglas duras (las valida el generador, que **falla** con el detalle exacto):
   y hace que el kanji resalte. Corta pero no tanto que taparlo la deje sin resolver (el
   generador chequea las dos cosas). Es lo que responde "cómo se usa de verdad".
 - `meaning` corto y distinguible del resto del mazo: es el texto de la opción correcta.
-- Preferí ejemplos que ya aparezcan en `classVocabulary` o en los apuntes. Un ejemplo que
+- Preferí ejemplos que ya aparezcan en `classVocabulary` o en las clases. Un ejemplo que
   el usuario ya vio vale más que uno "canónico".
 - `mnemonic` solo cuando de verdad ayuda. Un truco forzado estorba más de lo que suma.
 
@@ -93,7 +96,7 @@ Reglas duras (las valida el generador, que **falla** con el detalle exacto):
 npm run kanji:generate   # valida el dataset + recalcula la relación con las clases
 npm run kanji:strokes    # baja los trazos de KanjiVG solo para los kanji del dataset
 npx tsc --noEmit
-npm run web              # Estudiar → Kanji, y Practicar → Kanji Grind
+npm run web              # Practicar → Kanji (Kanji Grind)
 ```
 
 `kanji:generate` imprime cuántos hay, cuántos viste en clase y cuántos no. Si algo está
@@ -101,7 +104,7 @@ mal cargado no escribe nada: lista los problemas y sale con error.
 
 `kanji:strokes` es una descarga de red (KanjiVG). Corrélo solo cuando **agregás o sacás**
 un kanji, no en cada corrección. Un kanji sin trazos funciona en todos los ejercicios
-menos en Trazos, y la ficha esconde el botón sola (`canDrawKanji`).
+menos en Trazos: `drawingGameEngine` lo saca del pool solo (`getStrokeGuide` devuelve `null`).
 
 ## La procedencia: clase vs. currículum
 
@@ -110,10 +113,15 @@ menos en Trazos, y la ficha esconde el botón sola (`canDrawKanji`).
 
 | Fuente | Qué aporta |
 |---|---|
-| `content/clases/*.md` | el kanji aparece en el texto del apunte |
+| `content/clases/*.md` | el kanji aparece en el texto de la transcripción (el número de clase sale del nombre del archivo) |
 | `src/data/classVocabulary.ts` | el kanji aparece en la grafía de una palabra de esa clase |
 
-De ahí sale `getKanjiOrigin(char)`: `'clase'` si aparece en alguna, `'curriculum'` si no.
+De ahí sale `getKanjiOrigin(char)`: `'clase'` si aparece en alguna, `'curriculum'` si no. Lo
+usa Kanji Grind (preset "Los de mis clases"). `KANJI_CLASS_WORDS` se sigue generando pero hoy
+no lo lee nadie: lo consumía la ficha.
+
+`content/clases/*.md` ya no se muestra en la app, pero **no lo borres**: sin esos archivos los
+kanji de las clases pasan a "currículum".
 
 **Nunca escribas la lista de clases a mano en `kanji.ts`.** Miente en cuanto se suma una
 clase. Al incorporar una clase nueva (skill `kanami-clases`), corré `npm run kanji:generate`
@@ -127,8 +135,10 @@ en la misma pasada: los kanji de esa clase pasan solos a origen "clase".
 - Tres destrezas por separado: `meaning`, `reading`, `recognition`.
 - `MASTERY_STREAK = 3` aciertos seguidos por destreza.
 - Estados: **nuevo → estudiando → practicando → dominado**.
-- `estudiando` lo marcás vos desde la ficha; `practicando` lo dispara la primera respuesta;
-  `dominado` exige las tres destrezas.
+- `estudiando` lo marcaba el usuario desde la ficha (`setStudied` del provider); desde que se
+  quitó la ficha (2026-10-27) **ninguna pantalla lo llama**, así que solo aparece en
+  progresos viejos. `practicando` lo dispara la primera respuesta; `dominado` exige las tres
+  destrezas.
 
 **Que un kanji exista en el dataset NO lo marca como estudiado.** Es el invariante central
 del sistema: el contenido nunca mueve el estado, solo el usuario. Si agregás una forma de
@@ -152,8 +162,8 @@ patrón de `kanami-modo-practica`; lo propio de este modo:
   palabra o en la oración. Salen de `examples` y `sentence`: cero datos nuevos.
 - **Los distractores salen del catálogo completo cuando el mazo no alcanza**
   (`MIN_POOL_FOR_OWN_DISTRACTORS`). El mazo decide qué se PREGUNTA, no cómo se ven las
-  opciones incorrectas: con un mazo de un kanji (el botón "practicar este kanji" de la ficha)
-  no habría ninguna. Ya fue un bug: no lo revuelvas.
+  opciones incorrectas: con un mazo de un solo kanji no habría ninguna. Ya fue un bug: no lo
+  revuelvas.
 - Toda ronda con menos de 2 opciones se descarta (`createGrindRound` devuelve `null`).
 - `modeKey` de progreso: `kanji-grind`. Reporta también a `useTrackWeakItem`, así los
   errores caen en el Repaso general como los otros modos.
@@ -173,7 +183,7 @@ Para espejar (cuando el usuario lo pida explícitamente — son escrituras en su
 1. Crear una página **Kanji** bajo `38c6c47f-5f8d-8074-87f2-da7729ddd869` (日本語 | Nihongo).
 2. Una subpágina por kanji, titulada `<char> | <romaji de la lectura principal>` para
    seguir el formato de las fichas que ya existen (`Jin | 人`).
-3. Contenido en el orden de la ficha de la app: significado, tabla de lecturas
+3. Contenido en el orden de los campos de `kanji.ts`: significado, tabla de lecturas
    (On/Kun/Uso), tabla de ejemplos (Japonés | Romaji | Español), cómo se usa, mnemotecnia,
    y en qué clases apareció.
 4. Formato exacto: seguí **`apuntes-notion-estilo`** (japonés en kana con espacios, romaji
@@ -192,7 +202,7 @@ arregla en `src/data/kanji.ts` y se vuelve a espejar.
 2. Sumá las entradas con `order` continuando la numeración (93+).
 3. `npm run kanji:generate` + `npm run kanji:strokes`.
 4. Revisá si alguna categoría nueva hace falta en `KANJI_CATEGORIES`.
-5. La sección y el grind los toman solos: leen el catálogo, no una lista fija.
+5. El grind y Trazos los toman solos: leen el catálogo, no una lista fija.
 
 ## Errores a evitar
 
@@ -202,7 +212,9 @@ arregla en `src/data/kanji.ts` y se vuelve a espejar.
 - Renumerar `char` o convertirlo en un id tipo `k001`.
 - Sacar la ronda `learn` "para que el grind sea más rápido".
 - Poner un hex de color en las pantallas de kanji: el estado se pinta con
-  `kanjiStatusColor(status, activeTheme)`, que lee del theme activo.
+  `KanjiStatusChip` (su `kanjiStatusColor` interno lee del theme activo).
+- Volver a sumar una lista o ficha de kanji de consulta: se quitó a propósito, la teoría
+  vive en Notion.
 - Editar cualquier `*.generated.ts`.
 
 ## Cómo validar
@@ -214,7 +226,8 @@ arregla en `src/data/kanji.ts` y se vuelve a espejar.
    cientos de sesiones verificando que **ninguna ronda tenga dos opciones con el mismo
    texto**, que la correcta siempre esté, que el prompt de reconocimiento no revele la
    respuesta y que un kanji nuevo nunca se pregunte antes de su tarjeta.
-4. `npm run web`: Estudiar → Kanji (buscador, filtros, ficha), Practicar → Kanji Grind
-   (sesión entera, incluida una con mazo de un solo kanji desde la ficha).
+4. `npm run web`: Practicar → Kanji → una sesión entera de Kanji Grind (presentación +
+   preguntas), y otra con un mazo chico (una sola categoría o el preset "Kanji nuevos") para ver
+   que los distractores salen del catálogo.
 5. **En light y en dark.**
 6. Recargá la página y confirmá que el progreso por kanji sobrevivió.

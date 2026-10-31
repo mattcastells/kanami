@@ -10,9 +10,14 @@ contradice algo de acá, actualizá este archivo en el mismo commit.
 
 ## Qué es
 
-App mobile (Expo + React Native + TypeScript) para practicar **japonés**: hiragana,
-katakana, kanji N5, vocabulario, números y frases. Incluye una asistente con IA (**Kyary**,
-Gemini) y una sección de estudio con teoría. Español rioplatense en toda la UI.
+App mobile (Expo + React Native + TypeScript) para practicar **japonés** con juegos:
+hiragana, katakana, kanji N5, vocabulario, antónimos, números, fechas y hora, y frases.
+Español rioplatense en toda la UI. La asistente con IA (**Kyary**, Gemini) sigue en el código
+pero **escondida** desde el 2026-10-27 (nadie la usaba): ver "Kyary" más abajo.
+
+**Kanami es SOLO práctica** (desde el 2026-10-27). La teoría — apuntes de clase, fichas de
+kanji, listas de vocabulario, temas — se estudia en **Notion**, no en la app. No vuelvas a
+sumar pantallas de lectura/consulta: si algo hay que aprenderlo, que sea jugando.
 
 - Package: `kanami` · Expo `~55` · React Native `0.83.6` · React `19.2` · TypeScript `strict`.
 - Plataforma primaria de validación: **web** (`npm run web`). Android es el target de release.
@@ -23,7 +28,6 @@ Gemini) y una sección de estudio con teoría. Español rioplatense en toda la U
 ```bash
 npm start              # Expo dev server
 npm run web            # validación primaria (web-first)
-npm run clases:generate# content/clases/*.md -> src/data/classNotes.generated.ts
 npm run kanji:generate # valida src/data/kanji.ts + deriva kanjiClasses.generated.ts
 npm run kanji:strokes  # baja de KanjiVG los trazos de los kanji del dataset (red)
 npm run android        # dev build nativo Android
@@ -40,12 +44,11 @@ No hay linter ni test runner en el repo. El único gate automático es `tsc`.
 ```
 App.tsx                 Fonts (Zen) + providers + NavigationContainer + ajustes web
 index.ts                registerRootComponent
-content/                FUENTE editable de los apuntes (markdown, no se bundlea directo)
-  clases/kurasu-NN.md   transcripción de cada clase real (1-6, 8-21, 23-26; la 7 no existió, de la 22 no hay material)
-  repaso.md             hoja de repaso consolidada — se mantiene al día clase a clase
-assets/clases/          imágenes de los apuntes (ver README ahí). Se referencian desde el
-                        markdown con ![epígrafe](archivo.png) y el generador arma el mapa
-                        de require() en src/data/classImages.generated.ts.
+content/                transcripciones de las clases (markdown, NO se bundlea)
+  clases/kurasu-NN.md   cada clase real (1-6, 8-21, 23-26; la 7 no existió, de la 22 no hay
+                        material). La app ya no muestra apuntes: estos archivos quedan como
+                        fuente de `kanji:generate` (procedencia de cada kanji) y de referencia
+                        para cargar vocabulario nuevo en classVocabulary.ts.
 src/
   navigation/           RootNavigator: bottom tabs + stacks
   theme/                theme.ts (tokens light/dark) + AppThemeProvider
@@ -54,12 +57,11 @@ src/
   components/
     ui/                 primitives reutilizables (ScreenBackground, GlassCard, AppText, ...)
     practice/           piezas de las pantallas de selección: ModeTile, SelectChip,
-                        CheckRow, StartBar
-    game/               UI del loop de práctica (DrawingCanvas, FeedbackBanner, ...)
-    study/              ClassBlockView (renderer de bloques) + ClassImage (imágenes con zoom)
+                        CheckRow, StartBar, ReadingDrillSetup
+    game/               UI del loop de práctica (DrawingCanvas, FeedbackBanner,
+                        ReadingDrillPlay, ...)
   features/
     game/               *Engine.ts (lógica PURA) + use*Game.ts (hooks con estado/timers/haptics)
-    classes/            classNotes.ts: helpers puros sobre los apuntes (fecha, orden, búsqueda)
     kanji/              kanjiCatalog.ts (ÚNICA puerta de lectura del dataset de kanji) +
                         kanjiProgressStore/KanjiProgressProvider (kanji-progress.json:
                         qué sabés de cada kanji, por destreza)
@@ -79,28 +81,29 @@ src/
                         (Web Speech API en web, reconocedor nativo en Android; free, sin costo).
     update/             releaseClient.ts (GitHub Releases) + androidUpdater.ts (instalar APK)
   services/             kyary.ts (cliente Gemini)
-  data/                 datasets: kana, kanji, vocabulario, frases, números, strokes
+  data/                 datasets: kana, kanji, vocabulario, antónimos, frases, números,
+                        fechas/horas, strokes
   types/                tipos compartidos (navigation, game, hiragana, kanji)
 ```
 
 ### Navegación (`src/navigation/RootNavigator.tsx`)
 
-4 tabs, sin header nativo (`headerShown: false`), animación `fade`:
+3 tabs, sin header nativo (`headerShown: false`), animación `fade`. **La pantalla de
+entrada es 練 Practicar.** La pestaña 学 Estudiar (apuntes de clase, temas, vocabulario y
+kanji de consulta, quiz por clase) **se quitó el 2026-10-27**: la teoría vive en Notion.
 
-**La pantalla de entrada es 学 Estudiar, no Practicar** (cambió el 2026-08-24). La app abre
-en el contenido para aprender; los juegos son la segunda pestaña.
+Pestañas: **練 Practicar · 復 Repaso · 私 Perfil**. 復 Repaso ocupa el lugar que tenía Kyary.
 
-- **練 Practicar** (`PracticeTab`) → stack: **Practice** (la grilla de juegos), KanaGroups,
+- **練 Practicar** (`PracticeTab`) → stack: **Practice** (la grilla de juegos), **Kanas**
+  (puerta única a Hiragana, Katakana y Kanji: en la grilla son UNA card), KanaGroups,
   KanaGame, **KanaBoardGame** (el tablero de kana), **KanjiGrind** + **KanjiGrindGame**
   (la práctica de kanji), KanjiDraw,
-  **EmojiGame** (matcheo palabra↔emoji), **TimesGame** (leer/escribir horarios 〜時〜分),
+  **EmojiGame** (matcheo palabra↔emoji),
   **TranslationGame** (traducir frases enteras en las dos direcciones, ordenando piezas o
   escribiendo), **Meanings** + **MeaningGame** (Significados: reconocer palabras de la
-  cursada, 4 opciones, en las dos direcciones), **Review** (el repaso por errores).
-
-  `MeaningGame` también está registrada en el stack de Estudiar: cada temática de
-  `VocabularyTheme` tiene una card "Practicá los significados" que la abre sin cambiar de
-  pestaña (mismo criterio que `ClassQuiz`).
+  cursada, 4 opciones, en las dos direcciones), **AntonymGame** (Antónimos: elegir el
+  opuesto de una palabra de la cursada), **Numbers** + **NumbersGame** y **DateTime** +
+  **DateTimeGame** (ver "Números y Fechas y hora" abajo).
 
   `PracticeScreen` es una **grilla pareja de 2 columnas**: todas las cards miden lo mismo,
   sin subtítulos, y el único destacado es el Repaso. El mosaico bento asimétrico anterior
@@ -115,18 +118,12 @@ en el contenido para aprender; los juegos son la segunda pestaña.
   va saltando a la siguiente pendiente (un input por carta, como el original de Tofugu, es
   inusable en un teléfono). Las cartas resueltas quedan cerradas y la sesión la corta el
   usuario con "Terminar"; lo que quedó sin contestar no cuenta como error.
-- **学 Estudiar** (`StudyTab`, **la home**) → stack: StudyTopics, StudyTopic, **ClassNotes** (Mis clases),
-  **ClassNote** (apunte de una clase), **ClassQuiz** (quiz de esa clase), **VocabularyList**
-  (Vocabulario de consulta), **KanjiList** + **KanjiDetail** (la sección Kanji: consultar y
-  aprender). Los apuntes se generan desde `content/clases/*.md` con
-  `npm run clases:generate` → `src/data/classNotes.generated.ts` (nunca editar el generado).
-  Ver skill `kanami-clases`.
-
-  **Kanji está partido a propósito**: consultar y aprender vive en Estudiar (`KanjiList` /
-  `KanjiDetail`), practicar vive en Practicar (`KanjiGrind`). No los junten de nuevo.
-  **No hay hoja de repaso global** (se quitó el 2026-08-16): el repaso es por clase, al
-  final de cada apunte. `content/repaso.md` quedó en el repo pero ya no se consume.
-- **話 Kyary** (`KyaryTab`) → chat con IA.
+- **復 Repaso** (`ReviewTab`) → stack propio: **Review** (intro + ronda), **ReviewList** (tu
+  lista) y **ReviewAdd** (agregar a mano). Es raíz de pestaña: sus fases van con
+  `showBack={false}` (la flecha te sacaría a otra pestaña) y la ronda se corta con "Salir".
+- **話 Kyary** (`KyaryTab`) → **escondida** con `KYARY_ENABLED = false` en
+  `src/features/flags.ts`. Con `true` vuelve la pestaña (entre Repaso y Perfil) y la sección
+  de la API key en Perfil. No borres su código: se puede rehabilitar.
 - **私 Perfil** (`ProfileTab`) → `ProfileScreen` = `OptionsScreen`, que hoy muestra la
   `ProgressCard` (progreso persistente + export/import) además de tema/haptics/updater.
   Cruzar de tab con `navigation.getParent()`.
@@ -140,9 +137,25 @@ etiqueta se recortara en dispositivos con el tamaño de fuente del sistema aumen
 insets en 0. El alto de la barra es `TAB_CONTENT_HEIGHT + max(insets.bottom, MIN_BOTTOM_INSET)`:
 el inset **se suma**, nunca se descuenta, y tiene piso por si el sistema reporta 0.
 
-### Pantallas de selección de práctica (kana, vocabulario, kanji)
+### Números y Fechas y hora (`readingDrillEngine`)
 
-Las tres siguen el mismo flujo y comparten primitives (`src/components/practice/`):
+Los dos son el mismo ejercicio — algo escrito con cifras (347, 4:30, 10月3日) y su lectura
+en japonés — así que comparten engine (`readingDrillEngine.ts`), hook (`useReadingDrill`),
+partida (`components/game/ReadingDrillPlay`) y selección (`components/practice/ReadingDrillSetup`).
+Lo único propio de cada uno es la **fuente** de ítems (`numberDrillSource`, `dateTimeDrillSource`).
+
+- Dos direcciones: cifra → lectura y lectura → cifra (sin dictado: se quitó con el modo
+  Dictado). Dos formas de responder: elegir entre 4 o escribir (romaji o kana; cifras con o sin separadores).
+- Las lecturas **se componen** (`data/numbers.ts`, `data/dateTime.ts`), no se listan: las
+  irregularidades (さんびゃく, よじ, よっか/ようか, しがつ…) están explícitas en esas tablas.
+- Las cifras tipeadas se comparan por grupos en fechas/horas ("10/3" ≠ "1/03") y todo junto
+  en números ("3.456" = "3456").
+- Fechas y hora reemplazó al viejo Horarios y conserva su `modeKey` (`times`) para no perder
+  el progreso acumulado.
+
+### Pantallas de selección de práctica (kana, vocabulario, kanji, números, fechas)
+
+Siguen el mismo flujo y comparten primitives (`src/components/practice/`):
 
 1. **① Qué querés hacer** — grilla de `ModeTile` (glifo + nombre). El modo primero.
 2. **② Con qué** — presets (`SelectChip`) + secciones plegables de `CheckRow`.
@@ -158,9 +171,9 @@ de scroll — no asumas un alto fijo, una barra con resumen mide bastante más q
   alimenta el mazo de repaso espaciado: `buildSrsDeck()` lo importa **directo**.
 - `classVocabulary.ts` — vocabulario **de la cursada** (~550): lo visto en las clases 1–26 más
   la sección Vocabulario de Notion. Trae kanji, romaji, nota y `classes` (trazabilidad).
-  Pantalla de consulta: `VocabularyList` en Estudiar. Es **la base de "lo que sé"**: el juego
-  Significados (`meaningGameEngine`) lee de acá directo, así que cada clase que suma palabras
-  las suma también al juego. Cada temática tiene un tipo de palabra en
+  Es **la base de "lo que sé"**: Significados (`meaningGameEngine`) lee de acá directo, y
+  Antónimos arma sus pares con ids de acá (`data/antonyms.ts`), así que cada clase que suma
+  palabras las suma también a los juegos. Si sumás un par de opuestos, va por id. Cada temática tiene un tipo de palabra en
   `CLASS_VOCAB_KIND_BY_CATEGORY` (un `Record`: una temática nueva sin clasificar no compila);
   los distractores salen del mismo tipo y nunca de un sinónimo u homógrafo de la respuesta.
 - La unión de ambos para práctica se hace en el facade `kana.ts` (`getKanaWordEntries`,
@@ -169,7 +182,8 @@ de scroll — no asumas un alto fijo, una barra con resumen mide bastante más q
 - Las categorías de clase van prefijadas `clase-*` en `WordPracticeCategoryId` porque varios
   nombres se repiten entre mazos (objetos, lugares, personas, hobbies).
 - Solo entra a práctica lo que es una palabra de un solo silabario y de 2 a 6 moras: las frases
-  (ありがとうございます), los sufijos (〜ご) y lo mixto (スペインご) quedan solo en la consulta.
+  (ありがとうございます), los sufijos (〜ご) y lo mixto (スペインご) quedan afuera de los modos de
+  kana (sí entran en Significados, que no parte la palabra en moras).
 
 ### Kanji: una sola fuente de verdad (`src/data/kanji.ts`)
 
@@ -182,7 +196,7 @@ src/data/kanji.ts  ← ÚNICA definición. Todo lo demás es derivado o consume.
    ├─ kanjiClasses.generated.ts  DERIVADO · npm run kanji:generate
    ├─ kanjiStrokes.generated.ts  DERIVADO · npm run kanji:strokes
    └─ features/kanji/kanjiCatalog.ts  ← ÚNICA puerta de lectura
-         └─ sección Kanji · Kanji Grind · apuntes de clase · Repaso · Trazos
+         └─ Kanji Grind · Repaso · Trazos
 ```
 
 - **La procedencia (en qué clase apareció) se DERIVA**, nunca se escribe a mano: el generador
@@ -207,6 +221,9 @@ src/data/kanji.ts  ← ÚNICA definición. Todo lo demás es derivado o consume.
   que además dan contexto.
 - **Los distractores salen del catálogo completo cuando el mazo no alcanza** (con mazo de un
   kanji no habría opciones: fue un bug real).
+
+No hay sección Kanji de consulta (lista + ficha): se quitó con Estudiar. Las tarjetas
+`learn` de Kanji Grind son la única presentación de un kanji, y están dentro del juego.
 
 Detalle completo en la skill **`kanami-kanji`**.
 
@@ -243,16 +260,33 @@ Detalle completo en la skill **`kanami-kanji`**.
 
 ## Sistema visual (fuente de verdad: `src/theme/theme.ts`)
 
-- Paleta **"tinta y bermellón"**. **Light es el default** (papel); dark es "sumi".
-  - Light: bg `#F7F4EF`, texto `#1C1A17`, accent `#C73E2E`.
-  - Dark: bg `#1B1A17`, texto `#F0EDE6`, accent `#D4553F`.
-- Fuentes **Zen** (se cargan en `App.tsx`):
-  - `ZenOldMincho` → display / headline / kana (serif, acentos).
-  - `ZenKakuGothicNew` → cuerpo, labels, botones, opciones.
-- Esquinas casi rectas (`radii.sm=4`), sin glass/blur/glow (ese lenguaje fue removido).
+Rediseño **"Japón moderno"** (2026-10-27; reemplazó a "tinta y bermellón").
+
+- **Colores**: índigo profundo (`brand`) para lo estructural (cabecera de Practicar, chip
+  elegido) y sakura (`accent`) para la acción principal. `onBrand` / `onAccent` son el texto
+  que va encima: en oscuro el sakura es claro y lleva texto oscuro, nunca blanco.
+  - Light: bg `#F4F5FA`, card `#FFFFFF`, texto `#151B30`, brand `#1E2A4A`, accent `#CF3866`.
+  - Dark ("noche índigo"): bg `#0E1322`, card `#171E33`, texto `#ECEEF7`, accent `#F28FA8`.
+- **Un color tradicional por juego** en `theme.tints` (`ai`, `sakura`, `matcha`, `kohaku`,
+  `fuji`, `sora`, `beni`, `cha`): solo en el glifo y en fondos al `opacity.tintSoft`, nunca
+  de fondo pleno.
+- **Superficies**: `theme.surfaces.card` / `.raised` cambian por modo — en claro sombra
+  (`boxShadow`) sin borde; en oscuro borde fino sin sombra. Spreadealas en vez de poner
+  `borderWidth: 1` + `colors.line` a mano.
+- **Tipografía**: todo en `ZenKakuGothicNew` (constantes en `FONTS`); `headline`/`display` en
+  peso Black (900). `ZenOldMincho` queda **solo** para los kanji-ilustración
+  (`FONTS.illustration`: marcas de agua de las cards y la cabecera), nunca para leer.
+- **Formas**: `radii` `sm 8 · md 14 · lg 20 · xl 28` — controles en md, cards en lg.
+- `ScreenHeader` va **alineado a la izquierda** (eyebrow sakura + título Black) y la acción
+  a su derecha. En las selecciones el título es el juego y el eyebrow "〜 · Practicar".
+- Campos de texto: rellenos y redondeados; el borde ENTERO toma el color del resultado
+  (antes era un subrayado). Degradés con `components/ui/GradientFill` (SVG, sin deps).
 - **Regla dark-mode:** al pintar un color de estado, leélo de `useAppTheme().theme.colors`,
   nunca del `theme` estático importado (ese es siempre light y rompe el dark mode).
-- El toggle de tema vive en Perfil/Opciones y persiste en `AppSettingsProvider`.
+- **Tema**: `themeMode` en `AppSettingsProvider` es `'system' | 'light' | 'dark'`, default
+  `'system'` (sigue al teléfono; `app.json` tiene `userInterfaceStyle: automatic`). El
+  selector de tres opciones vive en Perfil. `useAppTheme()` da `mode` ya resuelto y
+  `preference` (lo elegido).
 
 ## Contenido y práctica
 
@@ -264,25 +298,23 @@ Detalle completo en la skill **`kanami-kanji`**.
   (nombre engañoso), apoyado en los `*Strokes.generated.ts` (generados por `scripts/generate-kana-strokes.mjs`).
 - Normalización de input: escritura → trim + lowercase + sin espacios; traducciones → además sin acentos.
 
-### Las dos pantallas raíz
+### La pantalla raíz
 
-**学 Estudiar (`StudyTopicsScreen`) es la home.** Saludo según la hora + la fecha en japonés,
-tres accesos al contenido (Mis clases · Kanji · Vocabulario) y los 9 temas Por tema.
-**No hay racha, meta ni kanji del día.**
-
-**練 Practicar (`PracticeScreen`)** es la grilla de juegos: card del Repaso arriba (su
-subtítulo sale de `countWeak()`) y abajo 2 columnas parejas, una card por modo.
+**練 Practicar (`PracticeScreen`)** es la home: arriba una cabecera índigo con degradé (el
+único bloque de color pleno) y abajo la grilla de juegos, 2 columnas parejas, una card por
+modo con su color de `theme.tints` (cuadrito con el glifo + kanji-ilustración en mincho).
+El Repaso **no** está acá: tiene su propia pestaña. **No hay racha, meta ni kanji del día.**
 Se arma **por filas de a dos**, no con `flexWrap`: `AnimatedRow` es un `View` suelto, así
 que envolviendo card por card cada una ocuparía el ancho completo.
 
 Las marcas de agua usan `activeTheme.opacity.watermarkSoft/Strong`, que son distintas por
-tema: el bermellón sobre sumi rinde mucho menos que la tinta sobre papel y con el alpha de
-light no se veía. No las unifiques en un solo valor.
+tema: sobre la noche índigo un color rinde mucho menos que sobre el fondo claro y con el
+alpha de light no se ve. No las unifiques en un solo valor.
 
 ### Repaso por errores (`src/features/weak/`)
 
 El Repaso **no son flashcards**: repite los ejercicios que fallaste, cada uno en el formato
-en el que lo fallaste (`choice` / `input` / `listen`).
+en el que lo fallaste (`choice` / `input` / `draw`).
 
 - Cada modo llama `useTrackWeakItem(modeKey, answerState, round)`. Se dispara una sola vez
   por respuesta, en la transición de `idle` a `correct`/`incorrect`.
@@ -293,31 +325,43 @@ en el que lo fallaste (`choice` / `input` / `listen`).
   para que el Repaso nunca quede vacío en una instalación nueva.
 - **Todos los modos están enganchados.** Al sumar uno nuevo, engancharlo también acá: si no,
   sus errores no llegan al Repaso.
+- **Es la lista del usuario, no solo un log** (desde 2026-10-27). `ReviewList` muestra todo
+  agrupado por juego: quitar un ítem o un grupo entero, y **fijar** (📌). `ReviewAdd` agrega
+  a mano palabras de la cursada (por temática) y kanji (por categoría). Lo fijado no se
+  retira con los dos aciertos ni lo poda `MAX_WEAK_ITEMS`; lo agregado a mano entra fijado
+  con 0 fallos. Las semillas (`features/weak/reviewCatalog.ts`) usan el MISMO modeKey e
+  itemId que Significados y Kanji Grind: agregar algo que ya venías fallando lo fija en vez
+  de duplicarlo.
+- En la intro del Repaso se elige qué juegos entran a la ronda y cuántos ejercicios (12 /
+  24 / todos). Con un filtro de juegos o con "todos" no se rellena con el SRS: solo entra
+  lo pedido.
 
-Los cinco formatos y cómo los repite el Repaso:
+Los tres formatos y cómo los repite el Repaso:
 
 | Formato | Modos | Cómo se repite |
 |---|---|---|
-| `choice` | reading, kanji-grind, times, emoji, fill-blank, class-quiz, meaning | prompt + opciones guardadas |
-| `input` | writing, syllables, word-builder, phrases, translation, kana-board | prompt + escribir |
-| `listen` | dictation | audio + escribir |
+| `choice` | reading, kanji-grind, times, numbers, emoji, fill-blank, meaning, antonyms | prompt + opciones guardadas |
+| `input` | writing, syllables, word-builder, phrases, translation, kana-board, times, numbers | prompt + escribir |
 | `draw` | drawing | `DrawingPractice` con pool de un carácter |
-| `speak` | pronunciation | `PronunciationRound` con el micrófono |
 
 **Ojo con `draw`:** `DrawingPractice` registra el acierto/fallo por su cuenta (es dueño de
 la ronda) y avisa por `onRoundResolved`. Quien lo use **no** debe volver a reportar el ítem
-o se cuenta dos veces. `PronunciationRound` es al revés: no registra nada, avisa por
-`onResolved` y el que lo usa reporta.
+o se cuenta dos veces.
 
-### Imágenes en los apuntes de clase
+Dictado (`listen`) y Pronunciación (`speak`) **se quitaron el 2026-10-27** a pedido: no
+interesaban. `normalizeWeak` descarta sus ítems viejos (no hay con qué repetirlos), y
+`dictation`, `pronunciation` y `class-quiz` siguen en `PROGRESS_MODE_LABELS` solo para el
+historial. `expo-speech-recognition` queda porque lo usa el modo voz de Kyary.
 
-`![epígrafe](archivo.png)` en `content/clases/*.md` o `content/repaso.md`, con el archivo en
-`assets/clases/`. `npm run clases:generate` valida que exista (**falla** si no) y escribe el
-`require()` en `src/data/classImages.generated.ts` — Metro necesita rutas literales, por eso
-el mapa se genera. Render: `ClassImage` (respeta el aspect ratio y abre a pantalla completa
-al tocar). Detalle en `assets/clases/README.md`.
+**El audio no puede dar la respuesta.** Si lo que se lee en voz alta es justamente lo que
+se pregunta (una lectura, la palabra que falta, la palabra que hay que armar), el
+`SpeakButton` aparece **recién después de responder**. Vale para los modos y para el Repaso.
 
-## Kyary (IA) — `src/services/kyary.ts`
+## Kyary (IA) — `src/services/kyary.ts` · ESCONDIDA
+
+> Desde el 2026-10-27 no se muestra (`KYARY_ENABLED = false`, `src/features/flags.ts`). Todo
+> lo de abajo sigue siendo cierto del código; solo vale cuando se rehabilite.
+
 
 - Cliente de **Gemini `gemini-2.5-flash`** con soporte multimodal (texto/imagen/audio como `inline_data`).
 - **API key = BYOK (bring your own key).** `sendKyaryMessage(history, userApiKey)` usa la key que el
@@ -353,9 +397,9 @@ Específicas de este repo. Empezá por `kanami-arquitectura` si no sabés dónde
 - **`kanami-arquitectura`** — mapa del proyecto, capas e invariantes. Contexto base.
 - **`kanami-modo-practica`** — agregar/modificar un modo de juego (engine + hook + pantalla).
 - **`kanami-ui`** — paleta, tokens, primitives, dark mode.
-- **`kanami-contenido`** — datasets de japonés y temas de Estudiar.
-- **`kanami-clases`** — apuntes de clase (`content/clases/*.md` → dataset generado).
-- **`kanami-kanji`** — el dataset único de kanji, la sección Kanji, Kanji Grind y Notion.
+- **`kanami-contenido`** — datasets de japonés (kana, vocabulario, antónimos, kanji, frases).
+- **`kanami-clases`** — incorporar una clase nueva a la app (vocabulario + kanji; ya no hay apuntes).
+- **`kanami-kanji`** — el dataset único de kanji, Kanji Grind y Notion.
 - **`kanami-persistencia`** — providers, stores, normalize, versionado.
 - **`kanami-kyary`** — Gemini/BYOK, modo voz, integraciones externas.
 - **`kanami-validar`** — checklist de cierre. **Usala siempre antes de dar algo por terminado.**
@@ -373,10 +417,13 @@ Skills genéricas útiles: `/run`, `/code-review`, `/simplify`, y **`claude-api`
 Lista completa y priorizada en **`.claude/docs/estado-y-deuda.md`** (auditada el 2026-08-08).
 Los ítems más relevantes al escribir código:
 
-- **Colores de estado hardcodeados** (`#3E7D5C`/`#B03A2E`/`#356E8E`) en 8 archivos: rompen el
-  dark mode. Usá `activeTheme.colors.success/.error/.warning/.accent`. No sumes uno más.
-  (`KanjiGameScreen` era uno de los 9 y se fue con el rediseño de kanji; las pantallas nuevas
-  ya leen todo del theme.)
+- ~~Colores de estado hardcodeados (`#3E7D5C`/`#B03A2E`/`#356E8E`).~~ **RESUELTO:** hoy esos hex
+  solo existen en `theme.ts`. Usá `activeTheme.colors.success/.error/.warning/.accent` y no
+  vuelvas a declarar un color de estado en una pantalla.
+- **El estado de kanji "estudiando" quedó sin entrada:** se marcaba a mano desde la ficha
+  (`setStudied`), que se fue con Estudiar. Kanji Grind igual avanza (responder ya cuenta como
+  empezado → "practicando"), pero ese estado intermedio hoy no se alcanza. Si se quiere
+  recuperar, lo natural es marcarlo al mostrar la tarjeta `learn` del grind.
 - **`GameScreen.tsx` tiene 1825 líneas** y multiplexa 6 modos de kana. Es legacy: los modos
   nuevos van a pantalla propia.
 - `shuffle`/`pickRandom` duplicados 20 veces.
@@ -388,9 +435,12 @@ Los ítems más relevantes al escribir código:
   progreso (racha + meta), el kanji del día de la Home, los 4 cards viejos de selección
   (`GroupSelectorCard`, `ModeSelectorCard`, `PracticeVariantCard`, `WordCategoryCard`) y
   `QuickReviewScreen` con su export `QUICK_REVIEW`.
-- **`content/repaso.md` quedó huérfano**: el generador ya no lo lee. Se dejó en el repo a
-  propósito (es contenido escrito a mano); borralo o dale un uso, pero no lo dejes así para
-  siempre.
+- **Poda del 2026-10-27 (la app pasa a ser solo práctica):** se borró la pestaña Estudiar
+  entera — `StudyTopics`/`StudyTopic`, `ClassNotes`/`ClassNote`/`ClassQuiz`,
+  `VocabularyList`/`VocabularyTheme`, `KanjiList`/`KanjiCategory`/`KanjiDetail` —, los
+  componentes `study/` y `KanjiRow`, `studyTopics.ts`, los `classNotes`/`classImages`
+  generados con su generador (`clases:generate`), `content/repaso.md` y los helpers que solo
+  usaban esas pantallas. Horarios se reemplazó por Fechas y hora.
 - ~~Faltan modos por enganchar al Repaso por errores.~~ **RESUELTO (2026-08-17):** los 14
   modos reportan. En la misma pasada se extrajo `PronunciationRound` de
   `PronunciationGameScreen` (la pantalla bajó de ~300 a ~100 líneas) para poder reusar la

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { hexToRgba } from '../../theme/theme';
+import { hexToRgba, theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { AppText } from './AppText';
 
@@ -10,38 +10,28 @@ type StatPillProps = {
   accentColor?: string;
 };
 
-export function StatPill({
-  label,
-  value,
-  accentColor,
-}: StatPillProps) {
-  const { theme: activeTheme, mode } = useAppTheme();
-  const resolvedAccentColor = accentColor ?? activeTheme.colors.accent;
+// Contador de la partida (Aciertos / Fallidos / Racha): fondo teñido del color del
+// dato, el número en ese color y la etiqueta en gris.
+export function StatPill({ label, value, accentColor }: StatPillProps) {
+  const { theme: activeTheme } = useAppTheme();
+  const tone = accentColor ?? activeTheme.colors.accent;
 
   return (
     <View
       style={[
         styles.container,
-        {
-          borderColor: hexToRgba(resolvedAccentColor, 0.5),
-          backgroundColor: hexToRgba(resolvedAccentColor, mode === 'dark' ? 0.1 : 0.08),
-        },
+        { backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft) },
       ]}
     >
       <AppText
-        variant="bodySmall"
-        color={mode === 'dark' ? activeTheme.colors.textSecondary : activeTheme.colors.textPrimary}
+        variant="label"
+        color={activeTheme.colors.textSecondary}
         style={styles.label}
         numberOfLines={1}
       >
         {label}
       </AppText>
-      <AppText
-        variant="title"
-        color={mode === 'dark' ? undefined : activeTheme.colors.textPrimary}
-        style={styles.value}
-        numberOfLines={1}
-      >
+      <AppText variant="title" color={tone} style={styles.value} numberOfLines={1}>
         {value}
       </AppText>
     </View>
@@ -52,10 +42,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minWidth: 0,
-    minHeight: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 10,
+    minHeight: 48,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     flexDirection: 'row',
     alignItems: 'center',
@@ -67,13 +56,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
     fontSize: 11,
     lineHeight: 14,
-    letterSpacing: 0.2,
-    textTransform: 'none',
   },
   value: {
     minWidth: 12,
-    fontSize: 16,
-    lineHeight: 16,
+    fontFamily: theme.typography.headline.fontFamily,
+    fontSize: 20,
+    lineHeight: 24,
     textAlign: 'right',
   },
 });

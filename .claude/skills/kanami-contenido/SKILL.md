@@ -1,6 +1,6 @@
 ---
 name: kanami-contenido
-description: Agregar o corregir contenido de japonés en Kanami — kana, vocabulario, kanji N5, frases, emojis, horarios y los temas de la pestaña Estudiar. Usala cuando el pedido sea "agregá palabras/kanji/frases", "falta X en el vocabulario" o "sumá el tema Y a Estudiar".
+description: Agregar o corregir contenido de japonés en Kanami — kana, vocabulario, antónimos, kanji N5, frases, emojis, números y fechas/horas. Usala cuando el pedido sea "agregá palabras/kanji/frases/opuestos", "falta X en el vocabulario" o "corregí la lectura de Y".
 ---
 
 # Agregar contenido de japonés
@@ -10,9 +10,12 @@ los datasets se compilan dentro del bundle.
 
 ## Cuándo usar esta skill
 
-- "Agregá vocabulario de X", "faltan estos kanji", "sumá frases de Y".
-- "Incorporá lo de la clase N a la sección Estudiar."
+- "Agregá vocabulario de X", "faltan estos kanji", "sumá frases de Y", "sumá estos opuestos".
 - Corregir una lectura, un romaji o una traducción.
+
+Para incorporar una clase entera, empezá por `kanami-clases` (te trae acá para cada dataset).
+La app es **solo práctica**: no hay temas ni listas de consulta que actualizar; la teoría
+vive en Notion.
 
 ## Mapa de datasets
 
@@ -20,11 +23,14 @@ los datasets se compilan dentro del bundle.
 |---|---|---|
 | `hiragana.ts` / `katakana.ts` | 26 grupos cada uno en 3 secciones (`base`, `alternatives`, `combos`) | `createGroup(id, section, title, accentColor, [[kana, romaji], ...])` |
 | `kana.ts` | **Facade/selector** sobre hiragana+katakana+vocabulario | Resuelve `script: 'hiragana' \| 'katakana' \| 'mixed'` |
-| `wordVocabulary.ts` | Vocabulario por categoría, hira y kata | `WordPracticeEntry` |
-| `kanji.ts` | `KANJI_CATEGORIES` + `KANJI_LIST` (N5) | `KanjiEntry` |
+| `wordVocabulary.ts` | Vocabulario genérico por categoría, hira y kata | `WordPracticeEntry` |
+| `classVocabulary.ts` | Vocabulario de la cursada (clases 1-26), con kanji, nota y `classes` | `ClassVocabEntry` |
+| `antonyms.ts` | Pares de opuestos, **por id** de `classVocabulary` | `{ kind, pair }` |
+| `kanji.ts` | `KANJI_CATEGORIES` + `KANJI` (N5) | `KanjiEntry` |
 | `phrases.ts` | Frases hira y kata | tuplas `[jp, romaji, es]` |
 | `vocabularyEmoji.ts` | Palabra ↔ emoji para el modo Imágenes | `EmojiVocabEntry` |
-| `studyTopics.ts` | Los 9 temas de la pestaña 学 Estudiar | `StudyTopic` |
+| `numbers.ts` | Lecturas de números **compuestas** (irregulares explícitas: さんびゃく…) + rangos | `Reading`, `NUMBER_RANGES` |
+| `dateTime.ts` | Horas, minutos, días del mes, meses, días de la semana (よじ, よっか, しがつ…) | `Reading`, `DATE_TIME_KINDS` |
 | `*Strokes.generated.ts` | Trazos — **generados, no editar a mano** | ver §Trazos |
 
 ## Mapa de propagación — LEER ANTES DE SUMAR CONTENIDO
@@ -34,30 +40,33 @@ la fuente de verdad de qué se propaga solo y qué hay que tocar a mano. Verific
 
 | Si tocás… | Llega SOLO a | Hay que tocar a mano |
 |---|---|---|
-| `content/clases/*.md` | Mis clases · quiz de esa clase · procedencia de kanji | correr `clases:generate` **y** `kanji:generate` |
-| `classVocabulary.ts` | Vocabulario (consulta) · y vía la facade `kana.ts`, los 7 modos de palabra: lectura, escritura, sílabas, constructor, completar, dictado, pronunciación | **`vocabularyEmoji.ts`** (sin mapeo emoji la palabra no entra al modo Imágenes) |
+| `content/clases/*.md` | procedencia de kanji (no se muestra en la app) | correr `kanji:generate` |
+| `classVocabulary.ts` | Significados · y vía la facade `kana.ts`, los 7 modos de palabra: lectura, escritura, sílabas, constructor, completar, dictado, pronunciación | **`vocabularyEmoji.ts`** (sin mapeo emoji la palabra no entra al modo Imágenes) · **`antonyms.ts`** si trae opuestos · `kanji:generate` si la grafía tiene kanji |
+| `antonyms.ts` | Antónimos | — (los ids tienen que existir en `classVocabulary`) |
 | `wordVocabulary.ts` | los 7 modos de palabra · mazo SRS del Repaso · modo Imágenes | — |
-| `kanji.ts` | sección Kanji · Kanji Grind · Repaso | correr `kanji:generate` **y** `kanji:strokes` |
+| `kanji.ts` | Kanji Grind · Trazos · Repaso | correr `kanji:generate` **y** `kanji:strokes` |
 | `phrases.ts` | Frases · Traducción | — |
-| `studyTopics.ts` | Por tema | — |
 | `vocabularyEmoji.ts` | modo Imágenes | — |
+| `numbers.ts` / `dateTime.ts` | Números / Fechas y hora (vía su `DrillSource`) | — |
 
 Lo que **no** se propaga por decisión, no por olvido:
 
 - **`classVocabulary` no entra al mazo SRS.** `buildSrsDeck()` importa `wordVocabulary` directo.
   Si algún día querés que el vocabulario de la cursada entre al repaso espaciado, el cambio va
   en `srsStore`, no en el dataset.
-- Solo entra a práctica lo que es **una palabra de un solo silabario y de 2 a 6 moras**. Las
-  frases, los sufijos y lo mixto (スペインご) quedan solo en la consulta. Eso lo filtra
-  `classPracticeSource` en `classVocabulary.ts`.
+- A los modos de palabra solo entra lo que es **una palabra de un solo silabario y de 2 a 6
+  moras**. Las frases, los sufijos y lo mixto (スペインご) quedan afuera de esos modos (siguen
+  en Significados, que lee el dataset entero). Eso lo filtra `classPracticeSource` en
+  `classVocabulary.ts`.
 
 ## Reglas transversales
 
 - **Los ids son estables.** `progress.json` y `srs.json` guardan claves derivadas de ellos
   (`kana:あ`, `word:<entry.id>`). Cambiar un id le borra el historial al usuario. Agregá, no
   renumeres.
-- El romaji del repo es **Hepburn**: `shi`, `chi`, `tsu`, `fu`, `ji`. Vocales largas escritas
-  como se leen (`sensee`, `Tookyoo`) en los temas de estudio.
+- El romaji del repo es **Hepburn**: `shi`, `chi`, `tsu`, `fu`, `ji`. Los datasets escriben
+  la vocal larga según el kana (`sensei`); la lectura real va en la `note` ("Se lee
+  \"sensee\"").
 - Traducciones en **español rioplatense**.
 - Después de agregar, corré `npx tsc --noEmit`: los tipos atrapan casi todos los errores de
   forma (categoría inexistente, campo faltante).
@@ -141,37 +150,30 @@ Ver la skill **`kanami-kanji`** para el detalle. En resumen:
 - Después de agregar corré **`npm run kanji:strokes`** (baja de KanjiVG): sin trazos el kanji
   funciona en opción múltiple pero **no** en el modo Dibujo.
 
-## Agregar temas de estudio — `studyTopics.ts`
+## Agregar opuestos — `antonyms.ts`
 
-Los 9 temas son una **reagrupación temática de las clases de Notion** (no hay un tema por
-clase). Cada uno declara `sourceClasses: number[]` para trazabilidad.
+Alimenta el juego **Antónimos**. Los pares se guardan **por id** de `classVocabulary`, no por
+palabra: la lectura, el kanji y la traducción salen de la única fuente de vocabulario.
 
 ```ts
-{
-  id: 'tiempo',
-  kanjiNumeral: '七',            // 一..九, es el orden en la lista
-  title: 'Tiempo y fechas',
-  titleJp: '...',                // opcional
-  summary: 'La hora · días · meses · いつ',
-  sourceClasses: [10, 11, 12, 15],
-  keyRule: '...',                // el concepto central, se muestra destacado
-  practice: { script: 'hiragana', mode: 'reading' },   // CTA "PRACTICAR ESTE TEMA"
-  subtopics: [{ id, title, sections: [{ title, note?, rows: [{ jp, romaji, es }] }] }],
-  essentialPhrases: [{ jp, romaji, es }],
-}
+{ kind: 'adjetivos', pair: ['adj-takai', 'adj-hikui'] },
 ```
 
-- Cada `row` se renderiza con su `SpeakButton`, así que `jp` tiene que ser **pronunciable**
-  (evitá meter flechas o notación en el campo `jp` salvo que sea intencional, como
-  `'は → ば → ぱ'`).
-- `note` es para la aclaración/trampa del punto (ej. びょういん vs びよういん).
-- El `mode` de `practice` debe existir en `PracticeMode`. Si es de vocabulario
-  (`syllables`/`fill-blank`/`word-builder`), `StudyTopicScreen` redirige a `Vocabulary`
-  en vez de a `KanaGroups` (`StudyTopicScreen.tsx:154-162`).
+- `kind` (`adjetivos` / `verbos` / `sustantivos`) decide de dónde salen primero los
+  distractores: el opuesto de un adjetivo compite con otros adjetivos.
+- **Un id que no existe se descarta en silencio** al armar el juego. Si renombrás una entrada
+  de `classVocabulary`, renombrala también acá. Contá `ANTONYM_PAIR_COUNT` (harness de
+  `kanami-validar`) para confirmar que entraron todos.
+- Una palabra puede tener más de un opuesto (たかい: ひくい y やすい). Está bien: el engine
+  nunca pone otro opuesto válido de la consigna como opción incorrecta.
 
-**Al incorporar una clase nueva:** buscá primero el tema existente al que pertenece y sumale un
-`subtopic` o `section`, agregando el número de clase a `sourceClasses`. Crear un tema nuevo
-(un `kanjiNumeral` más) es la excepción, no la norma.
+## Números y fechas/horas — `numbers.ts` / `dateTime.ts`
+
+No son listas: las lecturas **se componen** por posición (万・千・百・十) o por partes
+(hora + minutos, mes + día). Lo irregular está **explícito** en las tablas (さんびゃく,
+はっぴゃく, よじ, くじ, よっか, ようか, はつか, しがつ…): si encontrás una lectura mal, se
+arregla en esa tabla, no con un caso especial en el engine. Las consumen `numberDrillSource` y
+`dateTimeDrillSource`, las fuentes de `readingDrillEngine`.
 
 ## Trazos — archivos generados
 

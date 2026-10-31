@@ -1,11 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
 import { DrawingPractice } from '../components/game/DrawingPractice';
 import { FeedbackBanner } from '../components/game/FeedbackBanner';
-import { PronunciationRound } from '../components/game/PronunciationRound';
+import { SelectChip } from '../components/practice/SelectChip';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
@@ -13,15 +12,13 @@ import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
 import { StatPill } from '../components/ui/StatPill';
-import { getKanaWordEntries } from '../data/kana';
-import { WordPracticeEntry } from '../data/wordVocabulary';
 import { getModeLabel } from '../features/progress/progressStore';
 import { localDayString } from '../features/progress/progressStore';
-import { speakJapanese } from '../features/speech/speak';
 import { useSrs } from '../features/srs/SrsProvider';
 import { buildSrsDeck } from '../features/srs/srsStore';
 import { useWeak } from '../features/weak/WeakProvider';
 import {
+  REVIEW_SESSION_SIZE,
   ReviewExercise,
   buildReviewSession,
   isReviewAnswerCorrect,
@@ -32,8 +29,18 @@ import { hexToRgba, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 type Phase = 'intro' | 'playing' | 'done';
+
+// Cuántos ejercicios por ronda. "Todos" = la lista entera de lo elegido.
+const SESSION_SIZES: { label: string; value: number }[] = [
+  { label: '12', value: REVIEW_SESSION_SIZE },
+  { label: '24', value: 24 },
+  { label: 'Todos', value: Number.POSITIVE_INFINITY },
+];
 type AnswerResult = 'idle' | 'correct' | 'incorrect';
 
+// Es la raíz de la pestaña 復 Repaso: por eso ninguna fase muestra la flecha "atrás"
+// (en la raíz de una pestaña te sacaría a otra pestaña). En la ronda se sale con "Salir".
+//
 // El Repaso reproduce los ejercicios que venís fallando, cada uno en el formato en el
 // que lo fallaste. No es una tanda de tarjetas: si erraste un kanji eligiendo entre
 // opciones, te lo vuelve a preguntar con opciones.
@@ -54,6 +61,25 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
 
   const weakTotal = countWeak(weakData);
   const byMode = useMemo(() => weakCountsByMode(weakData), [weakData]);
+  // Juegos que NO entran en la ronda. Se guarda lo excluido y no lo incluido: así un
+  // juego que aparece después (fallaste algo nuevo) entra solo.
+  const [excludedModes, setExcludedModes] = useState<string[]>([]);
+  const [sessionSize, setSessionSize] = useState(REVIEW_SESSION_SIZE);
+
+  const includedModes = byMode
+    .map((entry) => entry.modeKey)
+    .filter((modeKey) => !excludedModes.includes(modeKey));
+  const includedCount = byMode
+    .filter((entry) => !excludedModes.includes(entry.modeKey))
+    .reduce((total, entry) => total + entry.count, 0);
+  const canStart = weakTotal === 0 || includedCount > 0;
+
+  const toggleMode = (modeKey: string) =>
+    setExcludedModes((current) =>
+      current.includes(modeKey)
+        ? current.filter((value) => value !== modeKey)
+        : [...current, modeKey],
+    );
 
   const start = () => {
     const next = buildReviewSession(
@@ -61,6 +87,9 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
       deck,
       srsData.states,
       localDayString(new Date()),
+      sessionSize,
+      // Sin filtro (todo elegido) el SRS puede rellenar; con filtro, solo lo pedido.
+      excludedModes.length > 0 ? includedModes : undefined,
     );
     if (next.length === 0) return;
     setQueue(next);
@@ -114,16 +143,16 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
 
   if (phase === 'intro') {
     return (
-      <ScreenBackground scrollable>
+      <ScreenBackground scrollable showBack={false}>
         <ScreenHeader eyebrow="復習 · Repaso" title="Lo que te cuesta" />
 
         <GlassCard contentStyle={styles.introContent}>
           {weakTotal === 0 ? (
             <>
               <AppText variant="body" color={activeTheme.colors.textSecondary}>
-                Todavía no registré errores tuyos. A medida que juegues, lo que falles
-                se anota acá y vuelve como ejercicio hasta que te salga dos veces
-                seguidas.
+                Tu lista está vacía. Lo que falles en cualquier juego se anota acá solo y
+                vuelve como ejercicio hasta que te salga dos veces seguidas. También
+                podés armarla a mano con palabras o kanji.
               </AppText>
               <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
                 Mientras tanto, el repaso te arma una ronda con kana y vocabulario que
@@ -133,31 +162,53 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
           ) : (
             <>
               <AppText variant="body" color={activeTheme.colors.textSecondary}>
-                {weakTotal} {weakTotal === 1 ? 'cosa' : 'cosas'} que venís fallando.
-                Cada una vuelve en el formato en el que la erraste.
+                {weakTotal} {weakTotal === 1 ? 'cosa' : 'cosas'} en tu lista. Cada una
+                vuelve en el formato en el que la erraste; lo más fallado, primero.
               </AppText>
-              <View style={styles.modeList}>
+
+              <AppText variant="label" color={activeTheme.colors.textMuted}>
+                QUÉ ENTRA EN LA RONDA
+              </AppText>
+              <View style={styles.chips}>
                 {byMode.map((entry) => (
-                  <View
+                  <SelectChip
                     key={entry.modeKey}
-                    style={[
-                      styles.modeRow,
-                      { borderTopColor: activeTheme.colors.line },
-                    ]}
-                  >
-                    <AppText variant="bodyStrong" style={styles.modeName}>
-                      {getModeLabel(entry.modeKey)}
-                    </AppText>
-                    <AppText variant="label" color={activeTheme.colors.accent}>
-                      {entry.count}
-                    </AppText>
-                  </View>
+                    label={getModeLabel(entry.modeKey)}
+                    count={entry.count}
+                    selected={!excludedModes.includes(entry.modeKey)}
+                    onPress={() => toggleMode(entry.modeKey)}
+                  />
+                ))}
+              </View>
+
+              <AppText variant="label" color={activeTheme.colors.textMuted}>
+                CUÁNTOS EJERCICIOS
+              </AppText>
+              <View style={styles.chips}>
+                {SESSION_SIZES.map((option) => (
+                  <SelectChip
+                    key={option.label}
+                    label={option.label}
+                    selected={sessionSize === option.value}
+                    onPress={() => setSessionSize(option.value)}
+                  />
                 ))}
               </View>
             </>
           )}
 
-          <PrimaryButton title="EMPEZAR" size="compact" onPress={start} />
+          <PrimaryButton
+            title={canStart ? 'EMPEZAR' : 'ELEGÍ AL MENOS UN JUEGO'}
+            size="compact"
+            disabled={!canStart}
+            onPress={start}
+          />
+          <PrimaryButton
+            title={weakTotal === 0 ? 'ARMAR TU LISTA' : 'VER Y EDITAR TU LISTA'}
+            variant="ghost"
+            size="compact"
+            onPress={() => navigation.navigate('ReviewList')}
+          />
         </GlassCard>
       </ScreenBackground>
     );
@@ -165,7 +216,7 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
 
   if (phase === 'done') {
     return (
-      <ScreenBackground scrollable={false}>
+      <ScreenBackground scrollable={false} showBack={false}>
         <ScreenHeader eyebrow="復習 · Repaso" title="Repaso terminado" />
         <GlassCard contentStyle={styles.introContent}>
           <AppText variant="display" style={styles.centered}>
@@ -189,7 +240,7 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
               title="VOLVER"
               variant="ghost"
               size="compact"
-              onPress={() => navigation.goBack()}
+              onPress={() => setPhase('intro')}
             />
           </View>
         </GlassCard>
@@ -200,16 +251,17 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
   if (!exercise) return null;
 
   const answered = result !== 'idle';
-  const isListen = exercise.format === 'listen';
 
-  // Dibujo y pronunciación no se pueden reducir a elegir o escribir: se repiten con su
-  // propia herramienta. Cada una es un componente compartido con su pantalla original.
-  if (exercise.format === 'draw' || exercise.format === 'speak') {
+  // El dibujo no se puede reducir a elegir o escribir: se repite con el pizarrón, que es
+  // un componente compartido con su pantalla original.
+  if (exercise.format === 'draw') {
     return (
-      <ScreenBackground scrollable={false}>
+      <ScreenBackground scrollable={false} showBack={false}>
         <ScreenHeader
           eyebrow="復習 · Repaso"
           title={`${index + 1} / ${queue.length}`}
+          actionLabel="Salir"
+          onActionPress={() => setPhase('intro')}
         />
 
         <View style={styles.metaRow}>
@@ -233,53 +285,43 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
           ) : null}
         </View>
 
-        {exercise.format === 'draw' ? (
-          // DrawingPractice registra el acierto/fallo por su cuenta (es el dueño de la
-          // ronda), así que acá solo se cuenta para el resumen: no se reporta de nuevo.
-          <DrawingPractice
-            compact
-            title=""
-            resetKey={exercise.key}
-            pool={[
-              {
-                id: weakItemIdOf(exercise),
-                char: exercise.prompt,
-                sub:
-                  exercise.answer !== exercise.prompt ? exercise.answer : undefined,
-              },
-            ]}
-            onRoundResolved={(isCorrect) => {
-              if (isCorrect) setCorrectCount((current) => current + 1);
-              setResult(isCorrect ? 'correct' : 'incorrect');
-            }}
-          />
-        ) : (
-          <PronunciationRound
-            word={speakWordFor(exercise)}
-            nextLabel="SIGUIENTE"
-            onResolved={(isCorrect) => grade(isCorrect ? exercise.answer : '')}
-            onNext={next}
-          />
-        )}
+        {/* DrawingPractice registra el acierto/fallo por su cuenta (es el dueño de la
+            ronda), así que acá solo se cuenta para el resumen: no se reporta de nuevo. */}
+        <DrawingPractice
+          compact
+          title=""
+          resetKey={exercise.key}
+          pool={[
+            {
+              id: weakItemIdOf(exercise),
+              char: exercise.prompt,
+              sub: exercise.answer !== exercise.prompt ? exercise.answer : undefined,
+            },
+          ]}
+          onRoundResolved={(isCorrect) => {
+            if (isCorrect) setCorrectCount((current) => current + 1);
+            setResult(isCorrect ? 'correct' : 'incorrect');
+          }}
+        />
 
-        {exercise.format === 'draw' ? (
-          <PrimaryButton
-            title={answered ? 'SIGUIENTE' : 'SALTEAR'}
-            variant={answered ? 'primary' : 'ghost'}
-            size="compact"
-            onPress={next}
-            style={styles.advance}
-          />
-        ) : null}
+        <PrimaryButton
+          title={answered ? 'SIGUIENTE' : 'SALTEAR'}
+          variant={answered ? 'primary' : 'ghost'}
+          size="compact"
+          onPress={next}
+          style={styles.advance}
+        />
       </ScreenBackground>
     );
   }
 
   return (
-    <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
+    <ScreenBackground scrollable keyboardShouldPersistTaps="handled" showBack={false}>
       <ScreenHeader
         eyebrow="復習 · Repaso"
         title={`${index + 1} / ${queue.length}`}
+        actionLabel="Salir"
+        onActionPress={() => setPhase('intro')}
       />
 
       <View style={styles.metaRow}>
@@ -304,35 +346,14 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
       </View>
 
       <GlassCard style={styles.card} contentStyle={styles.cardContent}>
-        {isListen ? (
-          <>
-            <PrimaryButton
-              title="ESCUCHAR"
-              variant="secondary"
-              size="compact"
-              icon={
-                <MaterialCommunityIcons
-                  name="volume-high"
-                  size={20}
-                  color={activeTheme.colors.accent}
-                />
-              }
-              onPress={() => speakJapanese(exercise.speakText)}
-            />
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {exercise.prompt}
-            </AppText>
-          </>
-        ) : (
-          <>
-            {exercise.speakText ? (
-              <SpeakButton text={exercise.speakText} style={styles.speakCorner} />
-            ) : null}
-            <AppText variant="kana" style={styles.prompt}>
-              {exercise.prompt}
-            </AppText>
-          </>
-        )}
+        {/* Recién después de responder: en muchos ejercicios lo que se lee en voz alta
+            es justamente la respuesta (una lectura, la palabra que faltaba). */}
+        {exercise.speakText && answered ? (
+          <SpeakButton text={exercise.speakText} style={styles.speakCorner} />
+        ) : null}
+        <AppText variant="kana" style={styles.prompt}>
+          {exercise.prompt}
+        </AppText>
 
         {answered ? (
           <AppText
@@ -379,7 +400,10 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
           <View
             style={[
               styles.inputUnderline,
-              { borderBottomColor: hexToRgba(activeTheme.colors.textPrimary, 0.38) },
+              {
+                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
+                borderColor: activeTheme.colors.lineStrong,
+              },
             ]}
           >
             <TextInput
@@ -425,25 +449,6 @@ function weakItemIdOf(exercise: ReviewExercise): string {
   return separator === -1 ? exercise.key : exercise.key.slice(separator + 2);
 }
 
-// PronunciationRound necesita la entrada completa del vocabulario. El ítem débil guarda
-// solo el id, así que se busca en el pool; si la palabra ya no existe, se arma una
-// mínima con lo guardado para no romper el repaso.
-function speakWordFor(exercise: ReviewExercise): WordPracticeEntry {
-  const itemId = weakItemIdOf(exercise);
-  const found = getKanaWordEntries('mixed').find((entry) => entry.id === itemId);
-  if (found) return found;
-
-  return {
-    id: itemId,
-    script: 'hiragana',
-    kana: exercise.prompt,
-    syllables: [exercise.answer],
-    kanaSyllables: [exercise.prompt],
-    translations: [''],
-    category: 'objetos',
-  } as WordPracticeEntry;
-}
-
 function bumpMiss(
   exercise: ReviewExercise,
   reportMiss: ReturnType<typeof useWeak>['reportMiss'],
@@ -465,20 +470,10 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
   },
-  modeList: {
-    marginTop: theme.spacing.xxs,
-  },
-  modeRow: {
+  chips: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: theme.spacing.xs,
-    borderTopWidth: 1,
-    gap: theme.spacing.sm,
-  },
-  modeName: {
-    flex: 1,
-    minWidth: 0,
+    flexWrap: 'wrap',
+    gap: theme.spacing.xs,
   },
   statsRow: {
     flexDirection: 'row',
@@ -535,12 +530,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inputUnderline: {
-    minWidth: 200,
-    maxWidth: '88%',
-    borderBottomWidth: 1,
-    paddingBottom: 6,
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1.5,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   input: {
+    outlineWidth: 0,
     fontFamily: 'ZenKakuGothicNew_500Medium',
     fontSize: 22,
     lineHeight: 28,

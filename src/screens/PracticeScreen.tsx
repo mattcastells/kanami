@@ -1,69 +1,76 @@
-import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AnimatedRow } from '../components/ui/AnimatedRow';
 import { AppText } from '../components/ui/AppText';
+import { GradientFill } from '../components/ui/GradientFill';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
-import { useWeak } from '../features/weak/WeakProvider';
-import { countWeak } from '../features/weak/weakStore';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { FONTS, hexToRgba, theme, TintName } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 // La pestaña 練 Practicar es SOLO juegos: una card por modo, todas del mismo tamaño.
 //
 // Antes era un mosaico bento asimétrico donde cada tile tenía un tamaño distinto, algunos
 // llevaban subtítulo y otros no, y los títulos largos se cortaban ("Hirag...", "Katak...").
-// Nada de eso aportaba jerarquía real: solo ruido. Ahora la única card distinta es el
-// Repaso, porque de verdad es distinta — es la única que sabe qué te conviene hacer hoy.
+// Nada de eso aportaba jerarquía real: solo ruido.
 //
-// Lo de aprender y consultar vive en 学 Estudiar, que es la pantalla de entrada.
+// El Repaso ya no es una card acá: tiene pestaña propia (復 Repaso), porque es lo único
+// de la app que es del usuario — lo que falló y lo que eligió repasar.
+//
+// Es la pantalla de entrada de la app. La teoría no está acá ni en ninguna otra pestaña:
+// se estudia en Notion, y Kanami es solo para practicar.
 
 type PracticeCard = {
   glyph: string;
   title: string;
+  // Color tradicional del juego (theme.tints): identidad sin subtítulos.
+  tint: TintName;
   onPress: () => void;
 };
 
 export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>) {
   const { theme: activeTheme } = useAppTheme();
-  const { data: weakData } = useWeak();
-
-  // Cuántas cosas venís fallando: le da al Repaso un motivo concreto en vez de una
-  // etiqueta genérica.
-  const weakCount = useMemo(() => countWeak(weakData), [weakData]);
+  const { colors } = activeTheme;
 
   const cards: PracticeCard[] = [
+    // Hiragana, Katakana y Kanji viven adentro de "Kanas": tres cards de "qué escritura
+    // practico" ocupaban media grilla.
+    { glyph: '字', title: 'Kanas', tint: 'ai', onPress: () => navigation.navigate('Kanas') },
     {
-      glyph: 'あ',
-      title: 'Hiragana',
-      // El silabario se elige adentro (hiragana / katakana / mixto): por eso ya no hay
-      // un tile "Mixto" suelto acá.
-      onPress: () => navigation.navigate('KanaGroups', { script: 'hiragana' }),
+      glyph: '語',
+      title: 'Vocabulario',
+      tint: 'matcha',
+      onPress: () => navigation.navigate('Vocabulary'),
     },
     {
-      glyph: 'ア',
-      title: 'Katakana',
-      onPress: () => navigation.navigate('KanaGroups', { script: 'katakana' }),
+      glyph: '意',
+      title: 'Significados',
+      tint: 'fuji',
+      onPress: () => navigation.navigate('Meanings'),
     },
-    { glyph: '漢', title: 'Kanji', onPress: () => navigation.navigate('KanjiGrind') },
-    { glyph: '語', title: 'Vocabulario', onPress: () => navigation.navigate('Vocabulary') },
-    { glyph: '意', title: 'Significados', onPress: () => navigation.navigate('Meanings') },
-    { glyph: '時', title: 'Horarios', onPress: () => navigation.navigate('TimesGame') },
+    {
+      glyph: '反',
+      title: 'Antónimos',
+      tint: 'beni',
+      onPress: () => navigation.navigate('AntonymGame'),
+    },
+    { glyph: '数', title: 'Números', tint: 'kohaku', onPress: () => navigation.navigate('Numbers') },
+    {
+      glyph: '暦',
+      title: 'Fechas y hora',
+      tint: 'sora',
+      onPress: () => navigation.navigate('DateTime'),
+    },
     {
       glyph: '絵',
       title: 'Imágenes',
+      tint: 'sakura',
       onPress: () => navigation.navigate('EmojiGame', { script: 'mixed' }),
-    },
-    { glyph: '聴', title: 'Dictado', onPress: () => navigation.navigate('DictationGame') },
-    {
-      glyph: '発',
-      title: 'Pronunciación',
-      onPress: () => navigation.navigate('PronunciationGame'),
     },
     {
       glyph: '訳',
       title: 'Traducción',
+      tint: 'cha',
       onPress: () => navigation.navigate('TranslationGame'),
     },
   ];
@@ -77,56 +84,31 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
 
   return (
     <ScreenBackground scrollable showBack={false}>
-      <View style={styles.header}>
-        <AppText variant="overline" color={activeTheme.colors.textMuted}>
-          練習
-        </AppText>
-        <AppText variant="display">Practicar</AppText>
-      </View>
-
+      {/* Cabecera índigo: el único bloque de color pleno de la pantalla. El kanji grande
+          en mincho es ilustración, no texto; el círculo sakura le da el punto cálido. */}
       <AnimatedRow index={0}>
-        <Pressable
-          onPress={() => navigation.navigate('Review')}
-          style={({ pressed }) => [
-            styles.reviewCard,
-            {
-              borderColor: hexToRgba(activeTheme.colors.accent, 0.38),
-              backgroundColor: hexToRgba(activeTheme.colors.accent, 0.08),
-            },
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppText
-            style={[
-              styles.reviewGlyph,
-              {
-                color: hexToRgba(
-                  activeTheme.colors.accent,
-                  activeTheme.opacity.watermarkStrong,
-                ),
-              },
-            ]}
-          >
-            復
+        <View style={[styles.hero, activeTheme.surfaces.raised]}>
+          <GradientFill from={colors.brand} to={colors.brandRaised} />
+          <View
+            style={[styles.heroSun, { backgroundColor: hexToRgba(colors.accent, 0.55) }]}
+          />
+          <AppText style={[styles.heroGlyph, { color: hexToRgba(colors.onBrand, 0.12) }]}>
+            練
           </AppText>
-          <View style={styles.reviewText}>
-            <AppText variant="overline" color={activeTheme.colors.accent}>
-              REPASO
-            </AppText>
-            <AppText variant="title" color={activeTheme.colors.accent}>
-              Lo que te cuesta
-            </AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-              {weakCount > 0
-                ? `${weakCount} ${weakCount === 1 ? 'ejercicio pendiente' : 'ejercicios pendientes'}`
-                : 'Todavía no fallaste nada'}
-            </AppText>
-          </View>
-        </Pressable>
+          <AppText variant="overline" color={hexToRgba(colors.onBrand, 0.7)}>
+            練習 · Kanami
+          </AppText>
+          <AppText variant="display" color={colors.onBrand}>
+            Practicar
+          </AppText>
+          <AppText variant="bodySmall" color={hexToRgba(colors.onBrand, 0.75)}>
+            {cards.length} juegos para entrenar lo que ves en clase
+          </AppText>
+        </View>
       </AnimatedRow>
 
-      {/* Grilla pareja de 2 columnas. Todas las cards miden igual: la jerarquía la da el
-          Repaso de arriba, no nueve tamaños distintos.
+      {/* Grilla pareja de 2 columnas. Todas las cards miden igual: ningún juego vale más
+          que otro.
           Se arma por FILAS y no con flexWrap porque `AnimatedRow` es un View suelto:
           envolviendo card por card, cada una ocuparía el ancho completo. */}
       <View style={styles.grid}>
@@ -134,12 +116,7 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
           <AnimatedRow key={row.map((card) => card.title).join()} index={rowIndex + 1}>
             <View style={styles.row}>
               {row.map((card) => (
-                <PracticeTile
-                  key={card.title}
-                  glyph={card.glyph}
-                  title={card.title}
-                  onPress={card.onPress}
-                />
+                <PracticeTile key={card.title} {...card} />
               ))}
             </View>
           </AnimatedRow>
@@ -149,35 +126,34 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
   );
 }
 
-function PracticeTile({ glyph, title, onPress }: PracticeCard) {
+function PracticeTile({ glyph, title, tint, onPress }: PracticeCard) {
   const { theme: activeTheme } = useAppTheme();
+  const tone = activeTheme.tints[tint];
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.tile,
-        {
-          borderColor: activeTheme.colors.line,
-          backgroundColor: activeTheme.colors.backgroundSecondary,
-        },
+        activeTheme.surfaces.card,
+        { backgroundColor: activeTheme.colors.card },
         pressed && styles.pressed,
       ]}
     >
       <AppText
         style={[
-          styles.tileGlyph,
-          {
-            color: hexToRgba(
-              activeTheme.colors.accent,
-              activeTheme.opacity.watermarkSoft,
-            ),
-          },
+          styles.tileWatermark,
+          { color: hexToRgba(tone, activeTheme.opacity.watermarkSoft) },
         ]}
       >
         {glyph}
       </AppText>
-      {/* Sin numberOfLines: "Pronunciación" entra en dos renglones antes que cortarse.
+      <View
+        style={[styles.badge, { backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft) }]}
+      >
+        <AppText style={[styles.badgeGlyph, { color: tone }]}>{glyph}</AppText>
+      </View>
+      {/* Sin numberOfLines: un título largo entra en dos renglones antes que cortarse.
           Los títulos truncados eran el síntoma más visible del mosaico viejo. */}
       <AppText variant="bodyStrong" style={styles.tileTitle}>
         {title}
@@ -187,35 +163,32 @@ function PracticeTile({ glyph, title, onPress }: PracticeCard) {
 }
 
 // Dos columnas con `gap`: cada tile ocupa la mitad menos medio gap.
-const GRID_GAP = theme.spacing.xs;
+const GRID_GAP = theme.spacing.sm;
 
 const styles = StyleSheet.create({
-  header: {
-    gap: theme.spacing.xxs,
+  hero: {
+    borderRadius: theme.radii.xl,
+    padding: theme.spacing.xl,
+    paddingTop: theme.spacing.xxl,
     marginBottom: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-  },
-  reviewCard: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
-    padding: theme.spacing.lg,
-    minHeight: 108,
-    justifyContent: 'center',
     overflow: 'hidden',
-    marginBottom: GRID_GAP,
-  },
-  reviewGlyph: {
-    position: 'absolute',
-    right: -10,
-    bottom: -20,
-    fontSize: 116,
-    lineHeight: 122,
-    fontFamily: 'ZenOldMincho_700Bold',
-  },
-  reviewText: {
     gap: 2,
-    paddingRight: 72,
-    minWidth: 0,
+  },
+  heroSun: {
+    position: 'absolute',
+    top: -40,
+    right: -30,
+    width: 150,
+    height: 150,
+    borderRadius: 999,
+  },
+  heroGlyph: {
+    position: 'absolute',
+    right: 4,
+    bottom: -34,
+    fontFamily: FONTS.illustration,
+    fontSize: 150,
+    lineHeight: 170,
   },
   grid: {
     gap: GRID_GAP,
@@ -228,25 +201,37 @@ const styles = StyleSheet.create({
   tile: {
     flex: 1,
     minWidth: 0,
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
+    borderRadius: theme.radii.lg,
     padding: theme.spacing.md,
-    minHeight: 92,
-    justifyContent: 'flex-start',
+    minHeight: 120,
+    justifyContent: 'space-between',
     overflow: 'hidden',
   },
-  tileGlyph: {
+  tileWatermark: {
     position: 'absolute',
-    right: -6,
-    bottom: -14,
-    fontSize: 64,
-    lineHeight: 68,
-    fontFamily: 'ZenOldMincho_700Bold',
+    right: -10,
+    bottom: -26,
+    fontFamily: FONTS.illustration,
+    fontSize: 92,
+    lineHeight: 104,
+  },
+  badge: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeGlyph: {
+    fontFamily: FONTS.bold,
+    fontSize: 19,
+    lineHeight: 24,
   },
   tileTitle: {
-    paddingRight: 32,
+    paddingRight: theme.spacing.xl,
   },
   pressed: {
-    opacity: 0.75,
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
 });

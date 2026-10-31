@@ -36,12 +36,6 @@ export const KANJI_PROGRESS_VERSION = 1 as const;
 
 export const KANJI_SKILLS: KanjiSkill[] = ['meaning', 'reading', 'recognition'];
 
-export const KANJI_SKILL_LABELS: Record<KanjiSkill, string> = {
-  meaning: 'Significado',
-  reading: 'Lectura',
-  recognition: 'Reconocerlo en palabras',
-};
-
 export const KANJI_STATUS_LABELS: Record<KanjiStatus, string> = {
   nuevo: 'Sin ver',
   estudiando: 'Estudiando',
@@ -142,13 +136,6 @@ export function recordKanjiAnswer(
 }
 
 // ── Lectura ────────────────────────────────────────────────────────────────────────
-
-export function getKanjiEntry(
-  data: KanjiProgressData,
-  char: string,
-): KanjiProgressEntry | undefined {
-  return data.byChar[char];
-}
 
 function totalAnswers(entry: KanjiProgressEntry): number {
   return KANJI_SKILLS.reduce(

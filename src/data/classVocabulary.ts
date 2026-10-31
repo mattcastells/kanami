@@ -1,12 +1,12 @@
 // Vocabulario REAL de la cursada: lo visto en las clases 1–26 (content/clases/*.md)
-// más la sección Vocabulario de Notion. Es contenido de consulta y práctica.
+// más la sección Vocabulario de Notion. Alimenta los juegos (Significados, Antónimos, kana).
 //
 // ⚠️ No confundir con `wordVocabulary.ts`: ese es vocabulario genérico para drillear kana
 // y es el que alimenta el mazo de repaso espaciado (`buildSrsDeck`). Este dataset convive
 // con aquel pero NO entra al SRS.
 //
-// `classes` guarda las clases de origen (trazabilidad, igual que `sourceClasses` en
-// studyTopics). Los ids son estables: no los renumeres.
+// `classes` guarda las clases de origen (trazabilidad). Los ids son estables: no los
+// renumeres (los usan data/antonyms.ts y el registro de errores).
 
 import {
   buildWordPracticeEntry,
@@ -821,34 +821,6 @@ export const classVocabEntries: (ClassVocabEntry & {
 })[] = classVocabCategories.flatMap((category) =>
   category.entries.map((entry) => ({ ...entry, category: category.id })),
 );
-
-export const classVocabTotal = classVocabEntries.length;
-
-function normalize(value: string) {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim();
-}
-
-// Busca por kana, kanji, romaji o traducción. Sin acentos ni mayúsculas.
-export function searchClassVocab(query: string) {
-  const term = normalize(query);
-  if (!term) return classVocabEntries;
-
-  return classVocabEntries.filter(
-    (entry) =>
-      entry.kana.includes(query.trim()) ||
-      (entry.kanji?.includes(query.trim()) ?? false) ||
-      normalize(entry.romaji).includes(term) ||
-      normalize(entry.es).includes(term),
-  );
-}
-
-export function getClassVocabByCategory(categoryId: ClassVocabCategoryId) {
-  return classVocabCategories.find((category) => category.id === categoryId);
-}
 
 // ---------------------------------------------------------------------------
 // Derivación a entradas de práctica

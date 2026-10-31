@@ -2,7 +2,7 @@
 
 24 clases reales (Kurasu 1–6, 8–21, 23–26; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
-## Organización POR TEMAS propuesta para la app (sección "Estudiar")
+## Organización POR TEMAS (histórico: era la sección "Estudiar", que se quitó de la app el 2026-10-27)
 
 ### 1. Fundamentos y escritura
 - Historia del idioma y los 4 sistemas de escritura (K1)

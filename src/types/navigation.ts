@@ -1,26 +1,21 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { ClassVocabCategoryId } from '../data/classVocabulary';
+import { DateTimeKindId } from '../data/dateTime';
+import { NumberRangeId } from '../data/numbers';
 import { MeaningDirection } from '../features/game/meaningGameEngine';
+import { DrillAnswerMode, DrillDirection } from '../features/game/readingDrillEngine';
 import { HiraganaGroupId } from './hiragana';
 import { KanaScript, PracticeMode, WordPracticeCategoryId } from './game';
-import { KanjiCategoryId, KanjiGrindFocus } from './kanji';
+import { KanjiGrindFocus } from './kanji';
 
 export type RootStackParamList = {
-  // Raíz de 練 Practicar: la grilla de juegos. La pantalla de ENTRADA de la app es
-  // StudyTopics (学 Estudiar), que es donde vive el contenido para aprender.
+  // Raíz de 練 Practicar: la grilla de juegos y la pantalla de entrada de la app. La
+  // teoría (apuntes, fichas, listas de consulta) no vive en la app: está en Notion.
   Practice: undefined;
-  StudyTopics: undefined;
-  StudyTopic: { topicId: string };
-  ClassNotes: undefined;
-  ClassNote: { classNumber: number };
-  ClassQuiz: { classNumber: number };
+  // Puerta a Hiragana, Katakana y Kanji (una sola card en la grilla).
+  Kanas: undefined;
   TranslationGame: undefined;
-  // Vocabulario de la cursada, de consulta (pestaña Estudiar). No confundir con
-  // `Vocabulary`, que es el lanzador de juegos de vocabulario (pestaña Practicar).
-  // El índice lista las temáticas; cada una abre su propia página.
-  VocabularyList: undefined;
-  VocabularyTheme: { categoryId: ClassVocabCategoryId };
   KanaGroups: {
     script: KanaScript;
     initialMode?: PracticeMode;
@@ -39,12 +34,7 @@ export type RootStackParamList = {
     script: KanaScript;
     selectedGroupIds: HiraganaGroupId[];
   };
-  // Sección Kanji (pestaña Estudiar): consultar y aprender.
-  // Igual que vocabulario: índice de temáticas → página de la temática → ficha.
-  KanjiList: undefined;
-  KanjiCategory: { categoryId: KanjiCategoryId };
-  KanjiDetail: { char: string };
-  // Kanji Grind (pestaña Practicar): practicar y repetir.
+  // Kanji Grind: practicar y repetir.
   KanjiGrind: undefined;
   // `chars` es el mazo de la sesión; el engine elige adentro el lote según tu progreso.
   KanjiGrindGame: {
@@ -56,18 +46,31 @@ export type RootStackParamList = {
   EmojiGame: {
     script: KanaScript;
   };
-  TimesGame: undefined;
-  // Significados: reconocer palabras de la cursada. `Meanings` es la selección (en
-  // Practicar); `MeaningGame` también está en el stack de Estudiar para arrancar directo
-  // desde una temática del vocabulario.
+  // Números y Fechas y hora: selección + partida, con el motor compartido de
+  // readingDrillEngine.
+  Numbers: undefined;
+  NumbersGame: {
+    direction: DrillDirection;
+    answerMode: DrillAnswerMode;
+    rangeIds: NumberRangeId[];
+  };
+  DateTime: undefined;
+  DateTimeGame: {
+    direction: DrillDirection;
+    answerMode: DrillAnswerMode;
+    kindIds: DateTimeKindId[];
+  };
+  AntonymGame: undefined;
+  // Significados: reconocer palabras de la cursada. `Meanings` es la selección.
   Meanings: undefined;
   MeaningGame: {
     categoryIds: ClassVocabCategoryId[];
     direction: MeaningDirection;
   };
-  DictationGame: undefined;
-  PronunciationGame: undefined;
   Review: undefined;
+  // Tu lista de repaso: ver, quitar y fijar lo guardado; y agregar palabras o kanji.
+  ReviewList: undefined;
+  ReviewAdd: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

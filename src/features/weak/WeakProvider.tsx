@@ -13,16 +13,23 @@ import { File, Paths } from 'expo-file-system';
 import {
   WeakData,
   WeakSeed,
+  addPinnedItems,
   createEmptyWeak,
   normalizeWeak,
   recordHit,
   recordMiss,
+  removeWeakItems,
+  setWeakPinned,
 } from './weakStore';
 
 type WeakContextValue = {
   data: WeakData;
   reportMiss: (seed: WeakSeed) => void;
   reportHit: (modeKey: string, itemId: string) => void;
+  // Lo que el usuario maneja a mano desde "Tu lista de repaso".
+  addItems: (seeds: WeakSeed[]) => void;
+  removeItems: (keys: string[]) => void;
+  setPinned: (key: string, pinned: boolean) => void;
   resetWeak: () => void;
 };
 
@@ -77,6 +84,21 @@ export function WeakProvider({ children }: PropsWithChildren) {
     setData((current) => recordHit(current, modeKey, itemId));
   }, []);
 
+  const addItems = useCallback((seeds: WeakSeed[]) => {
+    dirtyRef.current = true;
+    setData((current) => addPinnedItems(current, seeds));
+  }, []);
+
+  const removeItems = useCallback((keys: string[]) => {
+    dirtyRef.current = true;
+    setData((current) => removeWeakItems(current, keys));
+  }, []);
+
+  const setPinned = useCallback((key: string, pinned: boolean) => {
+    dirtyRef.current = true;
+    setData((current) => setWeakPinned(current, key, pinned));
+  }, []);
+
   const resetWeak = useCallback(() => {
     dirtyRef.current = true;
     hydratedRef.current = true;
@@ -84,8 +106,8 @@ export function WeakProvider({ children }: PropsWithChildren) {
   }, []);
 
   const value = useMemo(
-    () => ({ data, reportMiss, reportHit, resetWeak }),
-    [data, reportMiss, reportHit, resetWeak],
+    () => ({ data, reportMiss, reportHit, addItems, removeItems, setPinned, resetWeak }),
+    [data, reportMiss, reportHit, addItems, removeItems, setPinned, resetWeak],
   );
 
   return <WeakContext.Provider value={value}>{children}</WeakContext.Provider>;

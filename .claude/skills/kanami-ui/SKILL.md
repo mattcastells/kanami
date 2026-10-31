@@ -1,6 +1,6 @@
 ---
 name: kanami-ui
-description: Construir o modificar UI en Kanami respetando la paleta "tinta y bermellón", los tokens del theme, los primitives existentes y el dark mode. Usala para cualquier cambio visual, pantalla nueva, componente nuevo o ajuste de estilos.
+description: Construir o modificar UI en Kanami respetando el sistema "Japón moderno" (índigo + sakura), los tokens del theme, los primitives existentes y el dark mode. Usala para cualquier cambio visual, pantalla nueva, componente nuevo o ajuste de estilos.
 ---
 
 # UI y sistema visual
@@ -17,24 +17,32 @@ Sora/Manrope que ya no existe. La fuente de verdad es `src/theme/theme.ts` + est
 ## Contexto a leer primero
 
 1. `src/theme/theme.ts` — todos los tokens
-2. Un ejemplo bien hecho: `src/screens/TimesGameScreen.tsx` (pantalla) o
+2. Un ejemplo bien hecho: `src/screens/AntonymGameScreen.tsx` (pantalla) o
    `src/components/game/FeedbackBanner.tsx` (componente con colores de estado)
 
-## La paleta
+## La paleta — "Japón moderno" (desde 2026-10-27)
 
-**"Tinta y bermellón". Light es el default** (papel); dark es "sumi".
+Reemplazó a "tinta y bermellón". El tema por defecto sigue al teléfono (`'system'`).
 
-| Token | Light | Dark |
-|---|---|---|
-| `background` | `#F7F4EF` | `#1B1A17` |
-| `backgroundSecondary` | `#FFFFFF` | `#242220` |
-| `textPrimary` | `#1C1A17` | `#F0EDE6` |
-| `textSecondary` | `#6B655C` | `#B7B1A4` |
-| `textMuted` | `#8A8378` | `#989285` |
-| `accent` | `#C73E2E` | `#D4553F` |
-| `success` | `#3E7D5C` | `#5AA47C` |
-| `error` | `#B03A2E` | `#C96A57` |
-| `line` / `lineStrong` | rgba tinta | rgba papel |
+| Token | Light | Dark | Para qué |
+|---|---|---|---|
+| `background` | `#F4F5FA` | `#0E1322` | fondo de pantalla |
+| `card` / `backgroundSecondary` | `#FFFFFF` | `#171E33` | superficies |
+| `backgroundTertiary` | `#EAECF5` | `#0A0E1A` | opción apagada (muted) |
+| `textPrimary` | `#151B30` | `#ECEEF7` | |
+| `textSecondary` / `textMuted` | `#535B77` / `#868CA6` | `#A8AFC9` / `#7B829E` | |
+| `brand` (+ `brandRaised`, `onBrand`) | `#1E2A4A` | `#26335E` | índigo: cabecera, chip elegido |
+| `accent` (+ `onAccent`) | `#CF3866` (texto blanco) | `#F28FA8` (texto oscuro) | sakura: la acción principal |
+| `success` / `error` / `warning` | `#1F9D74` / `#D93F55` / `#C77D12` | `#4FCB9E` / `#F26B7F` / `#F2B04A` | |
+
+- **`theme.tints`**: un color tradicional por juego (`ai`, `sakura`, `matcha`, `kohaku`,
+  `fuji`, `sora`, `beni`, `cha`). Va en el glifo y en fondos a `opacity.tintSoft`; nunca de
+  fondo pleno. `ModeTile` acepta `tint`.
+- **`theme.surfaces.card` / `.raised`**: spreadealas en el `style` de una card. En claro son
+  sombra (`boxShadow`) sin borde; en oscuro borde fino sin sombra. No pongas
+  `borderWidth: 1` + `colors.line` a mano para una card.
+- Texto sobre un color pleno: `onBrand` / `onAccent`, nunca `'#FFF'` (en oscuro el sakura
+  es claro y el texto va oscuro).
 
 ## La regla que más se rompe
 
@@ -55,7 +63,7 @@ import { theme } from '../theme/theme';
 const SUCCESS_COLOR = '#3E7D5C';
 ```
 
-El último caso ya está en 9 archivos (deuda D2). **No sumes uno más**: usá
+El último caso llegó a estar en 9 archivos (deuda D2, ya limpiada). **Que no vuelva**: usá
 `activeTheme.colors.success` / `.error` / `.accent`.
 
 Para transparencias hay helper: `hexToRgba(color, alpha)` desde `theme.ts`.
@@ -63,28 +71,31 @@ Para transparencias hay helper: `hexToRgba(color, alpha)` desde `theme.ts`.
 ## Tokens
 
 - **spacing**: `xxs:4 · xs:8 · sm:12 · md:16 · lg:20 · xl:24 · xxl:32 · xxxl:40`
-- **radii**: `sm:4 · md:6 · lg:8 · xl:12 · pill:999` — esquinas casi rectas, es identidad.
-  No pongas `borderRadius: 16` a mano.
+- **radii**: `sm:8 · md:14 · lg:20 · xl:28 · pill:999` — controles en md, cards en lg,
+  la cabecera de Practicar en xl. No pongas `borderRadius` a mano.
 - **typography** (vía `<AppText variant="...">`):
   `overline · label · bodySmall · body · bodyStrong · title · headline · display · kana · option`
-  - `ZenOldMincho` (serif) → `headline`, `display`, `kana`
-  - `ZenKakuGothicNew` → todo el resto
+  - Todo es `ZenKakuGothicNew`; `headline`/`display` en peso Black (900). Si tenés que
+    nombrar una fuente, usá las constantes `FONTS` de `theme.ts`.
+  - `ZenOldMincho` (`FONTS.illustration`) **solo** para kanji-ilustración (marcas de agua):
+    decora, no se lee.
 
 **Nunca pongas `fontFamily` o `fontSize` a mano si hay un variant que sirve.** Si necesitás
 ajustar el tamaño de un variant, pasá `style={{ fontSize: ... }}` sobre `AppText`
-(patrón usado en `TimesGameScreen.tsx:131-140`).
+(patrón usado en `AntonymGameScreen.tsx`: `<AppText variant="kana" style={styles.prompt}>`).
 
 ## Primitives — reusá antes de crear
 
 | Componente | Para qué | Notas |
 |---|---|---|
 | `ScreenBackground` | Contenedor raíz de **toda** pantalla | Resuelve safe-area, back button automático y scroll. `scrollable={false}` si no scrollea; `showBack={false}` en raíces de tab; `bottomOverlay` para CTAs fijos |
-| `ScreenHeader` | Título de pantalla | `eyebrow` (overline en accent) + `title` + `subtitle` + `actionLabel`/`onActionPress` |
-| `GlassCard` | Card estándar | El nombre es legacy: hoy es plano (borde + fondo). `glowColor`/`intensity` son no-ops |
+| `ScreenHeader` | Título de pantalla | Alineado a la izquierda: `eyebrow` (overline sakura) + `title` (Black) + `subtitle`; `actionLabel`/`onActionPress` a la derecha |
+| `GlassCard` | Card estándar | El nombre es legacy: hoy es `surfaces.card` + fondo `card`, radio lg |
+| `GradientFill` | Degradé de fondo | SVG (react-native-svg, sin deps nuevas); primer hijo de un contenedor con `overflow: 'hidden'` |
 | `AppText` | **Todo** texto | Nunca uses `<Text>` de RN directo salvo que necesites `adjustsFontSizeToFit` |
 | `PrimaryButton` | Botones | `variant`: `primary`/`accent`/`secondary`/`ghost`; `size`: `default`/`compact`. El título va en MAYÚSCULAS |
 | `StatPill` | Métrica compacta | `label` + `value` + `accentColor` |
-| `SpeakButton` | TTS de texto japonés | Poné uno donde haya japonés que se pueda escuchar |
+| `SpeakButton` | TTS de texto japonés | Poné uno donde haya japonés que se pueda escuchar. **Si lee lo que se pregunta, aparece recién después de responder**: el audio no puede dar la respuesta |
 | `AnimatedCollapsible` | Secciones plegables | |
 | `AnswerOptionButton` | Opción de respuesta | `visualState`: `idle`/`correct`/`incorrect`/`muted`; `fullWidth` para opciones largas |
 | `FeedbackBanner` | Corrección tras responder | Ya lee los colores del theme correctamente |
@@ -93,12 +104,12 @@ ajustar el tamaño de un variant, pasá `style={{ fontSize: ... }}` sobre `AppTe
 ## Convenciones
 
 - **Idioma:** español rioplatense (vos/tenés/podés), directo y corto. Labels de acción en
-  MAYÚSCULAS (`PRACTICAR ESTE TEMA`, `REPETIR`).
+  MAYÚSCULAS (`EMPEZAR`, `REPETIR`).
 - Los `StyleSheet.create` van **al final del archivo**.
 - Estilos dependientes del theme van inline en el array de `style`, no en el `StyleSheet`.
 - Nada de `console.*`, imports sin usar ni estilos huérfanos.
 - Animaciones: `Animated` de RN con `useNativeDriver: true` cuando se pueda, duraciones cortas
-  (120-260ms), `Easing.out(Easing.cubic)`. Ver `AnimatedRow` (entrada escalonada), usado por `PracticeScreen` y `StudyTopicsScreen`.
+  (120-260ms), `Easing.out(Easing.cubic)`. Ver `AnimatedRow` (entrada escalonada), usado por `PracticeScreen`.
 
 ## Errores a evitar
 
@@ -107,7 +118,9 @@ ajustar el tamaño de un variant, pasá `style={{ fontSize: ... }}` sobre `AppTe
   `ScreenBackground.tsx:41-44` antes de "arreglarlo".
 - Borrar `minHeight: 0` de `ScreenBackground.tsx:133`: es lo que permite que el chat de Kyary
   scrollee.
-- Reintroducir blur/glass/glow. Ese lenguaje visual fue removido a propósito.
+- Reintroducir blur/glass/glow. Ese lenguaje visual fue removido a propósito (el degradé de la
+  cabecera de Practicar es la única excepción, y es plano).
+- Volver a centrar títulos o a usar mincho para texto que se lee.
 - Poner un slot de feedback sin `minHeight`: la UI salta cuando aparece el banner.
 
 ## Cómo validar
