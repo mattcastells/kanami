@@ -18,21 +18,18 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
   const options = [
     {
       glyph: 'あ',
-      tint: activeTheme.tints.ai,
       title: 'Hiragana',
       description: 'Lectura, escritura, dibujo, tablero y frases.',
       onPress: () => navigation.navigate('KanaGroups', { script: 'hiragana' }),
     },
     {
       glyph: 'ア',
-      tint: activeTheme.tints.sakura,
       title: 'Katakana',
       description: 'Los mismos modos, con katakana o los dos mezclados.',
       onPress: () => navigation.navigate('KanaGroups', { script: 'katakana' }),
     },
     {
       glyph: '漢',
-      tint: activeTheme.tints.kohaku,
       title: 'Kanji',
       description: 'Kanji Grind: significado, lectura y en palabras.',
       onPress: () => navigation.navigate('KanjiGrind'),
@@ -49,7 +46,6 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
             glyph={option.glyph}
             title={option.title}
             description={option.description}
-            tint={option.tint}
             wide
             selected={false}
             onPress={option.onPress}

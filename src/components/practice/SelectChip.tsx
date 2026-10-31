@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 
 type SelectChipProps = {
@@ -37,7 +37,7 @@ export function SelectChip({
         {
           backgroundColor: selected
             ? fill
-            : hexToRgba(colors.textPrimary, activeTheme.opacity.tintSoft * 0.5),
+            : colors.surface2,
         },
         pressed && styles.pressed,
       ]}

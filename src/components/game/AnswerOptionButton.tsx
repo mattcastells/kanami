@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 
 export type AnswerOptionVisualState =
@@ -109,7 +109,10 @@ export function AnswerOptionButton({
             ? {
                 borderWidth: 1.5,
                 borderColor: tone,
-                backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft),
+                backgroundColor:
+                  visualState === 'correct'
+                    ? activeTheme.colors.successSoft
+                    : activeTheme.colors.errorSoft,
               }
             : {
                 backgroundColor:

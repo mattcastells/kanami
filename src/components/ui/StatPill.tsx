@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { hexToRgba, theme } from '../../theme/theme';
+import { theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { AppText } from './AppText';
 
@@ -20,7 +20,7 @@ export function StatPill({ label, value, accentColor }: StatPillProps) {
     <View
       style={[
         styles.container,
-        { backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft) },
+        { backgroundColor: activeTheme.colors.card },
       ]}
     >
       <AppText

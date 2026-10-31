@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { FONTS, hexToRgba, theme } from '../../theme/theme';
+import { FONTS, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 
 type ModeTileProps = {
@@ -44,7 +44,7 @@ export function ModeTile({
         selected && {
           borderWidth: 1.5,
           borderColor: colors.accent,
-          backgroundColor: hexToRgba(colors.accent, activeTheme.opacity.tintSoft * 0.7),
+          backgroundColor: colors.highlight,
         },
         pressed && styles.pressed,
       ]}
@@ -55,9 +55,7 @@ export function ModeTile({
           {
             backgroundColor: selected
               ? colors.accent
-              : tint
-                ? hexToRgba(tint, activeTheme.opacity.tintSoft)
-                : hexToRgba(colors.textPrimary, activeTheme.opacity.tintSoft * 0.6),
+              : colors.surface2,
           },
         ]}
       >

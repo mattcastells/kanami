@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { theme } from '../../theme/theme';
 
 type FeedbackBannerProps = {
   status: 'idle' | 'correct' | 'incorrect';
@@ -57,7 +57,14 @@ export function FeedbackBanner({
         // una tira teñida del color del resultado.
         status === 'idle'
           ? null
-          : { backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft) },
+          : {
+              backgroundColor:
+                status === 'correct'
+                  ? nearMiss
+                    ? activeTheme.colors.warningSoft
+                    : activeTheme.colors.successSoft
+                  : activeTheme.colors.errorSoft,
+            },
       ]}
     >
       {status === 'idle' ? null : (

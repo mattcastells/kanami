@@ -95,7 +95,7 @@ function AppShell() {
       card: theme.colors.cardStrong,
       border: 'transparent',
       notification: theme.colors.accent,
-      primary: theme.colors.accent,
+      primary: theme.colors.primary,
       text: theme.colors.textPrimary,
     },
   };

@@ -1,244 +1,196 @@
 import { TextStyle, ViewStyle } from 'react-native';
 
+// Rediseño "版画 Hanga" — grabado ukiyo-e pop (reemplaza a "Japón moderno").
+//
+// 藍 ruri (primary)    → la acción principal de cada pantalla. Una por pantalla.
+// 黄蘗 kihada (highlight) → lo elegido / lo activo (tile, chip, tab, celda actual).
+// 朱 shu (accent)      → decoración: sol de la cabecera, número grande, insignias de trazo.
+//                         Nunca texto chico: para texto usar `accentInk`.
+// Todo lo tocable lleva contorno de tinta (`line`, 2px) y sombra dura corrida
+// (`surfaces.card`). Al presionar se "hunde": `surfaces.press`.
+//
+// Paleta ÚNICA: ya no hay un color por juego (se borraron `tints` y `TintName`).
+// Texto de color chico (<18px) siempre en la variante `*Ink` (≥4.5:1).
+
 export type ThemeMode = 'dark' | 'light';
-// Lo que elige el usuario. 'system' sigue al teléfono (default desde el rediseño).
 export type ThemePreference = ThemeMode | 'system';
 
-// Rediseño "Japón moderno" (2026-10-27) — reemplaza a "tinta y bermellón".
-//
-// Índigo profundo (藍) como color de marca: cabeceras, selección, lo estructural.
-// Sakura (桜) como acento: la acción principal de cada pantalla.
-// Claro = papel frío casi blanco. Oscuro = noche índigo, nunca negro puro.
 const lightColors = {
-  background: '#F4F5FA',
-  backgroundSecondary: '#FFFFFF',
-  backgroundTertiary: '#EAECF5',
-  card: '#FFFFFF',
-  cardStrong: '#FFFFFF',
-  textPrimary: '#151B30',
-  textSecondary: '#535B77',
-  textMuted: '#868CA6',
-  line: 'rgba(21, 27, 48, 0.08)',
-  lineStrong: 'rgba(21, 27, 48, 0.16)',
-  // Marca: índigo. `onBrand` es el texto que va encima.
-  brand: '#1E2A4A',
-  brandRaised: '#2B3B68',
-  onBrand: '#FFFFFF',
-  // Acento: sakura profundo, lo bastante oscuro para llevar texto blanco (4.5:1).
-  accent: '#CF3866',
-  onAccent: '#FFFFFF',
-  success: '#1F9D74',
-  error: '#D93F55',
+  background: '#F4ECDD', // washi
+  backgroundSecondary: '#FFFAF0',
+  backgroundTertiary: '#EADFC9',
+  card: '#FFFAF0',
+  cardStrong: '#FFFAF0',
+  surface2: '#EADFC9', // filas internas, opción apagada, cajas de lectura
+  textPrimary: '#1C1713', // sumi
+  textSecondary: '#584B40',
+  textMuted: '#8A7C6E',
+  line: '#1C1713', // contorno de tinta (2px)
+  lineStrong: '#1C1713',
+  hair: 'rgba(28, 23, 19, 0.16)', // separadores internos, borde de lo NO elegido
+  primary: '#2340D3',
+  onPrimary: '#FFFFFF',
+  primarySoft: '#DCE2FF',
+  accent: '#FF5B1F',
+  accentInk: '#B8390B', // eyebrows
+  onAccent: '#1C1713',
+  highlight: '#FFC62B',
+  onHighlight: '#1C1713',
+  success: '#12945A',
+  successInk: '#0B6E42',
+  successSoft: '#D3F2E1',
+  error: '#E0244D',
+  errorInk: '#B3123A',
+  errorSoft: '#FFDDE4',
   warning: '#C77D12',
+  warningSoft: '#FCEBCB',
+  shadow: '#1C1713', // color de la sombra dura
+  waveA: '#2340D3', // seigaiha
+  waveB: '#4A66EE',
+  onWave: '#FFFFFF',
+  tabBar: '#FFFAF0',
+  // Alias de compatibilidad: código existente los lee. No usar en código nuevo.
+  brand: '#2340D3',
+  brandRaised: '#4A66EE',
+  onBrand: '#FFFFFF',
   black: '#000000',
   white: '#FFFFFF',
 };
 
 const darkColors: typeof lightColors = {
-  background: '#0E1322',
-  backgroundSecondary: '#171E33',
-  backgroundTertiary: '#0A0E1A',
-  card: '#171E33',
-  cardStrong: '#1C2440',
-  textPrimary: '#ECEEF7',
-  textSecondary: '#A8AFC9',
-  textMuted: '#7B829E',
-  line: 'rgba(236, 238, 247, 0.09)',
-  lineStrong: 'rgba(236, 238, 247, 0.17)',
-  brand: '#26335E',
-  brandRaised: '#33427A',
-  onBrand: '#FFFFFF',
-  // En oscuro el sakura va claro y el texto encima, oscuro: blanco sobre rosa claro no
-  // se lee.
-  accent: '#F28FA8',
-  onAccent: '#2A0C17',
-  success: '#4FCB9E',
-  error: '#F26B7F',
+  background: '#10121B', // sumi-ai (noche), nunca negro puro
+  backgroundSecondary: '#1A1D2A',
+  backgroundTertiary: '#252A3B',
+  card: '#1A1D2A',
+  cardStrong: '#1A1D2A',
+  surface2: '#252A3B',
+  textPrimary: '#F5EBD7',
+  textSecondary: '#C7BCA8',
+  textMuted: '#8E8676',
+  line: '#E9DFCB', // en oscuro el contorno es crema
+  lineStrong: '#E9DFCB',
+  hair: 'rgba(245, 235, 215, 0.16)',
+  primary: '#7C94FF',
+  onPrimary: '#0B1033', // ruri claro lleva texto oscuro, nunca blanco
+  primarySoft: '#232C57',
+  accent: '#FF7A40',
+  accentInk: '#FF9A6B',
+  onAccent: '#10121B',
+  highlight: '#FFD54D',
+  onHighlight: '#10121B',
+  success: '#3EDB8C',
+  successInk: '#6BF0AC',
+  successSoft: '#143528',
+  error: '#FF5F7E',
+  errorInk: '#FF8CA2',
+  errorSoft: '#40182A',
   warning: '#F2B04A',
+  warningSoft: '#3B2C12',
+  shadow: '#000000',
+  waveA: '#1B2456',
+  waveB: '#2B3880',
+  onWave: '#FFFFFF',
+  tabBar: '#151824',
+  brand: '#1B2456',
+  brandRaised: '#2B3880',
+  onBrand: '#FFFFFF',
   black: '#000000',
   white: '#FFFFFF',
 };
 
-// Un color tradicional por juego (伝統色). Le dan identidad a cada card de la grilla sin
-// pelearse con el acento: se usan en baja opacidad o en el glifo, nunca de fondo pleno.
-export type TintName = 'ai' | 'sakura' | 'matcha' | 'kohaku' | 'fuji' | 'sora' | 'beni' | 'cha';
+export type ThemeColors = typeof lightColors;
 
-const lightTints: Record<TintName, string> = {
-  ai: '#3F57B5',
-  sakura: '#CF3866',
-  matcha: '#2E8B5E',
-  kohaku: '#C47A10',
-  fuji: '#7A5CC7',
-  sora: '#1F86BF',
-  beni: '#C2453B',
-  cha: '#8A5A3C',
-};
+// Sombra dura: offset sin blur. `size` = 2 (botón chico / back), 3 (card, botón), 4 (card grande), 5 (sol del resumen).
+export const inkShadow = (color: string, size: 1 | 2 | 3 | 4 | 5 = 3) => `${size}px ${size}px 0 ${color}`;
 
-const darkTints: typeof lightTints = {
-  ai: '#8EA2F0',
-  sakura: '#F28FA8',
-  matcha: '#6FCF9E',
-  kohaku: '#F2B04A',
-  fuji: '#B9A4F2',
-  sora: '#7CC6EE',
-  beni: '#F2877D',
-  cha: '#D7A27F',
-};
-
-// Opacidad de los kanji-ilustración (el glifo grande detrás de las cards). En oscuro
-// rinden menos sobre el fondo y necesitan más alpha. No unificar en un solo valor.
-const lightOpacity = {
-  watermarkSoft: 0.1,
-  watermarkStrong: 0.16,
-  glyphMuted: 0.35,
-  // Fondo de los badges y estados suaves (chip, opción elegida, glifo en su cuadrito).
-  tintSoft: 0.1,
-};
-
-const darkOpacity: typeof lightOpacity = {
-  watermarkSoft: 0.16,
-  watermarkStrong: 0.24,
-  glyphMuted: 0.55,
-  tintSoft: 0.16,
-};
-
-// Superficies: en claro las cards flotan con sombra y sin borde; en oscuro la sombra no
-// se ve, así que llevan un borde fino. Por eso es un token por modo y no un estilo fijo.
-const lightSurfaces = {
-  card: {
-    borderWidth: 0,
-    borderColor: 'transparent',
-    boxShadow: '0 1px 2px rgba(21, 27, 48, 0.05), 0 8px 24px rgba(21, 27, 48, 0.06)',
+const makeSurfaces = (c: ThemeColors) => ({
+  // Tile, opción, botón, back button.
+  card: { borderWidth: 2, borderColor: c.line, boxShadow: inkShadow(c.shadow, 3) } satisfies ViewStyle,
+  // Hero, prompt de juego, tarjeta learn, card de progreso.
+  raised: { borderWidth: 2, borderColor: c.line, boxShadow: inkShadow(c.shadow, 4) } satisfies ViewStyle,
+  // Contenedor con contorno pero sin sombra (listas, check rows, segmentado, stats).
+  outlined: { borderWidth: 2, borderColor: c.line } satisfies ViewStyle,
+  // Lo NO elegido (chip apagado, celda pendiente).
+  quiet: { borderWidth: 2, borderColor: c.hair } satisfies ViewStyle,
+  // Presionado / elegido: se hunde 2px y la sombra queda en 1px.
+  press: {
+    transform: [{ translateX: 2 }, { translateY: 2 }],
+    boxShadow: inkShadow(c.shadow, 1),
   } satisfies ViewStyle,
-  raised: {
-    borderWidth: 0,
-    borderColor: 'transparent',
-    boxShadow: '0 2px 4px rgba(21, 27, 48, 0.06), 0 12px 32px rgba(21, 27, 48, 0.1)',
-  } satisfies ViewStyle,
-};
+});
 
-const darkSurfaces: typeof lightSurfaces = {
-  card: {
-    borderWidth: 1,
-    borderColor: 'rgba(236, 238, 247, 0.08)',
-    boxShadow: 'none',
-  },
-  raised: {
-    borderWidth: 1,
-    borderColor: 'rgba(236, 238, 247, 0.12)',
-    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.35)',
-  },
-};
-
-// Sans japonesa en todo: Zen Kaku Gothic New. El mincho (Zen Old Mincho) queda SOLO
-// para los kanji-ilustración, donde el trazo con remates es decoración, no lectura.
 export const FONTS = {
-  regular: 'ZenKakuGothicNew_400Regular',
-  medium: 'ZenKakuGothicNew_500Medium',
-  bold: 'ZenKakuGothicNew_700Bold',
-  black: 'ZenKakuGothicNew_900Black',
-  illustration: 'ZenOldMincho_700Bold',
+  display: 'DelaGothicOne_400Regular', // títulos, glifos de tile/tab, números grandes
+  regular: 'ZenMaruGothic_400Regular',
+  medium: 'ZenMaruGothic_500Medium',
+  bold: 'ZenMaruGothic_700Bold',
+  black: 'ZenMaruGothic_900Black', // botones, eyebrows, contadores
+  glyph: 'KleeOne_600SemiBold', // TODO carácter que se lee/escribe/dibuja (kana, kanji, oraciones)
+  glyphLight: 'KleeOne_400Regular', // carácter fantasma del lienzo de trazos
+} as const;
+
+// Medidas de control (px). Usarlas en vez de números sueltos.
+export const SIZES = {
+  screenPaddingX: 18,
+  backButton: 40,
+  button: 52,
+  buttonStartBar: 50,
+  buttonSmallHeight: 38,
+  modeTile: 54,
+  modeTileBadge: 32,
+  gameTile: 92,
+  gameTileBadge: 38,
+  option: 66,
+  optionKanji: 78,
+  input: 60,
+  progressTrack: 14,
+  progressTrackThin: 10,
+  tabPillWidth: 56,
+  tabPillHeight: 30,
+  segmentHeight: 34,
+  switchWidth: 44,
+  switchHeight: 26,
+  switchKnob: 18,
+  boardCell: 50,
+  heroHeight: 156,
 } as const;
 
 const sharedTheme = {
-  spacing: {
-    xxs: 4,
-    xs: 8,
-    sm: 12,
-    md: 16,
-    lg: 20,
-    xl: 24,
-    xxl: 32,
-    xxxl: 40,
-  },
-  // Redondeado y blando: cards en lg, controles en md, chips en pill.
-  radii: {
-    sm: 8,
-    md: 14,
-    lg: 20,
-    xl: 28,
-    pill: 999,
-  },
+  spacing: { xxs: 4, xs: 8, sm: 12, md: 16, lg: 20, xl: 24, xxl: 32, xxxl: 40 },
+  // sm: badge de modo · md: botón, tile de modo, input, segmentado, check row
+  // lg: game tile, opción, lista · xl: hero, prompt, tarjeta learn
+  radii: { xs: 6, sm: 8, badge: 10, md: 12, lg: 14, card: 16, xl: 18, pill: 999 },
   typography: {
-    overline: {
-      fontFamily: FONTS.bold,
-      fontSize: 11,
-      lineHeight: 15,
-      letterSpacing: 1.4,
-      textTransform: 'uppercase',
-    } satisfies TextStyle,
-    label: {
-      fontFamily: FONTS.bold,
-      fontSize: 12,
-      lineHeight: 16,
-      letterSpacing: 0.4,
-    } satisfies TextStyle,
-    bodySmall: {
-      fontFamily: FONTS.regular,
-      fontSize: 13,
-      lineHeight: 19,
-    } satisfies TextStyle,
-    body: {
-      fontFamily: FONTS.regular,
-      fontSize: 15,
-      lineHeight: 23,
-    } satisfies TextStyle,
-    bodyStrong: {
-      fontFamily: FONTS.bold,
-      fontSize: 15,
-      lineHeight: 22,
-    } satisfies TextStyle,
-    title: {
-      fontFamily: FONTS.bold,
-      fontSize: 18,
-      lineHeight: 24,
-    } satisfies TextStyle,
-    headline: {
-      fontFamily: FONTS.black,
-      fontSize: 26,
-      lineHeight: 32,
-      letterSpacing: -0.3,
-    } satisfies TextStyle,
-    display: {
-      fontFamily: FONTS.black,
-      fontSize: 34,
-      lineHeight: 40,
-      letterSpacing: -0.6,
-    } satisfies TextStyle,
-    kana: {
-      fontFamily: FONTS.medium,
-      fontSize: 96,
-      lineHeight: 112,
-    } satisfies TextStyle,
-    option: {
-      fontFamily: FONTS.medium,
-      fontSize: 20,
-      lineHeight: 26,
-    } satisfies TextStyle,
+    // Eyebrow ("かな · PRACTICAR"), etiquetas de sección ("QUÉ QUERÉS HACER").
+    overline: { fontFamily: FONTS.black, fontSize: 11, lineHeight: 15, letterSpacing: 1.5, textTransform: 'uppercase' } satisfies TextStyle,
+    // Labels de acción en MAYÚSCULAS.
+    label: { fontFamily: FONTS.black, fontSize: 13, lineHeight: 17, letterSpacing: 1.3 } satisfies TextStyle,
+    labelSmall: { fontFamily: FONTS.black, fontSize: 11, lineHeight: 14, letterSpacing: 0.9 } satisfies TextStyle,
+    caption: { fontFamily: FONTS.bold, fontSize: 11, lineHeight: 14 } satisfies TextStyle,
+    bodySmall: { fontFamily: FONTS.medium, fontSize: 12, lineHeight: 17 } satisfies TextStyle,
+    body: { fontFamily: FONTS.medium, fontSize: 13, lineHeight: 19 } satisfies TextStyle,
+    bodyStrong: { fontFamily: FONTS.bold, fontSize: 14, lineHeight: 19 } satisfies TextStyle,
+    tileTitle: { fontFamily: FONTS.bold, fontSize: 15, lineHeight: 20 } satisfies TextStyle,
+    title: { fontFamily: FONTS.display, fontSize: 20, lineHeight: 22 } satisfies TextStyle, // título de pantalla de juego
+    headline: { fontFamily: FONTS.display, fontSize: 26, lineHeight: 29 } satisfies TextStyle, // pantalla con back
+    headlineRoot: { fontFamily: FONTS.display, fontSize: 28, lineHeight: 32 } satisfies TextStyle, // raíz de pestaña
+    display: { fontFamily: FONTS.display, fontSize: 38, lineHeight: 40 } satisfies TextStyle, // hero
+    stat: { fontFamily: FONTS.display, fontSize: 22, lineHeight: 26 } satisfies TextStyle,
+    kana: { fontFamily: FONTS.glyph, fontSize: 124, lineHeight: 136 } satisfies TextStyle, // prompt de 1 carácter
+    word: { fontFamily: FONTS.glyph, fontSize: 76, lineHeight: 86 } satisfies TextStyle, // prompt de palabra
+    sentence: { fontFamily: FONTS.glyph, fontSize: 22, lineHeight: 31 } satisfies TextStyle,
+    option: { fontFamily: FONTS.bold, fontSize: 22, lineHeight: 28 } satisfies TextStyle,
   },
 };
 
-export const theme = {
-  ...sharedTheme,
-  colors: lightColors,
-  tints: lightTints,
-  opacity: lightOpacity,
-  surfaces: lightSurfaces,
-};
+export const theme = { ...sharedTheme, colors: lightColors, surfaces: makeSurfaces(lightColors) };
 
 export type AppTheme = typeof theme & { mode: ThemeMode };
 export type TextVariant = keyof typeof theme.typography;
 
 export function createTheme(mode: ThemeMode = 'light'): AppTheme {
-  const dark = mode === 'dark';
-  return {
-    ...sharedTheme,
-    colors: dark ? darkColors : lightColors,
-    tints: dark ? darkTints : lightTints,
-    opacity: dark ? darkOpacity : lightOpacity,
-    surfaces: dark ? darkSurfaces : lightSurfaces,
-    mode,
-  };
+  const colors = mode === 'dark' ? darkColors : lightColors;
+  return { ...sharedTheme, colors, surfaces: makeSurfaces(colors), mode };
 }
 
 export function hexToRgba(hex: string, alpha: number) {
@@ -250,10 +202,8 @@ export function hexToRgba(hex: string, alpha: number) {
           .map((character) => `${character}${character}`)
           .join('')
       : normalized;
-
   const red = Number.parseInt(value.slice(0, 2), 16);
   const green = Number.parseInt(value.slice(2, 4), 16);
   const blue = Number.parseInt(value.slice(4, 6), 16);
-
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }

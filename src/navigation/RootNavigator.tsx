@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '../components/ui/AppText';
 import { KYARY_ENABLED } from '../features/flags';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, hexToRgba } from '../theme/theme';
+import { FONTS } from '../theme/theme';
 import { RootStackParamList } from '../types/navigation';
 import { AntonymGameScreen } from '../screens/AntonymGameScreen';
 import { DateTimeGameScreen } from '../screens/DateTimeGameScreen';
@@ -85,7 +85,7 @@ function TabGlyph({ glyph, focused }: { glyph: string; focused: boolean }) {
       style={[
         styles.tabPill,
         focused && {
-          backgroundColor: hexToRgba(activeTheme.colors.accent, activeTheme.opacity.tintSoft * 1.4),
+          backgroundColor: activeTheme.colors.highlight,
         },
       ]}
     >

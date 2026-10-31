@@ -5,7 +5,7 @@ import { AppText } from '../components/ui/AppText';
 import { GradientFill } from '../components/ui/GradientFill';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, hexToRgba, theme, TintName } from '../theme/theme';
+import { FONTS, hexToRgba, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 // La pestaña 練 Practicar es SOLO juegos: una card por modo, todas del mismo tamaño.
@@ -23,8 +23,6 @@ import { RootStackScreenProps } from '../types/navigation';
 type PracticeCard = {
   glyph: string;
   title: string;
-  // Color tradicional del juego (theme.tints): identidad sin subtítulos.
-  tint: TintName;
   onPress: () => void;
 };
 
@@ -35,42 +33,36 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
   const cards: PracticeCard[] = [
     // Hiragana, Katakana y Kanji viven adentro de "Kanas": tres cards de "qué escritura
     // practico" ocupaban media grilla.
-    { glyph: '字', title: 'Kanas', tint: 'ai', onPress: () => navigation.navigate('Kanas') },
+    { glyph: '字', title: 'Kanas', onPress: () => navigation.navigate('Kanas') },
     {
       glyph: '語',
       title: 'Vocabulario',
-      tint: 'matcha',
       onPress: () => navigation.navigate('Vocabulary'),
     },
     {
       glyph: '意',
       title: 'Significados',
-      tint: 'fuji',
       onPress: () => navigation.navigate('Meanings'),
     },
     {
       glyph: '反',
       title: 'Antónimos',
-      tint: 'beni',
       onPress: () => navigation.navigate('AntonymGame'),
     },
-    { glyph: '数', title: 'Números', tint: 'kohaku', onPress: () => navigation.navigate('Numbers') },
+    { glyph: '数', title: 'Números', onPress: () => navigation.navigate('Numbers') },
     {
       glyph: '暦',
       title: 'Fechas y hora',
-      tint: 'sora',
       onPress: () => navigation.navigate('DateTime'),
     },
     {
       glyph: '絵',
       title: 'Imágenes',
-      tint: 'sakura',
       onPress: () => navigation.navigate('EmojiGame', { script: 'mixed' }),
     },
     {
       glyph: '訳',
       title: 'Traducción',
-      tint: 'cha',
       onPress: () => navigation.navigate('TranslationGame'),
     },
   ];
@@ -92,9 +84,6 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
           <View
             style={[styles.heroSun, { backgroundColor: hexToRgba(colors.accent, 0.55) }]}
           />
-          <AppText style={[styles.heroGlyph, { color: hexToRgba(colors.onBrand, 0.12) }]}>
-            練
-          </AppText>
           <AppText variant="overline" color={hexToRgba(colors.onBrand, 0.7)}>
             練習 · Kanami
           </AppText>
@@ -126,9 +115,8 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
   );
 }
 
-function PracticeTile({ glyph, title, tint, onPress }: PracticeCard) {
+function PracticeTile({ glyph, title, onPress }: PracticeCard) {
   const { theme: activeTheme } = useAppTheme();
-  const tone = activeTheme.tints[tint];
 
   return (
     <Pressable
@@ -140,18 +128,10 @@ function PracticeTile({ glyph, title, tint, onPress }: PracticeCard) {
         pressed && styles.pressed,
       ]}
     >
-      <AppText
-        style={[
-          styles.tileWatermark,
-          { color: hexToRgba(tone, activeTheme.opacity.watermarkSoft) },
-        ]}
-      >
-        {glyph}
-      </AppText>
       <View
-        style={[styles.badge, { backgroundColor: hexToRgba(tone, activeTheme.opacity.tintSoft) }]}
+        style={[styles.badge, { backgroundColor: activeTheme.colors.highlight }]}
       >
-        <AppText style={[styles.badgeGlyph, { color: tone }]}>{glyph}</AppText>
+        <AppText style={[styles.badgeGlyph, { color: activeTheme.colors.onHighlight }]}>{glyph}</AppText>
       </View>
       {/* Sin numberOfLines: un título largo entra en dos renglones antes que cortarse.
           Los títulos truncados eran el síntoma más visible del mosaico viejo. */}
@@ -182,14 +162,6 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 999,
   },
-  heroGlyph: {
-    position: 'absolute',
-    right: 4,
-    bottom: -34,
-    fontFamily: FONTS.illustration,
-    fontSize: 150,
-    lineHeight: 170,
-  },
   grid: {
     gap: GRID_GAP,
     marginBottom: theme.spacing.xxl,
@@ -206,14 +178,6 @@ const styles = StyleSheet.create({
     minHeight: 120,
     justifyContent: 'space-between',
     overflow: 'hidden',
-  },
-  tileWatermark: {
-    position: 'absolute',
-    right: -10,
-    bottom: -26,
-    fontFamily: FONTS.illustration,
-    fontSize: 92,
-    lineHeight: 104,
   },
   badge: {
     width: 40,
