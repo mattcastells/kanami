@@ -26,6 +26,7 @@ import {
 import { countWeak, weakCountsByMode } from '../features/weak/weakStore';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { hexToRgba, theme } from '../theme/theme';
+import { useHideTabBar } from '../navigation/tabBar';
 import { RootStackScreenProps } from '../types/navigation';
 
 type Phase = 'intro' | 'playing' | 'done';
@@ -51,6 +52,8 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
   const deck = useMemo(() => buildSrsDeck(), []);
 
   const [phase, setPhase] = useState<Phase>('intro');
+  // La ronda y su resumen son partida: sin tab bar.
+  useHideTabBar(phase !== 'intro');
   const [queue, setQueue] = useState<ReviewExercise[]>([]);
   const [index, setIndex] = useState(0);
   const [result, setResult] = useState<AnswerResult>('idle');

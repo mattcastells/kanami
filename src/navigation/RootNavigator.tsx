@@ -1,12 +1,13 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '../components/ui/AppText';
 import { KYARY_ENABLED } from '../features/flags';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS } from '../theme/theme';
+import { FONTS, SIZES } from '../theme/theme';
+import { HIDDEN_TAB_BAR, PLAYING_ROUTES, useTabBarStyle } from './tabBar';
 import { RootStackParamList } from '../types/navigation';
 import { AntonymGameScreen } from '../screens/AntonymGameScreen';
 import { DateTimeGameScreen } from '../screens/DateTimeGameScreen';
@@ -76,25 +77,24 @@ function PracticeNavigator() {
 // dentro del ícono: así el alto lo calcula react-navigation y la etiqueta deja de
 // recortarse. `allowFontScaling={false}` porque el alto de la barra es fijo y el
 // escalado de fuente del sistema la desbordaba en algunos dispositivos.
-// La pestaña activa lleva una pastilla sakura suave detrás del glifo.
+// La pestaña activa lleva una pastilla kihada con contorno; la inactiva, el mismo borde
+// transparente para que el glifo no salte al cambiar.
 function TabGlyph({ glyph, focused }: { glyph: string; focused: boolean }) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
 
   return (
     <View
       style={[
         styles.tabPill,
-        focused && {
-          backgroundColor: activeTheme.colors.highlight,
-        },
+        focused
+          ? { backgroundColor: colors.highlight, borderColor: colors.line }
+          : { backgroundColor: 'transparent', borderColor: 'transparent' },
       ]}
     >
       <AppText
         allowFontScaling={false}
-        style={[
-          styles.tabGlyph,
-          { color: focused ? activeTheme.colors.accent : activeTheme.colors.textMuted },
-        ]}
+        style={[styles.tabGlyph, { color: focused ? colors.onHighlight : colors.textMuted }]}
       >
         {glyph}
       </AppText>
@@ -111,7 +111,9 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
       numberOfLines={1}
       style={[
         styles.tabLabel,
-        { color: focused ? activeTheme.colors.accent : activeTheme.colors.textMuted },
+        focused
+          ? { fontFamily: FONTS.black, color: activeTheme.colors.textPrimary }
+          : { fontFamily: FONTS.bold, color: activeTheme.colors.textMuted },
       ]}
     >
       {label}
@@ -148,36 +150,17 @@ const TABS: TabSpec[] = [
   { name: 'ProfileTab', component: ProfileScreen, glyph: '私', label: 'Perfil' },
 ];
 
-// Alto de la zona tocable (pastilla 30 + etiqueta 14 + respiro). El inset del sistema
-// se suma aparte, nunca se descuenta de acá.
-const TAB_CONTENT_HEIGHT = 60;
-// Piso del inset inferior: si el sistema reporta 0 (algunos Android con botones físicos,
-// o el primer render antes de medir), igual queda separación de la barra del sistema.
-const MIN_BOTTOM_INSET = 8;
-
 export function RootNavigator() {
   const { theme: activeTheme } = useAppTheme();
-  const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, MIN_BOTTOM_INSET);
+  const tabBarStyle = useTabBarStyle();
 
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        // Sin borde: la barra se separa del contenido con una sombra hacia arriba (en
-        // oscuro, con el borde fino de las superficies).
-        tabBarStyle: {
-          backgroundColor: activeTheme.colors.card,
-          borderTopWidth: activeTheme.mode === 'dark' ? 1 : 0,
-          borderTopColor: activeTheme.colors.line,
-          boxShadow:
-            activeTheme.mode === 'dark' ? 'none' : '0 -4px 20px rgba(21, 27, 48, 0.06)',
-          height: TAB_CONTENT_HEIGHT + bottomInset,
-          paddingTop: 8,
-          paddingBottom: bottomInset,
-        },
+        tabBarStyle,
         tabBarItemStyle: { paddingVertical: 0 },
-        tabBarIconStyle: { height: 30, width: 56 },
+        tabBarIconStyle: { height: SIZES.tabPillHeight, width: SIZES.tabPillWidth },
         sceneStyle: { backgroundColor: activeTheme.colors.background },
       }}
     >
@@ -186,10 +169,15 @@ export function RootNavigator() {
           key={tab.name}
           name={tab.name}
           component={tab.component}
-          options={{
+          options={({ route }) => ({
             tabBarIcon: ({ focused }) => <TabGlyph glyph={tab.glyph} focused={focused} />,
             tabBarLabel: ({ focused }) => <TabLabel label={tab.label} focused={focused} />,
-          }}
+            // Durante una partida la tab bar se oculta. La ronda del Repaso no es una ruta:
+            // la oculta ReviewScreen con useHideTabBar.
+            tabBarStyle: PLAYING_ROUTES.includes(getFocusedRouteNameFromRoute(route) ?? '')
+              ? HIDDEN_TAB_BAR
+              : tabBarStyle,
+          })}
         />
       ))}
     </Tab.Navigator>
@@ -198,23 +186,23 @@ export function RootNavigator() {
 
 const styles = StyleSheet.create({
   tabPill: {
-    width: 56,
-    height: 30,
+    width: SIZES.tabPillWidth,
+    height: SIZES.tabPillHeight,
     borderRadius: 999,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabGlyph: {
-    fontFamily: FONTS.bold,
-    fontSize: 17,
-    lineHeight: 22,
+    fontFamily: FONTS.display,
+    fontSize: 15,
+    lineHeight: 19,
     textAlign: 'center',
   },
   tabLabel: {
-    fontFamily: FONTS.bold,
     fontSize: 10,
     lineHeight: 14,
-    marginTop: 2,
+    marginTop: 3,
     textAlign: 'center',
   },
 });
