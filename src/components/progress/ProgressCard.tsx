@@ -4,11 +4,11 @@ import { Alert, Platform, Share, StyleSheet, TextInput, View } from 'react-nativ
 import { useProgress } from '../../features/progress/ProgressProvider';
 import { getModeLabel, getTotals } from '../../features/progress/progressStore';
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { FONTS, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 import { GlassCard } from '../ui/GlassCard';
+import { ProgressTrack } from '../ui/InkBits';
 import { PrimaryButton } from '../ui/PrimaryButton';
-import { StatPill } from '../ui/StatPill';
 
 function accuracyOf(correct: number, answered: number) {
   return answered > 0 ? Math.round((correct / answered) * 100) : 0;
@@ -41,7 +41,7 @@ export function ProgressCard() {
       try {
         if (typeof navigator !== 'undefined' && navigator.clipboard) {
           await navigator.clipboard.writeText(json);
-          setFeedback({ tone: activeTheme.colors.success, text: 'Copiado al portapapeles.' });
+          setFeedback({ tone: activeTheme.colors.successInk, text: 'Copiado al portapapeles.' });
           return;
         }
       } catch {
@@ -59,18 +59,18 @@ export function ProgressCard() {
     try {
       await Share.share({ message: json });
     } catch {
-      setFeedback({ tone: activeTheme.colors.error, text: 'No se pudo compartir el progreso.' });
+      setFeedback({ tone: activeTheme.colors.errorInk, text: 'No se pudo compartir el progreso.' });
     }
   };
 
   const handleImport = () => {
     const ok = importProgress(importText.trim());
     if (ok) {
-      setFeedback({ tone: activeTheme.colors.success, text: 'Progreso importado.' });
+      setFeedback({ tone: activeTheme.colors.successInk, text: 'Progreso importado.' });
       setImportOpen(false);
       setImportText('');
     } else {
-      setFeedback({ tone: activeTheme.colors.error, text: 'El texto no es un progreso válido.' });
+      setFeedback({ tone: activeTheme.colors.errorInk, text: 'El texto no es un progreso válido.' });
     }
   };
 
@@ -100,11 +100,13 @@ export function ProgressCard() {
     );
   };
 
+  const { colors } = activeTheme;
+
   return (
-    <GlassCard contentStyle={styles.cardContent}>
+    <GlassCard style={styles.card} contentStyle={styles.cardContent}>
       <View style={styles.header}>
         <AppText variant="title">Progreso</AppText>
-        <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+        <AppText variant="bodySmall" color={colors.textSecondary}>
           Se guarda en este dispositivo
         </AppText>
       </View>
@@ -112,36 +114,35 @@ export function ProgressCard() {
       {hasProgress ? (
         <>
           <View style={styles.statsRow}>
-            <StatPill label="Respondidas" value={totals.answered} />
-            <StatPill
-              label="Precisión"
+            <Stat value={totals.sessions} label="Sesiones" />
+            <Stat
               value={`${accuracyOf(totals.correct, totals.answered)}%`}
-              tone="success"
+              label="Precisión"
+              color={colors.successInk}
             />
-            <StatPill label="Sesiones" value={totals.sessions} />
+            <Stat value={totals.answered} label="Respondidas" />
           </View>
 
+          {/* Una barra por modo: la precisión de cada juego, de un vistazo. */}
           <View style={styles.modeList}>
-            {modeRows.map(([modeKey, stats]) => (
-              <View
-                key={modeKey}
-                style={[styles.modeRow, { borderColor: activeTheme.colors.line }]}
-              >
-                <View style={styles.modeCopy}>
-                  <AppText variant="bodyStrong">{getModeLabel(modeKey)}</AppText>
-                  <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-                    {stats.correct}/{stats.answered} · racha {stats.bestStreak}
+            {modeRows.map(([modeKey, stats]) => {
+              const accuracy = accuracyOf(stats.correct, stats.answered);
+              return (
+                <View key={modeKey} style={styles.modeRow}>
+                  <AppText style={styles.modeLabel} numberOfLines={1}>
+                    {getModeLabel(modeKey)}
                   </AppText>
+                  <View style={styles.modeTrack}>
+                    <ProgressTrack value={accuracy / 100} thin />
+                  </View>
+                  <AppText style={styles.modeValue}>{accuracy}%</AppText>
                 </View>
-                <AppText variant="bodyStrong" color={activeTheme.colors.accent}>
-                  {accuracyOf(stats.correct, stats.answered)}%
-                </AppText>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </>
       ) : (
-        <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+        <AppText variant="bodySmall" color={colors.textSecondary}>
           Todavía no hay progreso. Jugá una partida y volvé para verlo acá.
         </AppText>
       )}
@@ -154,7 +155,7 @@ export function ProgressCard() {
 
       {importOpen ? (
         <View style={styles.importBox}>
-          <AppText variant="label" color={activeTheme.colors.textMuted}>
+          <AppText variant="overline" color={colors.textSecondary}>
             Pegá acá el progreso exportado
           </AppText>
           <TextInput
@@ -164,28 +165,25 @@ export function ProgressCard() {
             autoCapitalize="none"
             autoCorrect={false}
             placeholder='{"version":1,...}'
-            placeholderTextColor={activeTheme.colors.textMuted}
+            placeholderTextColor={colors.textMuted}
+            selectionColor={colors.primary}
             style={[
               styles.importInput,
-              {
-                color: activeTheme.colors.textPrimary,
-                borderColor: activeTheme.colors.line,
-                backgroundColor: hexToRgba(activeTheme.colors.backgroundSecondary, 0.6),
-              },
+              { color: colors.textPrimary, borderColor: colors.line, backgroundColor: colors.background },
             ]}
           />
           <View style={styles.actionsRow}>
             <PrimaryButton
               title="IMPORTAR"
-              size="compact"
+              size="small"
               onPress={handleImport}
               disabled={importText.trim().length === 0}
               style={styles.actionFlex}
             />
             <PrimaryButton
               title="CANCELAR"
-              variant="ghost"
-              size="compact"
+              variant="secondary"
+              size="small"
               onPress={() => setImportOpen(false)}
               style={styles.actionFlex}
             />
@@ -196,14 +194,14 @@ export function ProgressCard() {
           <PrimaryButton
             title={Platform.OS === 'web' ? 'COPIAR' : 'EXPORTAR'}
             variant="secondary"
-            size="compact"
+            size="small"
             onPress={handleExport}
             style={styles.actionFlex}
           />
           <PrimaryButton
             title="IMPORTAR"
             variant="secondary"
-            size="compact"
+            size="small"
             onPress={() => {
               setFeedback(null);
               setImportOpen(true);
@@ -214,20 +212,34 @@ export function ProgressCard() {
       )}
 
       {hasProgress ? (
-        <PrimaryButton
-          title="BORRAR PROGRESO"
-          variant="ghost"
-          size="compact"
-          onPress={confirmReset}
-        />
+        <PrimaryButton title="BORRAR PROGRESO" variant="ghost" onPress={confirmReset} />
       ) : null}
     </GlassCard>
   );
 }
 
+// Un número grande (Dela) con su etiqueta debajo.
+function Stat({ value, label, color }: { value: string | number; label: string; color?: string }) {
+  const { theme: activeTheme } = useAppTheme();
+
+  return (
+    <View style={styles.stat}>
+      <AppText variant="stat" color={color ?? activeTheme.colors.textPrimary} numberOfLines={1}>
+        {value}
+      </AppText>
+      <AppText variant="caption" color={activeTheme.colors.textSecondary}>
+        {label}
+      </AppText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  card: {
+    borderRadius: theme.radii.card,
+  },
   cardContent: {
-    gap: theme.spacing.md,
+    gap: 14,
   },
   header: {
     gap: 2,
@@ -236,38 +248,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.xs,
   },
+  stat: {
+    flex: 1,
+    minWidth: 0,
+  },
   modeList: {
     gap: theme.spacing.xs,
   },
   modeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    gap: theme.spacing.md,
+    gap: theme.spacing.xs,
   },
-  modeCopy: {
+  modeLabel: {
+    width: 96,
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  modeTrack: {
     flex: 1,
-    gap: 2,
+    flexDirection: 'row',
+  },
+  modeValue: {
+    width: 36,
+    textAlign: 'right',
+    fontFamily: FONTS.black,
+    fontSize: 12,
+    lineHeight: 16,
   },
   importBox: {
     gap: theme.spacing.xs,
   },
   importInput: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: theme.radii.md,
     padding: theme.spacing.sm,
     minHeight: 90,
-    fontFamily: 'ZenKakuGothicNew_400Regular',
+    fontFamily: FONTS.regular,
     fontSize: 13,
     textAlignVertical: 'top',
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   actionFlex: {
     flex: 1,

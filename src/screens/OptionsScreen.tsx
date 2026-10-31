@@ -5,7 +5,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Switch,
   TextInput,
   View,
 } from 'react-native';
@@ -16,6 +15,8 @@ import appConfig from '../../app.json';
 import { SelectChip } from '../components/practice/SelectChip';
 import { ProgressCard } from '../components/progress/ProgressCard';
 import { GlassCard } from '../components/ui/GlassCard';
+import { Segmented } from '../components/ui/InkBits';
+import { InkSwitch } from '../components/ui/InkSwitch';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
@@ -33,7 +34,7 @@ import {
 import { useAppSettings } from '../settings/AppSettingsProvider';
 import { KYARY_ENABLED } from '../features/flags';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme, ThemePreference } from '../theme/theme';
+import { FONTS, theme, ThemePreference } from '../theme/theme';
 
 const REMINDER_HOURS = [8, 13, 18, 20, 21];
 
@@ -45,18 +46,17 @@ type UpdateState =
   | { kind: 'installing'; currentVersion: string; release: AppRelease }
   | { kind: 'error'; currentVersion: string; message: string };
 
-const THEME_OPTIONS: { id: ThemePreference; label: string }[] = [
-  { id: 'system', label: 'Sistema' },
-  { id: 'light', label: 'Claro' },
-  { id: 'dark', label: 'Oscuro' },
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'system', label: 'Sistema' },
+  { value: 'light', label: 'Claro' },
+  { value: 'dark', label: 'Oscuro' },
 ];
 
 export function OptionsScreen() {
   const { theme: activeTheme, mode, preference } = useAppTheme();
-  // Filas de ajuste: un tono apenas distinto de la card, sin borde.
-  const rowSurface = {
-    backgroundColor: hexToRgba(activeTheme.colors.textPrimary, mode === 'dark' ? 0.05 : 0.035),
-  };
+  const { colors } = activeTheme;
+  // Separador entre filas de la lista de ajustes (no va en la primera).
+  const rowDivider = { borderTopWidth: 2, borderTopColor: colors.hair };
   const {
     settings: { hapticsEnabled, geminiApiKey, reminderEnabled, reminderHour },
     setHapticsEnabled,
@@ -168,178 +168,119 @@ export function OptionsScreen() {
       ? updateState.release.pageUrl
       : null;
 
+  const updating = updateState.kind === 'checking' || updateState.kind === 'installing';
+
   return (
     <ScreenBackground showBack={false} scrollable>
       <ScreenHeader eyebrow="私 · Ajustes" title="Perfil" />
 
       <ProgressCard />
 
-      <View style={styles.optionsSpacer} />
+      <AppText variant="overline" color={colors.textSecondary} style={styles.sectionLabel}>
+        Tema
+      </AppText>
+      <Segmented options={THEME_OPTIONS} value={preference} onChange={setThemeMode} />
+      <AppText variant="bodySmall" color={colors.textSecondary} style={styles.themeNote}>
+        {preference === 'system'
+          ? `Como el teléfono (ahora ${mode === 'dark' ? 'oscuro' : 'claro'})`
+          : mode === 'dark'
+            ? 'Oscuro'
+            : 'Claro'}
+      </AppText>
 
-      <GlassCard contentStyle={styles.cardContent}>
-        <View
-          style={[
-            styles.settingRow,
-            rowSurface,
-          ]}
-        >
+      <View style={[styles.settings, activeTheme.surfaces.outlined, { backgroundColor: colors.card }]}>
+        <View style={styles.settingRow}>
           <View style={styles.settingCopy}>
             <AppText variant="bodyStrong">Feedback haptico</AppText>
           </View>
-
-          <Switch
-            value={hapticsEnabled}
-            onValueChange={setHapticsEnabled}
-            thumbColor={activeTheme.colors.white}
-            trackColor={{
-              false: activeTheme.colors.lineStrong,
-              true: activeTheme.colors.accent,
-            }}
-            ios_backgroundColor={activeTheme.colors.lineStrong}
-          />
+          <InkSwitch value={hapticsEnabled} onValueChange={setHapticsEnabled} />
         </View>
 
-        <View
-          style={[
-            styles.settingRow,
-            rowSurface,
-          ]}
-        >
-          <View style={styles.settingCopy}>
-            <AppText variant="bodyStrong">Tema</AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {preference === 'system'
-                ? `Como el teléfono (ahora ${mode === 'dark' ? 'oscuro' : 'claro'})`
-                : mode === 'dark'
-                  ? 'Oscuro'
-                  : 'Claro'}
-            </AppText>
-          </View>
-        </View>
-        <View style={styles.chipRow}>
-          {THEME_OPTIONS.map((option) => (
-            <SelectChip
-              key={option.id}
-              label={option.label}
-              grow
-              selected={preference === option.id}
-              onPress={() => setThemeMode(option.id)}
-            />
-          ))}
-        </View>
-
-        <View
-          style={[
-            styles.settingRow,
-            rowSurface,
-          ]}
-        >
-          <View style={styles.settingCopy}>
-            <AppText variant="bodyStrong">Recordatorio diario</AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {Platform.OS === 'web'
-                ? 'Solo en la app móvil'
-                : `Todos los días a las ${reminderHour}:00`}
-            </AppText>
-          </View>
-
-          <Switch
-            value={reminderEnabled}
-            onValueChange={(enabled) => void handleToggleReminder(enabled)}
-            disabled={Platform.OS === 'web'}
-            thumbColor={activeTheme.colors.white}
-            trackColor={{
-              false: activeTheme.colors.lineStrong,
-              true: activeTheme.colors.accent,
-            }}
-            ios_backgroundColor={activeTheme.colors.lineStrong}
-          />
-        </View>
-
-        {reminderEnabled && Platform.OS !== 'web' ? (
-          <View style={styles.chipRow}>
-            {REMINDER_HOURS.map((hour) => (
-              <SelectChip
-                key={hour}
-                label={`${hour}:00`}
-                selected={reminderHour === hour}
-                onPress={() => handleSelectHour(hour)}
-              />
-            ))}
-          </View>
-        ) : null}
-
-        {reminderError ? (
-          <AppText variant="bodySmall" color={activeTheme.colors.error}>
-            {reminderError}
-          </AppText>
-        ) : null}
-
-        {updateState.kind !== 'idle' ? (
-          <View style={styles.section}>
-            <AppText variant="label" color={activeTheme.colors.textMuted}>
-              Estado
-            </AppText>
-            <View
-              style={[
-                styles.statusPill,
-                {
-                  borderColor: hexToRgba(statusTone, 0.42),
-                  backgroundColor: hexToRgba(statusTone, 0.12),
-                },
-              ]}
-            >
-              {updateState.kind === 'checking' || updateState.kind === 'installing' ? (
-                <ActivityIndicator color={statusTone} size="small" />
-              ) : null}
-              <AppText variant="bodyStrong" color={statusTone} style={styles.statusText}>
-                {getStatusLabel(updateState, installedVersion)}
+        <View style={[styles.settingBlock, rowDivider]}>
+          <View style={styles.settingRowInner}>
+            <View style={styles.settingCopy}>
+              <AppText variant="bodyStrong">Recordatorio diario</AppText>
+              <AppText variant="bodySmall" color={colors.textSecondary}>
+                {Platform.OS === 'web'
+                  ? 'Solo en la app móvil'
+                  : `Todos los días a las ${reminderHour}:00`}
               </AppText>
             </View>
+            <InkSwitch
+              value={reminderEnabled}
+              onValueChange={(enabled) => void handleToggleReminder(enabled)}
+              disabled={Platform.OS === 'web'}
+            />
           </View>
-        ) : null}
 
-        {latestVersion ? (
-          <View style={styles.section}>
-            <AppText variant="label" color={activeTheme.colors.textMuted}>
-              Ultima release encontrada
+          {reminderEnabled && Platform.OS !== 'web' ? (
+            <View style={styles.chipRow}>
+              {REMINDER_HOURS.map((hour) => (
+                <SelectChip
+                  key={hour}
+                  label={`${hour}:00`}
+                  selected={reminderHour === hour}
+                  onPress={() => handleSelectHour(hour)}
+                />
+              ))}
+            </View>
+          ) : null}
+
+          {reminderError ? (
+            <AppText variant="bodySmall" color={colors.errorInk}>
+              {reminderError}
             </AppText>
-            <AppText variant="bodyStrong">{latestVersion}</AppText>
+          ) : null}
+        </View>
+
+        <View style={[styles.settingBlock, rowDivider]}>
+          <View style={styles.settingRowInner}>
+            <View style={styles.settingCopy}>
+              <AppText variant="bodyStrong">Versión</AppText>
+              <AppText variant="bodySmall" color={colors.textSecondary}>
+                {displayInstalledVersion}
+              </AppText>
+            </View>
+            {updating ? <ActivityIndicator color={colors.primary} size="small" /> : null}
+            <Pressable onPress={checkForUpdates} disabled={updating} hitSlop={8}>
+              <AppText variant="labelSmall" color={updating ? colors.textMuted : colors.primary}>
+                {updateState.kind === 'checking'
+                  ? 'BUSCANDO...'
+                  : updateState.kind === 'installing'
+                    ? 'DESCARGANDO...'
+                    : 'BUSCAR'}
+              </AppText>
+            </Pressable>
           </View>
-        ) : null}
 
-        {updateState.kind === 'error' ? (
-          <AppText variant="bodySmall" color={activeTheme.colors.error}>
-            {updateState.message}
-          </AppText>
-        ) : null}
+          {/* Estados del updater como sub-líneas de la fila. */}
+          {updateState.kind !== 'idle' ? (
+            <AppText variant="bodySmall" color={statusTone}>
+              {getStatusLabel(updateState, installedVersion)}
+              {latestVersion ? ` · última release: ${latestVersion}` : ''}
+            </AppText>
+          ) : null}
 
-        <PrimaryButton
-          title={
-            updateState.kind === 'checking'
-              ? 'BUSCANDO...'
-              : updateState.kind === 'installing'
-                ? 'DESCARGANDO...'
-                : 'BUSCAR ACTUALIZACIONES'
-          }
-          onPress={checkForUpdates}
-          disabled={
-            updateState.kind === 'checking' || updateState.kind === 'installing'
-          }
-          style={styles.primaryAction}
-        />
+          {updateState.kind === 'error' ? (
+            <AppText variant="bodySmall" color={colors.errorInk}>
+              {updateState.message}
+            </AppText>
+          ) : null}
 
-        {releasePageUrl ? (
-          <PrimaryButton
-            title="VER RELEASE EN GITHUB"
-            variant="secondary"
-            size="compact"
-            onPress={() => {
-              void Linking.openURL(releasePageUrl);
-            }}
-          />
-        ) : null}
-      </GlassCard>
+          {releasePageUrl ? (
+            <Pressable
+              onPress={() => {
+                void Linking.openURL(releasePageUrl);
+              }}
+              hitSlop={8}
+            >
+              <AppText variant="labelSmall" color={colors.primary}>
+                VER RELEASE EN GITHUB
+              </AppText>
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
 
       {/* Kyary está escondida (features/flags.ts): sin pestaña, la key no tiene uso. */}
       {KYARY_ENABLED ? (
@@ -360,10 +301,7 @@ export function OptionsScreen() {
                 styles.keyInputRow,
                 {
                   borderColor: activeTheme.colors.line,
-                  backgroundColor: hexToRgba(
-                    activeTheme.colors.backgroundSecondary,
-                    0.6,
-                  ),
+                  backgroundColor: activeTheme.colors.background,
                 },
               ]}
             >
@@ -378,7 +316,7 @@ export function OptionsScreen() {
                 secureTextEntry={!showKey}
                 autoCapitalize="none"
                 autoCorrect={false}
-                selectionColor={activeTheme.colors.accent}
+                selectionColor={activeTheme.colors.primary}
                 style={[styles.keyInput, { color: activeTheme.colors.textPrimary }]}
               />
               <Pressable onPress={() => setShowKey((current) => !current)} hitSlop={8}>
@@ -391,7 +329,7 @@ export function OptionsScreen() {
             </View>
 
             {keySaved ? (
-              <AppText variant="bodySmall" color={activeTheme.colors.success}>
+              <AppText variant="bodySmall" color={activeTheme.colors.successInk}>
                 Key guardada. Ya podés hablar con Kyary.
               </AppText>
             ) : geminiApiKey ? (
@@ -442,13 +380,6 @@ export function OptionsScreen() {
         </>
       ) : null}
 
-      <AppText
-        variant="bodySmall"
-        color={activeTheme.colors.textMuted}
-        style={styles.installedVersion}
-      >
-        {displayInstalledVersion}
-      </AppText>
     </ScreenBackground>
   );
 }
@@ -471,20 +402,21 @@ function getStatusLabel(state: UpdateState, installedVersion: string) {
   }
 }
 
+// Texto chico de color: variantes *Ink; nunca el accent (es decorativo).
 function getStatusTone(
   kind: UpdateState['kind'],
   colors: typeof theme.colors,
 ) {
   switch (kind) {
     case 'error':
-      return colors.error;
+      return colors.errorInk;
     case 'up-to-date':
-      return colors.success;
+      return colors.successInk;
     case 'available':
     case 'installing':
-      return colors.accent;
+      return colors.primary;
     case 'checking':
-      return colors.warning;
+      return colors.textSecondary;
     case 'idle':
     default:
       return colors.textSecondary;
@@ -498,40 +430,36 @@ const styles = StyleSheet.create({
   optionsSpacer: {
     height: theme.spacing.md,
   },
+  sectionLabel: {
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xs,
+  },
+  themeNote: {
+    marginTop: theme.spacing.xs,
+    marginBottom: theme.spacing.md,
+  },
+  settings: {
+    borderRadius: theme.radii.lg,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.lg,
+  },
   settingRow: {
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: theme.spacing.md,
+  },
+  settingBlock: {
+    padding: 12,
+    gap: theme.spacing.xs,
+  },
+  settingRowInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: theme.spacing.md,
   },
   settingCopy: {
     flex: 1,
-  },
-  section: {
-    gap: theme.spacing.xs,
-  },
-  statusPill: {
-    minHeight: 44,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  statusText: {
-    flexShrink: 1,
-  },
-  primaryAction: {
-    marginTop: theme.spacing.xs,
-  },
-  installedVersion: {
-    alignSelf: 'center',
-    marginTop: theme.spacing.md,
   },
   keyHeader: {
     gap: theme.spacing.xxs,
@@ -540,14 +468,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: theme.radii.md,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
   },
   keyInput: {
     flex: 1,
-    fontFamily: 'ZenKakuGothicNew_400Regular',
+    fontFamily: FONTS.regular,
     fontSize: 14,
     paddingVertical: 0,
     minHeight: 24,
@@ -562,6 +490,7 @@ const styles = StyleSheet.create({
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    gap: 8,
+    marginTop: theme.spacing.xxs,
   },
 });
