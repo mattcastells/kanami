@@ -98,17 +98,17 @@ export function DrawingPractice({
             <StatPill
               label="Aciertos"
               value={state.stats.correct}
-              accentColor={activeTheme.colors.success}
+              tone="success"
             />
             <StatPill
               label="Fallidos"
               value={state.stats.incorrect}
-              accentColor={activeTheme.colors.error}
+              tone="error"
             />
             <StatPill
               label="Racha"
               value={state.stats.streak}
-              accentColor={activeTheme.colors.accent}
+             
             />
           </View>
         </>

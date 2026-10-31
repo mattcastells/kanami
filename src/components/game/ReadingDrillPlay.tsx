@@ -127,9 +127,9 @@ export function ReadingDrillPlay({
       <ScreenHeader eyebrow={eyebrow} title={title} />
 
       <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={stats.correct} accentColor={activeTheme.colors.success} />
-        <StatPill label="Fallidos" value={stats.incorrect} accentColor={activeTheme.colors.error} />
-        <StatPill label="Racha" value={stats.streak} accentColor={activeTheme.colors.warning} />
+        <StatPill label="Aciertos" value={stats.correct} tone="success" />
+        <StatPill label="Fallidos" value={stats.incorrect} tone="error" />
+        <StatPill label="Racha" value={stats.streak} />
       </View>
 
       <GlassCard style={styles.card} contentStyle={styles.cardContent}>

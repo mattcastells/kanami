@@ -226,12 +226,12 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
             <StatPill
               label="Ejercicios"
               value={queue.length}
-              accentColor={activeTheme.colors.accent}
+             
             />
             <StatPill
               label="Bien"
               value={correctCount}
-              accentColor={activeTheme.colors.success}
+              tone="success"
             />
           </View>
           <View style={styles.doneActions}>

@@ -142,12 +142,12 @@ export function KanjiGrindGameScreen({
       <ScreenHeader eyebrow="漢字" title={round.promptLabel} />
 
       <View style={styles.statsRow}>
-        <StatPill label="✓" value={state.stats.correct} accentColor={activeTheme.colors.success} />
-        <StatPill label="✗" value={state.stats.incorrect} accentColor={activeTheme.colors.error} />
+        <StatPill label="✓" value={state.stats.correct} tone="success" />
+        <StatPill label="✗" value={state.stats.incorrect} tone="error" />
         <StatPill
           label="🔥"
           value={state.stats.streak}
-          accentColor={activeTheme.colors.warning}
+         
         />
       </View>
 

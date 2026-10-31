@@ -1,33 +1,29 @@
 import { ReactNode } from 'react';
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  TextStyle,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Pressable, StyleProp, StyleSheet, TextStyle, View, ViewStyle } from 'react-native';
 
-import { hexToRgba, theme } from '../../theme/theme';
+import { inkShadow, SIZES, theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { AppText } from './AppText';
+import { InkPressable } from './InkPressable';
 
-type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'highlight' | 'ghost';
 
 type PrimaryButtonProps = {
   title: string;
   onPress: () => void;
   variant?: ButtonVariant;
-  size?: 'default' | 'compact';
+  // default 52 · compact 50 (StartBar) · small 38, contorno sin sombra (EXPORTAR/IMPORTAR)
+  size?: 'default' | 'compact' | 'small';
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   icon?: ReactNode;
   textStyle?: StyleProp<TextStyle>;
 };
 
-// primary/accent → sakura lleno: la acción principal de la pantalla (una sola).
-// secondary      → índigo suave: acciones de apoyo ("VER TU LISTA").
-// ghost          → solo texto: lo que casi nadie toca ("SALTEAR", "BORRAR").
+// primary   → ruri: la acción principal de la pantalla (una sola).
+// secondary → card con contorno: acciones de apoyo ("VOLVER", "BORRAR").
+// highlight → kihada: una acción que tiene que destacarse sin ser la principal.
+// ghost     → solo texto subrayado: lo que casi nadie toca ("VER Y EDITAR TU LISTA").
 export function PrimaryButton({
   title,
   onPress,
@@ -38,61 +34,102 @@ export function PrimaryButton({
   icon,
   textStyle,
 }: PrimaryButtonProps) {
-  const { theme: activeTheme, mode } = useAppTheme();
-  const isFilled = variant === 'primary' || variant === 'accent';
-  const isSecondary = variant === 'secondary';
-  const isCompact = size === 'compact';
+  const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
+  const isSmall = size === 'small';
 
-  // En oscuro el índigo de marca casi no se separa del fondo: el secundario usa el texto.
-  const secondaryTone = mode === 'dark' ? colors.textPrimary : colors.brand;
+  const label = (color: string, underline = false) => (
+    <View style={styles.row}>
+      {icon}
+      <AppText
+        variant={isSmall ? 'labelSmall' : 'label'}
+        color={color}
+        style={[styles.text, underline ? [styles.underline, { borderBottomColor: color }] : null, textStyle]}
+        numberOfLines={1}
+      >
+        {title}
+      </AppText>
+    </View>
+  );
 
-  const backgroundColor = isFilled
-    ? colors.accent
-    : isSecondary
-      ? hexToRgba(secondaryTone, mode === 'dark' ? 0.1 : 0.07)
-      : 'transparent';
-  const textColor = isFilled
-    ? colors.onAccent
-    : isSecondary
-      ? secondaryTone
-      : colors.textSecondary;
+  if (variant === 'ghost') {
+    return (
+      <Pressable
+        disabled={disabled}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.ghost,
+          styles.focusReset,
+          style,
+          pressed && !disabled ? styles.ghostPressed : null,
+          disabled ? styles.disabled : null,
+        ]}
+      >
+        {label(colors.textSecondary, true)}
+      </Pressable>
+    );
+  }
+
+  const backgroundColor =
+    variant === 'primary' ? colors.primary : variant === 'highlight' ? colors.highlight : colors.card;
+  const textColor =
+    variant === 'primary' ? colors.onPrimary : variant === 'highlight' ? colors.onHighlight : colors.textPrimary;
 
   return (
-    <Pressable
+    <InkPressable
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
+      elevation={isSmall ? 'flat' : 'card'}
+      style={[
         styles.button,
-        styles.focusReset,
-        isCompact ? styles.compact : null,
+        size === 'compact' ? styles.compact : isSmall ? styles.small : null,
         { backgroundColor },
-        isFilled && !disabled
-          ? { boxShadow: `0 6px 16px ${hexToRgba(colors.accent, mode === 'dark' ? 0.18 : 0.28)}` }
-          : null,
+        disabled ? styles.noShadow : null,
         style,
-        pressed && !disabled ? styles.pressed : null,
-        disabled ? styles.disabled : null,
       ]}
     >
-      <View style={styles.row}>
-        {icon}
-        <AppText
-          variant="label"
-          color={textColor}
-          style={[styles.text, isCompact ? styles.compactText : null, textStyle]}
-          numberOfLines={1}
-        >
-          {title}
-        </AppText>
-      </View>
-    </Pressable>
+      {label(textColor)}
+    </InkPressable>
+  );
+}
+
+type PillButtonProps = {
+  title: string;
+  onPress: () => void;
+  // neutral = fondo card ("TERMINAR", "SALIR") · highlight = kihada ("+ AGREGAR")
+  tone?: 'neutral' | 'highlight';
+  disabled?: boolean;
+};
+
+// Botón pastilla de cabecera: contorno + sombra 2, labelSmall en mayúsculas.
+export function PillButton({ title, onPress, tone = 'neutral', disabled = false }: PillButtonProps) {
+  const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
+  const highlight = tone === 'highlight';
+
+  return (
+    <InkPressable
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={6}
+      style={[
+        styles.pill,
+        {
+          backgroundColor: highlight ? colors.highlight : colors.card,
+          boxShadow: inkShadow(colors.shadow, 2),
+        },
+      ]}
+    >
+      <AppText variant="labelSmall" color={highlight ? colors.onHighlight : colors.textPrimary}>
+        {title.toUpperCase()}
+      </AppText>
+    </InkPressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 54,
+    minHeight: SIZES.button,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18,
@@ -103,8 +140,21 @@ const styles = StyleSheet.create({
     outlineColor: 'transparent',
   },
   compact: {
-    minHeight: 48,
-    paddingHorizontal: 14,
+    minHeight: SIZES.buttonStartBar,
+  },
+  small: {
+    minHeight: SIZES.buttonSmallHeight,
+    borderRadius: theme.radii.badge,
+    paddingHorizontal: 12,
+  },
+  ghost: {
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  ghostPressed: {
+    opacity: 0.6,
   },
   row: {
     flexDirection: 'row',
@@ -117,19 +167,23 @@ const styles = StyleSheet.create({
   text: {
     flexShrink: 1,
     textAlign: 'center',
-    fontSize: 13,
-    lineHeight: 17,
-    letterSpacing: 1,
   },
-  compactText: {
-    fontSize: 12,
-    lineHeight: 16,
+  // Subrayado con borde (offset 4 del mock): textDecoration no deja separar la línea.
+  underline: {
+    paddingBottom: 3,
+    borderBottomWidth: 2,
   },
-  pressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.985 }],
+  noShadow: {
+    boxShadow: 'none',
   },
   disabled: {
-    opacity: 0.4,
+    opacity: 0.45,
+  },
+  pill: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: theme.radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

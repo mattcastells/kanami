@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Pressable, StyleProp, ViewStyle } from 'react-native';
+import { AccessibilityRole, Pressable, StyleProp, ViewStyle } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
 
@@ -16,6 +16,8 @@ type Props = {
   style?: StyleProp<ViewStyle>;
   children: ReactNode;
   hitSlop?: number;
+  accessibilityLabel?: string;
+  accessibilityRole?: AccessibilityRole;
 };
 
 export function InkPressable({
@@ -26,6 +28,8 @@ export function InkPressable({
   style,
   children,
   hitSlop,
+  accessibilityLabel,
+  accessibilityRole = 'button',
 }: Props) {
   const { theme } = useAppTheme();
   const base =
@@ -36,6 +40,8 @@ export function InkPressable({
       onPress={onPress}
       disabled={disabled}
       hitSlop={hitSlop}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole={accessibilityRole}
       style={({ pressed }) => [
         base,
         { outlineWidth: 0, outlineColor: 'transparent' },

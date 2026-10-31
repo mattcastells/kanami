@@ -54,9 +54,9 @@ export function SessionSummary({
         </AppText>
 
         <View style={styles.statsRow}>
-          <StatPill label="Aciertos" value={correct} accentColor={activeTheme.colors.success} />
-          <StatPill label="Fallidos" value={incorrect} accentColor={activeTheme.colors.error} />
-          <StatPill label="Total" value={total} accentColor={activeTheme.colors.accent} />
+          <StatPill label="Aciertos" value={correct} tone="success" />
+          <StatPill label="Fallidos" value={incorrect} tone="error" />
+          <StatPill label="Total" value={total} />
         </View>
 
         <View style={styles.actions}>

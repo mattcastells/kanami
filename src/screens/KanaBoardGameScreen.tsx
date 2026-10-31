@@ -145,17 +145,17 @@ export function KanaBoardGameScreen({
           <StatPill
             label="Resueltas"
             value={summary.solved}
-            accentColor={activeTheme.colors.success}
+            tone="success"
           />
           <StatPill
             label="Fallos"
             value={summary.misses}
-            accentColor={activeTheme.colors.error}
+            tone="error"
           />
           <StatPill
             label="Vueltas"
             value={summary.rounds}
-            accentColor={activeTheme.colors.warning}
+           
           />
         </View>
 

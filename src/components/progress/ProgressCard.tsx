@@ -112,13 +112,13 @@ export function ProgressCard() {
       {hasProgress ? (
         <>
           <View style={styles.statsRow}>
-            <StatPill label="Respondidas" value={totals.answered} accentColor={activeTheme.colors.accent} />
+            <StatPill label="Respondidas" value={totals.answered} />
             <StatPill
               label="Precisión"
               value={`${accuracyOf(totals.correct, totals.answered)}%`}
-              accentColor={activeTheme.colors.success}
+              tone="success"
             />
-            <StatPill label="Sesiones" value={totals.sessions} accentColor={activeTheme.colors.accent} />
+            <StatPill label="Sesiones" value={totals.sessions} />
           </View>
 
           <View style={styles.modeList}>

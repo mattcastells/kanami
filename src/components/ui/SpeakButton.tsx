@@ -1,57 +1,64 @@
-import { Pressable, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 import { speakJapanese } from '../../features/speech/speak';
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba } from '../../theme/theme';
+import { FONTS, inkShadow, theme } from '../../theme/theme';
+import { AppText } from './AppText';
+import { InkPressable } from './InkPressable';
 
-// Botón para escuchar la pronunciación (japonés) de un texto con TTS.
+// Botón para escuchar la pronunciación (japonés) de un texto con TTS. Glifo 音.
+//   round  → 38, sin sombra: esquina abajo-derecha del prompt (la posición la da `style`).
+//   square → 52, sombra 3: a la izquierda del botón SIGUIENTE.
+// Solo se muestra DESPUÉS de responder: el audio no puede dar la respuesta.
 export function SpeakButton({
   text,
-  size = 34,
-  iconSize = 18,
+  variant = 'round',
   style,
 }: {
   text: string;
-  size?: number;
-  iconSize?: number;
+  variant?: 'round' | 'square';
   style?: StyleProp<ViewStyle>;
 }) {
   const { theme: activeTheme } = useAppTheme();
-  const disabled = !text?.trim();
+  const { colors } = activeTheme;
+  const square = variant === 'square';
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel="Escuchar pronunciación"
+    <InkPressable
       onPress={() => speakJapanese(text)}
-      disabled={disabled}
+      disabled={!text?.trim()}
+      elevation={square ? 'card' : 'flat'}
       hitSlop={6}
-      style={({ pressed }) => [
-        styles.button,
-        {
-          width: size,
-          height: size,
-          borderColor: hexToRgba(activeTheme.colors.accent, 0.4),
-          backgroundColor: hexToRgba(activeTheme.colors.accent, 0.1),
-          opacity: disabled ? 0.35 : pressed ? 0.7 : 1,
-        },
+      accessibilityLabel="Escuchar pronunciación"
+      style={[
+        square ? styles.square : styles.round,
+        { backgroundColor: colors.highlight },
+        square ? { boxShadow: inkShadow(colors.shadow, 3) } : null,
         style,
       ]}
     >
-      <MaterialCommunityIcons
-        name="volume-high"
-        size={iconSize}
-        color={activeTheme.colors.accent}
-      />
-    </Pressable>
+      <AppText
+        style={{ fontFamily: FONTS.display, fontSize: square ? 16 : 14, lineHeight: square ? 20 : 18 }}
+        color={colors.onHighlight}
+      >
+        音
+      </AppText>
+    </InkPressable>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    borderRadius: 999,
-    borderWidth: 1,
+  round: {
+    width: 38,
+    height: 38,
+    borderRadius: theme.radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  square: {
+    width: 52,
+    height: 52,
+    borderRadius: theme.radii.md,
     alignItems: 'center',
     justifyContent: 'center',
   },

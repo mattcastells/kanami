@@ -1084,17 +1084,17 @@ function PhraseGameView({
           <StatPill
             label="Aciertos"
             value={state.stats.correct}
-            accentColor={activeTheme.colors.success}
+            tone="success"
           />
           <StatPill
             label="Fallidos"
             value={state.stats.incorrect}
-            accentColor={activeTheme.colors.error}
+            tone="error"
           />
           <StatPill
             label="Racha"
             value={state.stats.streak}
-            accentColor={activeTheme.colors.warning}
+           
           />
         </View>
       </View>
@@ -1510,17 +1510,17 @@ function GameTopBlock({
           <StatPill
             label="Aciertos"
             value={stats.correct}
-            accentColor={activeTheme.colors.success}
+            tone="success"
           />
           <StatPill
             label="Fallidos"
             value={stats.incorrect}
-            accentColor={activeTheme.colors.error}
+            tone="error"
           />
           <StatPill
             label="Racha"
             value={stats.streak}
-            accentColor={activeTheme.colors.warning}
+           
           />
         </View>
       )}

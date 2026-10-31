@@ -1,38 +1,32 @@
 import { StyleSheet, View } from 'react-native';
 
-import { theme } from '../../theme/theme';
+import { FONTS, theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { AppText } from './AppText';
 
 type StatPillProps = {
   label: string;
   value: string | number;
-  accentColor?: string;
+  // success → ○ + número en successInk · error → × + errorInk · neutral → textPrimary
+  tone?: 'success' | 'error' | 'neutral';
 };
 
-// Contador de la partida (Aciertos / Fallidos / Racha): fondo teñido del color del
-// dato, el número en ese color y la etiqueta en gris.
-export function StatPill({ label, value, accentColor }: StatPillProps) {
+// Caja de un dato (resumen de sesión): número grande en Dela y la etiqueta debajo.
+export function StatPill({ label, value, tone = 'neutral' }: StatPillProps) {
   const { theme: activeTheme } = useAppTheme();
-  const tone = accentColor ?? activeTheme.colors.accent;
+  const { colors } = activeTheme;
+  const valueColor =
+    tone === 'success' ? colors.successInk : tone === 'error' ? colors.errorInk : colors.textPrimary;
+  const mark = tone === 'success' ? '○ ' : tone === 'error' ? '× ' : '';
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: activeTheme.colors.card },
-      ]}
-    >
-      <AppText
-        variant="label"
-        color={activeTheme.colors.textSecondary}
-        style={styles.label}
-        numberOfLines={1}
-      >
-        {label}
-      </AppText>
-      <AppText variant="title" color={tone} style={styles.value} numberOfLines={1}>
+    <View style={[styles.container, activeTheme.surfaces.outlined, { backgroundColor: colors.card }]}>
+      <AppText color={valueColor} style={styles.value} numberOfLines={1}>
         {value}
+      </AppText>
+      <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+        {mark}
+        {label}
       </AppText>
     </View>
   );
@@ -42,26 +36,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minWidth: 0,
-    minHeight: 48,
     borderRadius: theme.radii.md,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  label: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 11,
-    lineHeight: 14,
+    padding: 10,
+    gap: 2,
   },
   value: {
-    minWidth: 12,
-    fontFamily: theme.typography.headline.fontFamily,
-    fontSize: 20,
-    lineHeight: 24,
-    textAlign: 'right',
+    fontFamily: FONTS.display,
+    fontSize: 24,
+    lineHeight: 30,
   },
 });
