@@ -42,7 +42,7 @@ No hay linter ni test runner en el repo. El único gate automático es `tsc`.
 ## Arquitectura
 
 ```
-App.tsx                 Fonts (Zen) + providers + NavigationContainer + ajustes web
+App.tsx                 Fonts (Dela Gothic One, Zen Maru Gothic, Klee One) + providers + NavigationContainer
 index.ts                registerRootComponent
 content/                transcripciones de las clases (markdown, NO se bundlea)
   clases/kurasu-NN.md   cada clase real (1-6, 8-21, 23-26; la 7 no existió, de la 22 no hay
@@ -120,7 +120,8 @@ Pestañas: **練 Practicar · 復 Repaso · 私 Perfil**. 復 Repaso ocupa el lu
   usuario con "Terminar"; lo que quedó sin contestar no cuenta como error.
 - **復 Repaso** (`ReviewTab`) → stack propio: **Review** (intro + ronda), **ReviewList** (tu
   lista) y **ReviewAdd** (agregar a mano). Es raíz de pestaña: sus fases van con
-  `showBack={false}` (la flecha te sacaría a otra pestaña) y la ronda se corta con "Salir".
+  `showBack={false}` (la flecha te sacaría a otra pestaña) y la ronda se corta con la ✕ de
+  su cabecera.
 - **話 Kyary** (`KyaryTab`) → **escondida** con `KYARY_ENABLED = false` en
   `src/features/flags.ts`. Con `true` vuelve la pestaña (entre Repaso y Perfil) y la sección
   de la API key en Perfil. No borres su código: se puede rehabilitar.
@@ -131,6 +132,10 @@ Pestañas: **練 Practicar · 復 Repaso · 私 Perfil**. 復 Repaso ocupa el lu
 El glifo y la etiqueta de cada tab van en los slots nativos (`tabBarIcon` + `tabBarLabel`),
 no apilados dentro del ícono, y con `allowFontScaling={false}`: apilarlos hacía que la
 etiqueta se recortara en dispositivos con el tamaño de fuente del sistema aumentado.
+
+**Durante una partida la tab bar se oculta.** Las rutas de juego están en `PLAYING_ROUTES`
+(`src/navigation/tabBar.ts`); la ronda del Repaso, que es una fase y no una ruta, la oculta
+con `useHideTabBar`. **Un modo nuevo va a esa lista.**
 
 **Safe area (se rompe distinto en cada teléfono):** `SafeAreaProvider` va con
 `initialMetrics={initialWindowMetrics}` (`App.tsx`) para que el primer render no salga con
@@ -247,8 +252,10 @@ Detalle completo en la skill **`kanami-kanji`**.
 - Lógica con React / timers / refs / haptics → hooks `use*Game.ts`.
 - **Los engines no importan React.** Los hooks orquestan al engine + efectos.
 - Patrón visual que aparece 2+ veces → `src/components/ui/` o el subdominio correcto.
-- Reutilizá `ScreenBackground`, `GlassCard`, `PrimaryButton`, `AppText`, `StatPill` antes de
-  inventar variantes. Para pantallas de selección: `ModeTile`, `SelectChip`, `CheckRow`, `StartBar`.
+- Reutilizá `ScreenBackground`, `GlassCard`, `PrimaryButton`, `AppText`, `InkPressable` antes de
+  inventar variantes. Para pantallas de selección: `ModeTile`/`ModeGrid`, `SelectChip`,
+  `CheckRow`/`CheckSection`, `StartBar`. Para partidas: `GameHeader`, `PromptCard`,
+  `AnswerOptionButton`/`AnswerInput`, `GameFooter` (`components/game/GamePlay`).
 - No hardcodear colores/spacing/typography: usá tokens de `src/theme/theme.ts`.
 
 ### Efectos y estado (patrón importante)
@@ -260,33 +267,26 @@ Detalle completo en la skill **`kanami-kanji`**.
 
 ## Sistema visual (fuente de verdad: `src/theme/theme.ts`)
 
-Rediseño **"Japón moderno"** (2026-10-27; reemplazó a "tinta y bermellón").
+Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"). Referencia visual:
+`handoff/referencia/*.png` (12 pantallas × claro/oscuro) y `handoff/SPEC-*.md` (medidas exactas).
 
-- **Colores**: índigo profundo (`brand`) para lo estructural (cabecera de Practicar, chip
-  elegido) y sakura (`accent`) para la acción principal. `onBrand` / `onAccent` son el texto
-  que va encima: en oscuro el sakura es claro y lleva texto oscuro, nunca blanco.
-  - Light: bg `#F4F5FA`, card `#FFFFFF`, texto `#151B30`, brand `#1E2A4A`, accent `#CF3866`.
-  - Dark ("noche índigo"): bg `#0E1322`, card `#171E33`, texto `#ECEEF7`, accent `#F28FA8`.
-- **Un color tradicional por juego** en `theme.tints` (`ai`, `sakura`, `matcha`, `kohaku`,
-  `fuji`, `sora`, `beni`, `cha`): solo en el glifo y en fondos al `opacity.tintSoft`, nunca
-  de fondo pleno.
-- **Superficies**: `theme.surfaces.card` / `.raised` cambian por modo — en claro sombra
-  (`boxShadow`) sin borde; en oscuro borde fino sin sombra. Spreadealas en vez de poner
-  `borderWidth: 1` + `colors.line` a mano.
-- **Tipografía**: todo en `ZenKakuGothicNew` (constantes en `FONTS`); `headline`/`display` en
-  peso Black (900). `ZenOldMincho` queda **solo** para los kanji-ilustración
-  (`FONTS.illustration`: marcas de agua de las cards y la cabecera), nunca para leer.
-- **Formas**: `radii` `sm 8 · md 14 · lg 20 · xl 28` — controles en md, cards en lg.
-- `ScreenHeader` va **alineado a la izquierda** (eyebrow sakura + título Black) y la acción
-  a su derecha. En las selecciones el título es el juego y el eyebrow "〜 · Practicar".
-- Campos de texto: rellenos y redondeados; el borde ENTERO toma el color del resultado
-  (antes era un subrayado). Degradés con `components/ui/GradientFill` (SVG, sin deps).
-- **Regla dark-mode:** al pintar un color de estado, leélo de `useAppTheme().theme.colors`,
-  nunca del `theme` estático importado (ese es siempre light y rompe el dark mode).
-- **Tema**: `themeMode` en `AppSettingsProvider` es `'system' | 'light' | 'dark'`, default
-  `'system'` (sigue al teléfono; `app.json` tiene `userInterfaceStyle: automatic`). El
-  selector de tres opciones vive en Perfil. `useAppTheme()` da `mode` ya resuelto y
-  `preference` (lo elegido).
+- **Paleta única** — no hay color por juego (`tints`/`TintName` se borraron; no los vuelvas a agregar).
+  - `primary` 藍 ruri: la acción principal (una por pantalla).
+  - `highlight` 黄蘗 kihada: lo elegido/activo (tile, chip, tab, celda actual). Nunca `primary` para "elegido".
+  - `accent` 朱 shu: SOLO decoración (sol del hero, círculo del resumen y del Repaso, insignias de trazo). Texto de ese tono → `accentInk`.
+  - Light: bg `#F4ECDD` washi, card `#FFFAF0`, tinta `#1C1713`, primary `#2340D3`, highlight `#FFC62B`, accent `#FF5B1F`.
+  - Dark ("sumi-ai"): bg `#10121B`, card `#1A1D2A`, texto/contorno crema `#F5EBD7`/`#E9DFCB`, primary `#7C94FF` (lleva texto oscuro), highlight `#FFD54D`.
+  - Texto de color < 18px siempre en la variante `*Ink` (`successInk`, `errorInk`, `accentInk`).
+- **Superficies**: todo lo tocable = contorno 2px `colors.line` + sombra dura sin blur (`surfaces.card` 3px, `surfaces.raised` 4px). Presionado/elegido = `surfaces.press` (se hunde 2px, sombra 1px). Usá `InkPressable`; no armes sombras a mano. Contenedores sin acción: `surfaces.outlined`. Lo no elegido: `surfaces.quiet` (borde `hair`).
+- **Tipografía**: `FONTS.display` Dela Gothic One (títulos, glifos de tile/tab, números grandes) · Zen Maru Gothic (UI; 900 para botones/eyebrows) · `FONTS.glyph` Klee One (TODO carácter japonés que se lee, escribe o dibuja: forma de libro de texto).
+- **Corrección**: ○ / × (`GradeMark`), no íconos check/close.
+- **Formas**: `radii` — badge 8–10, controles/botones 12, tiles/opciones 14, cards 16, hero/prompt 18, pill.
+- **Medidas** de control en `SIZES` (botón 52, tile 54/92, opción 66, input 60, back 40…). No uses números sueltos.
+- `ScreenHeader`: eyebrow `<kanji> · SECCIÓN` en `accentInk` + título Dela (26 con back, 28 en raíz de pestaña).
+- **Tab bar**: borde superior 2px `line`; activa = pastilla `highlight` con contorno. **Se oculta durante una partida.**
+- Primitives Hanga: `InkPressable`, `InkSwitch` (reemplaza `Switch`), `InkBits` (`GradeMark`, `ProgressTrack`, `SectionStep`, `Segmented`, `Marker`), `Seigaiha` (olas del hero), `Tanzaku` (etiqueta vertical 練習/合格).
+- **Regla dark-mode:** colores siempre de `useAppTheme().theme.colors`, nunca del `theme` estático.
+- **Tema**: `themeMode` `'system' | 'light' | 'dark'`, default `'system'`.
 
 ## Contenido y práctica
 
@@ -300,16 +300,12 @@ Rediseño **"Japón moderno"** (2026-10-27; reemplazó a "tinta y bermellón").
 
 ### La pantalla raíz
 
-**練 Practicar (`PracticeScreen`)** es la home: arriba una cabecera índigo con degradé (el
-único bloque de color pleno) y abajo la grilla de juegos, 2 columnas parejas, una card por
-modo con su color de `theme.tints` (cuadrito con el glifo + kanji-ilustración en mincho).
+**練 Practicar (`PracticeScreen`)** es la home: arriba el hero (olas `Seigaiha`, sol
+bermellón, tanzaku 練習 y "Practicar"; el único bloque de color pleno) y abajo la grilla de
+juegos, 2 columnas parejas, una `GameCard` por modo, todas iguales (badge kihada + título).
 El Repaso **no** está acá: tiene su propia pestaña. **No hay racha, meta ni kanji del día.**
 Se arma **por filas de a dos**, no con `flexWrap`: `AnimatedRow` es un `View` suelto, así
 que envolviendo card por card cada una ocuparía el ancho completo.
-
-Las marcas de agua usan `activeTheme.opacity.watermarkSoft/Strong`, que son distintas por
-tema: sobre la noche índigo un color rinde mucho menos que sobre el fondo claro y con el
-alpha de light no se ve. No las unifiques en un solo valor.
 
 ### Repaso por errores (`src/features/weak/`)
 
@@ -326,7 +322,7 @@ en el que lo fallaste (`choice` / `input` / `draw`).
 - **Todos los modos están enganchados.** Al sumar uno nuevo, engancharlo también acá: si no,
   sus errores no llegan al Repaso.
 - **Es la lista del usuario, no solo un log** (desde 2026-10-27). `ReviewList` muestra todo
-  agrupado por juego: quitar un ítem o un grupo entero, y **fijar** (📌). `ReviewAdd` agrega
+  agrupado por juego: quitar un ítem o un grupo entero, y **fijar** (pastilla FIJAR/FIJADO). `ReviewAdd` agrega
   a mano palabras de la cursada (por temática) y kanji (por categoría). Lo fijado no se
   retira con los dos aciertos ni lo poda `MAX_WEAK_ITEMS`; lo agregado a mano entra fijado
   con 0 fallos. Las semillas (`features/weak/reviewCatalog.ts`) usan el MISMO modeKey e
@@ -424,7 +420,7 @@ Los ítems más relevantes al escribir código:
   (`setStudied`), que se fue con Estudiar. Kanji Grind igual avanza (responder ya cuenta como
   empezado → "practicando"), pero ese estado intermedio hoy no se alcanza. Si se quiere
   recuperar, lo natural es marcarlo al mostrar la tarjeta `learn` del grind.
-- **`GameScreen.tsx` tiene 1825 líneas** y multiplexa 6 modos de kana. Es legacy: los modos
+- **`GameScreen.tsx` tiene ~1400 líneas** y multiplexa 6 modos de kana. Es legacy: los modos
   nuevos van a pantalla propia.
 - `shuffle`/`pickRandom` duplicados 20 veces.
 - `app.json`: `package: com.anonymous.Kanami` es el default anónimo (cambiar antes de una
@@ -451,6 +447,6 @@ Los ítems más relevantes al escribir código:
   Grind. Se borraron `KanjiHubScreen`, `KanjiLearnScreen` (que además tenía la paleta cyan
   vieja hardcodeada), `KanjiPracticeScreen`, `KanjiGameScreen`, `kanjiGameEngine` y
   `useKanjiGame`.
-- **`KanjiGrindGameScreen` mezcla partida y resumen** (~460 líneas con estilos). Si crece más,
-  el resumen sale a `components/kanji/`. Todavía no molesta.
-</content>
+- **`KanjiGrindGameScreen` mezcla partida, tarjeta learn y resumen** (~580 líneas con
+  estilos; el resumen ya usa `SessionSummary`). Si crece más, la tarjeta learn sale a
+  `components/kanji/`. Todavía no molesta.
