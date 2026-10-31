@@ -1,17 +1,20 @@
 import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
+import { AnswerInput } from '../components/game/AnswerInput';
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
 import { DrawingPractice } from '../components/game/DrawingPractice';
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { GameHeader } from '../components/game/GameHeader';
+import { SessionSummary } from '../components/game/SessionSummary';
 import { SelectChip } from '../components/practice/SelectChip';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
+import { Segmented } from '../components/ui/InkBits';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { StatPill } from '../components/ui/StatPill';
 import { getModeLabel } from '../features/progress/progressStore';
 import { localDayString } from '../features/progress/progressStore';
 import { useSrs } from '../features/srs/SrsProvider';
@@ -25,14 +28,14 @@ import {
 } from '../features/weak/reviewSessionEngine';
 import { countWeak, weakCountsByMode } from '../features/weak/weakStore';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { FONTS, theme } from '../theme/theme';
 import { useHideTabBar } from '../navigation/tabBar';
 import { RootStackScreenProps } from '../types/navigation';
 
 type Phase = 'intro' | 'playing' | 'done';
 
 // Cuántos ejercicios por ronda. "Todos" = la lista entera de lo elegido.
-const SESSION_SIZES: { label: string; value: number }[] = [
+const SESSION_SIZES: { value: number; label: string }[] = [
   { label: '12', value: REVIEW_SESSION_SIZE },
   { label: '24', value: 24 },
   { label: 'Todos', value: Number.POSITIVE_INFINITY },
@@ -145,108 +148,94 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
   };
 
   if (phase === 'intro') {
+    const { colors } = activeTheme;
+
     return (
       <ScreenBackground scrollable showBack={false}>
         <ScreenHeader eyebrow="復習 · Repaso" title="Lo que te cuesta" />
 
-        <GlassCard contentStyle={styles.introContent}>
+        <GlassCard style={styles.countCard} contentStyle={styles.countContent}>
+          <View style={[styles.countCircle, { backgroundColor: colors.accent, borderColor: colors.line }]}>
+            <AppText style={styles.countNumber} color={colors.onAccent}>
+              {weakTotal}
+            </AppText>
+          </View>
           {weakTotal === 0 ? (
-            <>
-              <AppText variant="body" color={activeTheme.colors.textSecondary}>
+            <View style={styles.countText}>
+              <AppText variant="body" color={colors.textSecondary}>
                 Tu lista está vacía. Lo que falles en cualquier juego se anota acá solo y
                 vuelve como ejercicio hasta que te salga dos veces seguidas. También
                 podés armarla a mano con palabras o kanji.
               </AppText>
-              <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+              <AppText variant="bodySmall" color={colors.textSecondary}>
                 Mientras tanto, el repaso te arma una ronda con kana y vocabulario que
                 todavía no practicaste.
               </AppText>
-            </>
+            </View>
           ) : (
-            <>
-              <AppText variant="body" color={activeTheme.colors.textSecondary}>
-                {weakTotal} {weakTotal === 1 ? 'cosa' : 'cosas'} en tu lista. Cada una
-                vuelve en el formato en el que la erraste; lo más fallado, primero.
-              </AppText>
-
-              <AppText variant="label" color={activeTheme.colors.textMuted}>
-                QUÉ ENTRA EN LA RONDA
-              </AppText>
-              <View style={styles.chips}>
-                {byMode.map((entry) => (
-                  <SelectChip
-                    key={entry.modeKey}
-                    label={getModeLabel(entry.modeKey)}
-                    count={entry.count}
-                    selected={!excludedModes.includes(entry.modeKey)}
-                    onPress={() => toggleMode(entry.modeKey)}
-                  />
-                ))}
-              </View>
-
-              <AppText variant="label" color={activeTheme.colors.textMuted}>
-                CUÁNTOS EJERCICIOS
-              </AppText>
-              <View style={styles.chips}>
-                {SESSION_SIZES.map((option) => (
-                  <SelectChip
-                    key={option.label}
-                    label={option.label}
-                    selected={sessionSize === option.value}
-                    onPress={() => setSessionSize(option.value)}
-                  />
-                ))}
-              </View>
-            </>
+            <AppText variant="body" color={colors.textSecondary} style={styles.countText}>
+              <AppText variant="bodyStrong">
+                {weakTotal === 1 ? 'cosa' : 'cosas'} en tu lista.
+              </AppText>{' '}
+              Cada una vuelve en el formato en el que la erraste; lo más fallado, primero.
+            </AppText>
           )}
-
-          <PrimaryButton
-            title={canStart ? 'EMPEZAR' : 'ELEGÍ AL MENOS UN JUEGO'}
-            size="compact"
-            disabled={!canStart}
-            onPress={start}
-          />
-          <PrimaryButton
-            title={weakTotal === 0 ? 'ARMAR TU LISTA' : 'VER Y EDITAR TU LISTA'}
-            variant="ghost"
-            size="compact"
-            onPress={() => navigation.navigate('ReviewList')}
-          />
         </GlassCard>
+
+        {weakTotal > 0 ? (
+          <>
+            <AppText variant="overline" color={colors.textSecondary} style={styles.sectionLabel}>
+              Qué entra en la ronda
+            </AppText>
+            <View style={styles.chips}>
+              {byMode.map((entry) => (
+                <SelectChip
+                  key={entry.modeKey}
+                  label={getModeLabel(entry.modeKey)}
+                  count={entry.count}
+                  muted
+                  selected={!excludedModes.includes(entry.modeKey)}
+                  onPress={() => toggleMode(entry.modeKey)}
+                />
+              ))}
+            </View>
+
+            <AppText variant="overline" color={colors.textSecondary} style={styles.sectionLabel}>
+              Cuántos ejercicios
+            </AppText>
+            <Segmented options={SESSION_SIZES} value={sessionSize} onChange={setSessionSize} />
+          </>
+        ) : null}
+
+        <View style={styles.spacer} />
+
+        <PrimaryButton
+          title={canStart ? 'EMPEZAR' : 'ELEGÍ AL MENOS UN JUEGO'}
+          disabled={!canStart}
+          onPress={start}
+        />
+        <PrimaryButton
+          title={weakTotal === 0 ? 'ARMAR TU LISTA' : 'VER Y EDITAR TU LISTA'}
+          variant="ghost"
+          onPress={() => navigation.navigate('ReviewList')}
+          style={styles.listLink}
+        />
       </ScreenBackground>
     );
   }
 
   if (phase === 'done') {
     return (
-      <ScreenBackground scrollable={false} showBack={false}>
-        <ScreenHeader eyebrow="復習 · Repaso" title="Repaso terminado" />
-        <GlassCard contentStyle={styles.introContent}>
-          <AppText variant="display" style={styles.centered}>
-            お疲れさま
-          </AppText>
-          <View style={styles.statsRow}>
-            <StatPill
-              label="Ejercicios"
-              value={queue.length}
-             
-            />
-            <StatPill
-              label="Bien"
-              value={correctCount}
-              tone="success"
-            />
-          </View>
-          <View style={styles.doneActions}>
-            <PrimaryButton title="OTRA RONDA" size="compact" onPress={start} />
-            <PrimaryButton
-              title="VOLVER"
-              variant="ghost"
-              size="compact"
-              onPress={() => setPhase('intro')}
-            />
-          </View>
-        </GlassCard>
+      <ScreenBackground scrollable showBack={false}>
+        <SessionSummary
+          modeLabel="Repaso"
+          correct={correctCount}
+          incorrect={queue.length - correctCount}
+          onRepeat={start}
+          onBack={() => setPhase('intro')}
+          repeatLabel="OTRA RONDA"
+          showReviewLink={false}
+        />
       </ScreenBackground>
     );
   }
@@ -254,39 +243,28 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
   if (!exercise) return null;
 
   const answered = result !== 'idle';
+  const answeredCount = index + (answered ? 1 : 0);
+  // Cabecera de la ronda: barra + "3/12", el juego de origen y cuántas veces lo fallaste.
+  // Cerrar (✕) es el "Salir" de antes: vuelve a la intro.
+  const header = (
+    <GameHeader
+      eyebrow={
+        exercise.misses > 0
+          ? `${getModeLabel(exercise.modeKey)} · ${exercise.misses} ${exercise.misses === 1 ? 'fallo' : 'fallos'}`
+          : getModeLabel(exercise.modeKey)
+      }
+      progress={{ current: index + 1, total: queue.length }}
+      score={{ correct: correctCount, incorrect: answeredCount - correctCount }}
+      onClose={() => setPhase('intro')}
+    />
+  );
 
   // El dibujo no se puede reducir a elegir o escribir: se repite con el pizarrón, que es
   // un componente compartido con su pantalla original.
   if (exercise.format === 'draw') {
     return (
       <ScreenBackground scrollable={false} showBack={false}>
-        <ScreenHeader
-          eyebrow="復習 · Repaso"
-          title={`${index + 1} / ${queue.length}`}
-          actionLabel="Salir"
-          onActionPress={() => setPhase('intro')}
-        />
-
-        <View style={styles.metaRow}>
-          <AppText variant="label" color={activeTheme.colors.textMuted}>
-            {getModeLabel(exercise.modeKey)}
-          </AppText>
-          {exercise.misses > 0 ? (
-            <View
-              style={[
-                styles.missBadge,
-                {
-                  borderColor: hexToRgba(activeTheme.colors.error, 0.4),
-                  backgroundColor: hexToRgba(activeTheme.colors.error, 0.08),
-                },
-              ]}
-            >
-              <AppText variant="label" color={activeTheme.colors.error}>
-                {exercise.misses} {exercise.misses === 1 ? 'fallo' : 'fallos'}
-              </AppText>
-            </View>
-          ) : null}
-        </View>
+        {header}
 
         {/* DrawingPractice registra el acierto/fallo por su cuenta (es el dueño de la
             ronda), así que acá solo se cuenta para el resumen: no se reporta de nuevo. */}
@@ -310,72 +288,34 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
         <PrimaryButton
           title={answered ? 'SIGUIENTE' : 'SALTEAR'}
           variant={answered ? 'primary' : 'ghost'}
-          size="compact"
           onPress={next}
-          style={styles.advance}
+          style={styles.drawAdvance}
         />
       </ScreenBackground>
     );
   }
 
+  const optionsFullWidth = exercise.options.some((option) => option.length > 6);
+
   return (
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled" showBack={false}>
-      <ScreenHeader
-        eyebrow="復習 · Repaso"
-        title={`${index + 1} / ${queue.length}`}
-        actionLabel="Salir"
-        onActionPress={() => setPhase('intro')}
-      />
+      {header}
 
-      <View style={styles.metaRow}>
-        <AppText variant="label" color={activeTheme.colors.textMuted}>
-          {getModeLabel(exercise.modeKey)}
-        </AppText>
-        {exercise.misses > 0 ? (
-          <View
-            style={[
-              styles.missBadge,
-              {
-                borderColor: hexToRgba(activeTheme.colors.error, 0.4),
-                backgroundColor: hexToRgba(activeTheme.colors.error, 0.08),
-              },
-            ]}
-          >
-            <AppText variant="label" color={activeTheme.colors.error}>
-              {exercise.misses} {exercise.misses === 1 ? 'fallo' : 'fallos'}
+      <PromptCard
+        size={exercise.format === 'choice' ? 'choice' : 'input'}
+        // Recién después de responder: en muchos ejercicios lo que se lee en voz alta es
+        // justamente la respuesta (una lectura, la palabra que faltaba).
+        bottomRight={exercise.speakText && answered ? <SpeakButton text={exercise.speakText} /> : null}
+        below={
+          answered ? (
+            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
+              {exercise.answer}
             </AppText>
-          </View>
-        ) : null}
-      </View>
-
-      <GlassCard style={styles.card} contentStyle={styles.cardContent}>
-        {/* Recién después de responder: en muchos ejercicios lo que se lee en voz alta
-            es justamente la respuesta (una lectura, la palabra que faltaba). */}
-        {exercise.speakText && answered ? (
-          <SpeakButton text={exercise.speakText} style={styles.speakCorner} />
-        ) : null}
-        <AppText variant="kana" style={styles.prompt}>
-          {exercise.prompt}
-        </AppText>
-
-        {answered ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textSecondary}
-            style={styles.centered}
-          >
-            {exercise.answer}
-          </AppText>
-        ) : null}
-      </GlassCard>
-
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={result}
-          correctText={exercise.answer}
-          selectedText={result === 'incorrect' ? submitted : null}
-        />
-      </View>
+          ) : null
+        }
+      >
+        <AppText style={[styles.prompt, promptSize(exercise.prompt)]}>{exercise.prompt}</AppText>
+      </PromptCard>
 
       {exercise.format === 'choice' ? (
         <View style={styles.options}>
@@ -394,55 +334,52 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
                       : 'muted'
               }
               onPress={() => grade(option)}
-              fullWidth
+              fullWidth={optionsFullWidth}
             />
           ))}
         </View>
       ) : (
-        <View style={styles.inputSection}>
-          <View
-            style={[
-              styles.inputUnderline,
-              {
-                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
-                borderColor: activeTheme.colors.lineStrong,
-              },
-            ]}
-          >
-            <TextInput
-              ref={inputRef}
-              value={inputValue}
-              onChangeText={setInputValue}
-              onSubmitEditing={(event) =>
-                answered ? next() : grade(event.nativeEvent.text)
-              }
-              editable={!answered}
-              autoCapitalize="none"
-              autoCorrect={false}
-              blurOnSubmit={false}
-              returnKeyType="done"
-              maxLength={32}
-              placeholder="Escribí la respuesta"
-              placeholderTextColor={activeTheme.colors.textMuted}
-              selectionColor={activeTheme.colors.accent}
-              style={[styles.input, { color: activeTheme.colors.textPrimary }]}
-            />
-          </View>
-        </View>
+        <AnswerInput
+          ref={inputRef}
+          value={inputValue}
+          onChangeText={setInputValue}
+          onSubmitEditing={(event) => (answered ? next() : grade(event.nativeEvent.text))}
+          editable={!answered}
+          status={result}
+          centered
+          blurOnSubmit={false}
+          returnKeyType="done"
+          maxLength={32}
+          placeholder="Escribí la respuesta"
+        />
       )}
 
-      {answered || exercise.format !== 'choice' ? (
-        <PrimaryButton
-          title={answered ? 'SIGUIENTE' : 'RESPONDER'}
-          variant="primary"
-          size="compact"
-          disabled={!answered && inputValue.trim().length === 0}
-          onPress={() => (answered ? next() : grade(inputValue))}
-          style={styles.advance}
-        />
-      ) : null}
+      <GameFooter
+        feedback={{
+          status: result,
+          correctText: exercise.answer,
+          selectedText: result === 'incorrect' ? submitted : null,
+        }}
+      >
+        {answered || exercise.format !== 'choice' ? (
+          <PrimaryButton
+            title={answered ? 'SIGUIENTE' : 'RESPONDER'}
+            variant="primary"
+            disabled={!answered && inputValue.trim().length === 0}
+            onPress={() => (answered ? next() : grade(inputValue))}
+          />
+        ) : (
+          <WaitingHint visible />
+        )}
+      </GameFooter>
     </ScreenBackground>
   );
+}
+
+// El prompt del Repaso puede ser un kana o una frase entera: el cuerpo baja con el largo.
+function promptSize(text: string) {
+  const size = text.length <= 2 ? 96 : text.length <= 6 ? 56 : text.length <= 12 ? 36 : 26;
+  return { fontSize: size, lineHeight: Math.round(size * 1.2) };
 }
 
 // La clave del ítem débil es `${modeKey}::${itemId}`; para reportar el acierto hace
@@ -469,88 +406,63 @@ function bumpMiss(
 }
 
 const styles = StyleSheet.create({
-  introContent: {
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
+  countCard: {
+    marginBottom: theme.spacing.lg,
+    borderRadius: theme.radii.card,
+  },
+  countContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  countCircle: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countNumber: {
+    fontFamily: FONTS.display,
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  countText: {
+    flex: 1,
+    minWidth: 0,
+    gap: theme.spacing.xs,
+  },
+  sectionLabel: {
+    marginBottom: 10,
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    gap: 8,
+    marginBottom: theme.spacing.lg,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
+  spacer: {
+    flexGrow: 1,
+    minHeight: theme.spacing.xl,
+  },
+  listLink: {
+    marginTop: 6,
   },
   centered: {
     textAlign: 'center',
   },
-  doneActions: {
-    gap: theme.spacing.sm,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.xs,
-  },
-  missBadge: {
-    borderWidth: 1,
-    borderRadius: theme.radii.pill,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 2,
-  },
-  card: {
-    marginBottom: theme.spacing.sm,
-  },
-  cardContent: {
-    padding: theme.spacing.lg,
-    minHeight: 180,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
-  },
-  speakCorner: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    zIndex: 2,
-  },
   prompt: {
-    fontSize: 48,
-    lineHeight: 60,
+    fontFamily: FONTS.glyph,
     textAlign: 'center',
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xs,
   },
   options: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     width: '100%',
   },
-  inputSection: {
-    alignItems: 'center',
-  },
-  inputUnderline: {
-    width: '100%',
-    maxWidth: 380,
-    borderWidth: 1.5,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  input: {
-    outlineWidth: 0,
-    fontFamily: 'ZenKakuGothicNew_500Medium',
-    fontSize: 22,
-    lineHeight: 28,
-    textAlign: 'center',
-    paddingVertical: 0,
-    minHeight: 36,
-  },
-  advance: {
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+  drawAdvance: {
+    marginTop: theme.spacing.sm,
   },
 });
