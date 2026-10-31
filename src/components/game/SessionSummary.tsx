@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NavigationProp, ParamListBase, useNavigation } from '@react-navigation/native';
 
@@ -26,6 +27,8 @@ export function SessionSummary({
   onRepeat,
   onBack,
   showReviewLink = true,
+  repeatLabel = 'REPETIR',
+  children,
 }: {
   // "Lectura": va en el eyebrow "SESIÓN TERMINADA · LECTURA".
   modeLabel?: string;
@@ -35,6 +38,9 @@ export function SessionSummary({
   onBack: () => void;
   // El resumen del propio Repaso no se manda a sí mismo.
   showReviewLink?: boolean;
+  repeatLabel?: string;
+  // Detalle propio del modo, debajo de los números (ej. los kanji trabajados).
+  children?: ReactNode;
 }) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
@@ -91,10 +97,12 @@ export function SessionSummary({
         </AppText>
       ) : null}
 
+      {children ? <View style={styles.extra}>{children}</View> : null}
+
       <View style={styles.spacer} />
 
       <View style={styles.actions}>
-        <PrimaryButton title="REPETIR" variant="primary" onPress={onRepeat} />
+        <PrimaryButton title={repeatLabel} variant="primary" onPress={onRepeat} />
         <PrimaryButton title="VOLVER" variant="secondary" onPress={onBack} />
       </View>
     </View>
@@ -157,6 +165,10 @@ const styles = StyleSheet.create({
   },
   reviewLink: {
     textDecorationLine: 'underline',
+  },
+  extra: {
+    alignSelf: 'stretch',
+    marginTop: theme.spacing.md,
   },
   spacer: {
     flex: 1,

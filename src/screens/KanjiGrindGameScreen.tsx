@@ -2,39 +2,40 @@ import { useMemo, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { GameHeader } from '../components/game/GameHeader';
+import { SessionSummary } from '../components/game/SessionSummary';
 import { KanjiStatusChip } from '../components/kanji/KanjiStatusChip';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
-import { ScreenBackground } from '../components/ui/ScreenBackground';
+import { BackButton, ScreenBackground, useScreenBack } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { StatPill } from '../components/ui/StatPill';
+import { getStrokeGuide } from '../data/hiraganaStrokes';
 import { useKanjiProgress } from '../features/kanji/KanjiProgressProvider';
-import { findKanjiEntry, getMainReading } from '../features/kanji/kanjiCatalog';
+import { findKanjiEntry } from '../features/kanji/kanjiCatalog';
 import { getKanjiStatus } from '../features/kanji/kanjiProgressStore';
 import {
   getGrindKanjiChars,
   KanjiGrindRoundKind,
+  RECOGNITION_BLANK,
 } from '../features/game/kanjiGrindEngine';
 import { useKanjiGrind } from '../features/game/useKanjiGrind';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, hexToRgba, theme } from '../theme/theme';
+import { FONTS, theme } from '../theme/theme';
 import { KanjiEntry } from '../types/kanji';
 import { RootStackScreenProps } from '../types/navigation';
 
 // Los prompts que muestran el kanji gigante necesitan otra tipografía y otro tamaño.
 const KANJI_PROMPT_KINDS: KanjiGrindRoundKind[] = ['kanji-to-meaning', 'kanji-to-reading'];
-// Rondas cuyas opciones son kanji sueltos: van en grilla, no en lista.
+// Rondas cuyas opciones son kanji sueltos: van en grilla, más altas y en Klee 40.
 const KANJI_OPTION_KINDS: KanjiGrindRoundKind[] = [
   'word-recognition',
   'sentence-recognition',
 ];
-// La frase entera no entra al tamaño de una palabra: necesita su propio cuerpo.
-const SENTENCE_KINDS: KanjiGrindRoundKind[] = ['sentence-recognition'];
 
 export function KanjiGrindGameScreen({
   route,
@@ -89,7 +90,7 @@ export function KanjiGrindGameScreen({
     return (
       <ScreenBackground scrollable={false}>
         <ScreenHeader
-          eyebrow="漢字"
+          eyebrow="漢字 · Kanji Grind"
           title="Sin kanji para practicar"
           subtitle="Probá con otro filtro."
         />
@@ -102,7 +103,7 @@ export function KanjiGrindGameScreen({
   if (!hydrated) {
     return (
       <ScreenBackground scrollable={false}>
-        <ScreenHeader eyebrow="漢字" title="Preparando la sesión…" />
+        <ScreenHeader eyebrow="漢字 · Kanji Grind" title="Preparando la sesión…" />
       </ScreenBackground>
     );
   }
@@ -110,7 +111,6 @@ export function KanjiGrindGameScreen({
   if (finished || !round) {
     return (
       <ScreenBackground scrollable>
-        <ScreenHeader eyebrow="漢字" title="Sesión terminada" />
         <GrindSummary
           state={state}
           statusBefore={statusBeforeRef.current ?? {}}
@@ -124,11 +124,23 @@ export function KanjiGrindGameScreen({
     );
   }
 
+  if (round.kind === 'learn') {
+    // "1 DE 3": qué kanji nuevo de los que trae este lote.
+    const learnRounds = state.rounds.filter((item) => item.kind === 'learn');
+    const learnPosition = learnRounds.indexOf(round) + 1;
+
+    return (
+      <ScreenBackground scrollable={false}>
+        <LearnHeader title={round.promptLabel} position={learnPosition} total={learnRounds.length} />
+        <LearnCard entry={round.entry} onContinue={advance} />
+      </ScreenBackground>
+    );
+  }
+
   const total = state.rounds.length;
-  const done = Math.min(state.index, total);
+  const current = Math.min(state.index + 1, total);
   const isKanjiPrompt = KANJI_PROMPT_KINDS.includes(round.kind);
   const isKanjiOptions = KANJI_OPTION_KINDS.includes(round.kind);
-  const isSentence = SENTENCE_KINDS.includes(round.kind);
 
   const getOptionState = (optionId: string) => {
     if (state.answerState === 'idle') return 'idle' as const;
@@ -139,91 +151,87 @@ export function KanjiGrindGameScreen({
 
   return (
     <ScreenBackground scrollable={false}>
-      <ScreenHeader eyebrow="漢字" title={round.promptLabel} />
-
-      <View style={styles.statsRow}>
-        <StatPill label="✓" value={state.stats.correct} tone="success" />
-        <StatPill label="✗" value={state.stats.incorrect} tone="error" />
-        <StatPill
-          label="🔥"
-          value={state.stats.streak}
-         
-        />
-      </View>
-
       {/* Cuánto falta: sin esto la sesión se siente infinita y no invita a terminarla. */}
-      <View style={[styles.progressTrack, { backgroundColor: activeTheme.colors.line }]}>
-        <View
-          style={[
-            styles.progressFill,
-            {
-              width: `${total > 0 ? (done / total) * 100 : 0}%`,
-              backgroundColor: activeTheme.colors.accent,
-            },
-          ]}
-        />
+      <GameHeader eyebrow={round.promptLabel} progress={{ current, total }} score={state.stats} />
+
+      <PromptCard>
+        {isKanjiPrompt ? (
+          <AppText style={styles.promptKanji}>{round.promptText}</AppText>
+        ) : (
+          <BlankPrompt text={round.promptText} />
+        )}
+        {round.promptHint ? (
+          <AppText style={styles.promptHint} color={activeTheme.colors.textSecondary}>
+            {round.promptHint}
+          </AppText>
+        ) : null}
+      </PromptCard>
+
+      <View style={styles.optionsGrid}>
+        {round.options.map((option) => (
+          <AnswerOptionButton
+            key={option.id}
+            label={option.text}
+            kanji={isKanjiOptions}
+            visualState={getOptionState(option.id)}
+            disabled={state.answerState !== 'idle'}
+            onPress={() => answer(option.id)}
+          />
+        ))}
       </View>
-      <AppText
-        variant="bodySmall"
-        color={activeTheme.colors.textMuted}
-        style={styles.progressLabel}
-      >
-        {done} de {total}
-      </AppText>
 
-      {round.kind === 'learn' ? (
-        <LearnCard entry={round.entry} onContinue={advance} />
-      ) : (
-        <>
-          <View
-            style={[
-              styles.promptCard,
-              {
-                borderColor: hexToRgba(activeTheme.colors.accent, 0.22),
-                backgroundColor: activeTheme.colors.backgroundSecondary,
-              },
-            ]}
-          >
-            <AppText
-              style={[
-                styles.promptText,
-                isKanjiPrompt && styles.promptKanji,
-                isSentence && styles.promptSentence,
-                { color: activeTheme.colors.textPrimary },
-              ]}
-            >
-              {round.promptText}
-            </AppText>
-            {round.promptHint ? (
-              <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-                {round.promptHint}
-              </AppText>
-            ) : null}
-          </View>
-
-          <View style={[styles.options, isKanjiOptions && styles.optionsGrid]}>
-            {round.options.map((option) => (
-              <AnswerOptionButton
-                key={option.id}
-                label={option.text}
-                visualState={getOptionState(option.id)}
-                disabled={state.answerState !== 'idle'}
-                onPress={() => answer(option.id)}
-                labelStyle={isKanjiOptions ? styles.kanjiOptionLabel : undefined}
-              />
-            ))}
-          </View>
-
-          <View style={styles.feedbackSlot}>
-            <FeedbackBanner
-              status={lastFeedback.status}
-              correctText={lastFeedback.correctText}
-              selectedText={lastFeedback.selectedText}
-            />
-          </View>
-        </>
-      )}
+      <GameFooter feedback={lastFeedback}>
+        <WaitingHint visible={state.answerState === 'idle'} />
+      </GameFooter>
     </ScreenBackground>
+  );
+}
+
+// La oración (o palabra) con el kanji tapado: el hueco es una caja punteada ruri.
+function BlankPrompt({ text }: { text: string }) {
+  const { theme: activeTheme } = useAppTheme();
+  const parts = text.split(RECOGNITION_BLANK);
+
+  return (
+    <View style={styles.blankRow}>
+      {parts.map((part, index) => (
+        <View key={index} style={styles.blankRow}>
+          {part ? <AppText style={styles.blankText}>{part}</AppText> : null}
+          {index < parts.length - 1 ? (
+            <View
+              style={[
+                styles.blankBox,
+                { borderColor: activeTheme.colors.primary, backgroundColor: activeTheme.colors.primarySoft },
+              ]}
+            />
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// Cabecera de la tarjeta learn: cerrar + "漢字 · KANJI GRIND / Kanji nuevo" + "1 DE 3".
+function LearnHeader({ title, position, total }: { title: string; position: number; total: number }) {
+  const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
+  const screenBack = useScreenBack();
+
+  return (
+    <View style={styles.learnHeader}>
+      {screenBack.canGoBack ? <BackButton icon="close" onPress={screenBack.goBack} /> : null}
+      <View style={styles.learnHeaderText}>
+        <AppText variant="overline" color={colors.accentInk}>
+          漢字 · Kanji Grind
+        </AppText>
+        <AppText variant="title">{title}</AppText>
+      </View>
+      <View style={[styles.positionChip, { backgroundColor: colors.highlight, borderColor: colors.line }]}>
+        <AppText style={styles.positionText} color={colors.onHighlight}>
+          {position} DE {total}
+        </AppText>
+      </View>
+    </View>
   );
 }
 
@@ -231,53 +239,89 @@ export function KanjiGrindGameScreen({
 // la primera pregunta de un kanji desconocido sería adivinar.
 function LearnCard({ entry, onContinue }: { entry: KanjiEntry; onContinue: () => void }) {
   const { theme: activeTheme } = useAppTheme();
-  const reading = getMainReading(entry);
-  const example = entry.examples[0];
+  const { colors } = activeTheme;
+  const strokeCount = getStrokeGuide(entry.char)?.length;
+  const { sentence } = entry;
+  const sentenceParts = sentence.jp.split(entry.char);
 
   return (
-    <ScrollView
-      style={styles.learnScroll}
-      contentContainerStyle={styles.learnContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <GlassCard contentStyle={styles.learnCard}>
-        <AppText style={[styles.learnGlyph, { color: activeTheme.colors.textPrimary }]}>
-          {entry.char}
-        </AppText>
-        <AppText variant="headline" style={styles.learnMeaning}>
-          {entry.meaning}
-        </AppText>
-        {reading ? (
-          <AppText variant="option" color={activeTheme.colors.accent}>
-            {reading.kana} · {reading.romaji}
-          </AppText>
-        ) : null}
-
-        {example ? (
-          <View style={styles.learnExample}>
-            <View style={styles.learnExampleText}>
-              <AppText variant="option">{example.jp}</AppText>
-              <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-                {example.kana} · {example.es}
+    <View style={styles.learnScreen}>
+      <ScrollView style={styles.learnScroll} contentContainerStyle={styles.learnContent} showsVerticalScrollIndicator={false}>
+        <GlassCard style={styles.learnCard} contentStyle={styles.learnCardContent}>
+          <View style={[styles.learnBand, { backgroundColor: colors.primarySoft, borderBottomColor: colors.line }]}>
+            <View style={[styles.levelTag, { backgroundColor: colors.textPrimary }]}>
+              <AppText style={styles.levelText} color={colors.background}>
+                N5
               </AppText>
             </View>
-            <SpeakButton text={example.kana} />
+            {strokeCount ? (
+              <AppText style={styles.strokeCount} color={colors.textSecondary}>
+                {strokeCount} {strokeCount === 1 ? 'trazo' : 'trazos'}
+              </AppText>
+            ) : null}
+            <AppText style={styles.learnGlyph}>{entry.char}</AppText>
+            <SpeakButton text={sentence.kana} style={styles.learnSpeak} />
           </View>
-        ) : null}
 
-        {entry.mnemonic ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textSecondary}
-            style={styles.learnMnemonic}
-          >
-            💡 {entry.mnemonic}
-          </AppText>
-        ) : null}
-      </GlassCard>
+          <View style={styles.learnBody}>
+            <AppText style={styles.learnMeaning}>{entry.meaning}</AppText>
+
+            <View style={styles.readingRow}>
+              <ReadingBox label="音" readings={entry.on.map((reading) => reading.kana)} />
+              <ReadingBox label="訓" readings={entry.kun.map((reading) => reading.kana)} />
+            </View>
+
+            <View>
+              {/* Un solo texto para que la oración corte de renglón donde haga falta: el
+                  kanji objetivo va resaltado en kihada (el Marker de InkBits es un View y
+                  no puede ir dentro de un texto que se parte en líneas). */}
+              <AppText variant="sentence">
+                {sentenceParts.map((part, index) => (
+                  <AppText key={index} variant="sentence">
+                    {part}
+                    {index < sentenceParts.length - 1 ? (
+                      <AppText variant="sentence" color={colors.onHighlight} style={{ backgroundColor: colors.highlight }}>
+                        {entry.char}
+                      </AppText>
+                    ) : null}
+                  </AppText>
+                ))}
+              </AppText>
+              <AppText variant="body" color={colors.textSecondary}>
+                {sentence.es}
+              </AppText>
+            </View>
+
+            {entry.mnemonic ? (
+              <AppText variant="bodySmall" color={colors.textSecondary}>
+                💡 {entry.mnemonic}
+              </AppText>
+            ) : null}
+          </View>
+        </GlassCard>
+      </ScrollView>
 
       <PrimaryButton title="LO TENGO, A PRACTICAR" variant="primary" onPress={onContinue} />
-    </ScrollView>
+    </View>
+  );
+}
+
+// Caja de lectura on/kun: etiqueta 音/訓 en un cuadrito de tinta + las lecturas en Klee.
+function ReadingBox({ label, readings }: { label: string; readings: string[] }) {
+  const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
+
+  return (
+    <View style={[styles.readingBox, { backgroundColor: colors.surface2 }]}>
+      <View style={[styles.readingLabel, { backgroundColor: colors.textPrimary }]}>
+        <AppText style={styles.readingLabelText} color={colors.background}>
+          {label}
+        </AppText>
+      </View>
+      <AppText style={styles.readingText} numberOfLines={2}>
+        {readings.length > 0 ? readings.join('・') : '—'}
+      </AppText>
+    </View>
   );
 }
 
@@ -293,25 +337,24 @@ function GrindSummary({
   onBack: () => void;
 }) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
   const { data: progress } = useKanjiProgress();
-
-  const total = state.stats.answered;
-  const accuracy = total > 0 ? Math.round((state.stats.correct / total) * 100) : 0;
   const chars = getGrindKanjiChars(state);
 
   return (
-    <View style={styles.summary}>
-      <GlassCard contentStyle={styles.summaryCard}>
-        <AppText variant="display" color={activeTheme.colors.accent}>
-          {accuracy}%
-        </AppText>
-        <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-          {state.stats.correct} de {total} correctas · {chars.length} kanji trabajados
-        </AppText>
-      </GlassCard>
-
-      <View style={styles.summaryList}>
-        {chars.map((char) => {
+    <SessionSummary
+      modeLabel="Kanji Grind"
+      correct={state.stats.correct}
+      incorrect={state.stats.incorrect}
+      onRepeat={onRepeat}
+      onBack={onBack}
+      repeatLabel="OTRA SESIÓN"
+    >
+      <AppText variant="overline" color={colors.textSecondary} style={styles.summaryLabel}>
+        {chars.length} kanji trabajados
+      </AppText>
+      <View style={[styles.summaryList, activeTheme.surfaces.outlined, { backgroundColor: colors.card }]}>
+        {chars.map((char, index) => {
           const entry = findKanjiEntry(char);
           if (!entry) return null;
           const status = getKanjiStatus(progress, char);
@@ -321,17 +364,17 @@ function GrindSummary({
           return (
             <View
               key={char}
-              style={[styles.summaryRow, { borderColor: activeTheme.colors.line }]}
+              style={[styles.summaryRow, index > 0 ? { borderTopWidth: 2, borderTopColor: colors.hair } : null]}
             >
-              <AppText style={[styles.summaryGlyph, { color: activeTheme.colors.textPrimary }]}>
-                {char}
-              </AppText>
+              <View style={[styles.summaryGlyphBox, { backgroundColor: colors.surface2 }]}>
+                <AppText style={styles.summaryGlyph}>{char}</AppText>
+              </View>
               <View style={styles.summaryText}>
                 <AppText variant="bodyStrong" numberOfLines={1}>
                   {entry.meaning}
                 </AppText>
                 {improved ? (
-                  <AppText variant="bodySmall" color={activeTheme.colors.success}>
+                  <AppText variant="bodySmall" color={colors.successInk}>
                     subió a {status}
                   </AppText>
                 ) : null}
@@ -341,153 +384,195 @@ function GrindSummary({
           );
         })}
       </View>
-
-      <View style={styles.summaryActions}>
-        <PrimaryButton title="OTRA SESIÓN" variant="primary" onPress={onRepeat} />
-        <PrimaryButton title="VOLVER" variant="secondary" onPress={onBack} />
-      </View>
-    </View>
+    </SessionSummary>
   );
 }
 
 const styles = StyleSheet.create({
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
-  },
-  progressTrack: {
-    height: 3,
-    borderRadius: theme.radii.pill,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 3,
-    borderRadius: theme.radii.pill,
-  },
-  progressLabel: {
-    marginTop: theme.spacing.xxs,
-    marginBottom: theme.spacing.sm,
+  promptKanji: {
+    ...theme.typography.kana,
     textAlign: 'center',
   },
-  promptCard: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
+  promptHint: {
+    fontFamily: FONTS.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: theme.spacing.sm,
+  },
+  blankRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-    minHeight: 132,
-    gap: theme.spacing.xs,
   },
-  promptText: {
-    fontFamily: FONTS.bold,
-    fontSize: 26,
-    lineHeight: 36,
-    textAlign: 'center',
+  blankText: {
+    fontFamily: FONTS.glyph,
+    fontSize: 32,
+    lineHeight: 44,
   },
-  promptKanji: {
-    fontSize: 76,
-    lineHeight: 92,
-    fontFamily: FONTS.medium,
-  },
-  // La frase entera necesita bajar de cuerpo o se come tres renglones y empuja las
-  // opciones fuera de pantalla.
-  promptSentence: {
-    fontSize: 20,
-    lineHeight: 32,
-  },
-  options: {
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+  blankBox: {
+    width: 54,
+    height: 54,
+    marginHorizontal: 4,
+    borderWidth: 3,
+    borderStyle: 'dashed',
+    borderRadius: theme.radii.badge,
   },
   optionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  kanjiOptionLabel: {
-    fontFamily: FONTS.medium,
-    fontSize: 34,
-    lineHeight: 44,
+  learnHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: 14,
   },
-  // Alto fijo para que la UI no salte cuando aparece el banner.
-  feedbackSlot: {
-    minHeight: 56,
-    justifyContent: 'center',
+  learnHeaderText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  positionChip: {
+    borderWidth: 2,
+    borderRadius: theme.radii.pill,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+  },
+  positionText: {
+    fontFamily: FONTS.black,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 0.7,
+  },
+  learnScreen: {
+    flex: 1,
+    gap: theme.spacing.md,
   },
   learnScroll: {
     flex: 1,
   },
   learnContent: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: theme.spacing.xs,
   },
   learnCard: {
+    borderRadius: theme.radii.xl,
+    overflow: 'hidden',
+  },
+  learnCardContent: {
+    padding: 0,
+  },
+  learnBand: {
+    height: 190,
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    justifyContent: 'center',
+    borderBottomWidth: 2,
+  },
+  levelTag: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    borderRadius: theme.radii.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  levelText: {
+    fontFamily: FONTS.black,
+    fontSize: 10,
+    lineHeight: 13,
+  },
+  strokeCount: {
+    position: 'absolute',
+    top: 12,
+    right: 14,
+    fontFamily: FONTS.bold,
+    fontSize: 11,
+    lineHeight: 14,
   },
   learnGlyph: {
-    fontFamily: FONTS.medium,
-    fontSize: 104,
-    lineHeight: 120,
+    fontFamily: FONTS.glyph,
+    fontSize: 140,
+    lineHeight: 160,
     textAlign: 'center',
+  },
+  learnSpeak: {
+    position: 'absolute',
+    right: 12,
+    bottom: 12,
+  },
+  learnBody: {
+    paddingTop: 14,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 12,
   },
   learnMeaning: {
-    textAlign: 'center',
+    fontFamily: FONTS.display,
+    fontSize: 30,
+    lineHeight: 36,
   },
-  learnExample: {
+  readingRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  readingBox: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    marginTop: theme.spacing.xs,
-    alignSelf: 'stretch',
+    gap: 8,
+    borderRadius: theme.radii.badge,
+    padding: 8,
   },
-  learnExampleText: {
-    flex: 1,
-    gap: 2,
-    minWidth: 0,
-  },
-  learnMnemonic: {
-    marginTop: theme.spacing.xxs,
-    textAlign: 'center',
-    lineHeight: 19,
-  },
-  summary: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.xxl,
-  },
-  summaryCard: {
+  readingLabel: {
+    width: 26,
+    height: 26,
+    borderRadius: theme.radii.xs,
     alignItems: 'center',
-    gap: theme.spacing.xxs,
+    justifyContent: 'center',
+  },
+  readingLabelText: {
+    fontFamily: FONTS.display,
+    fontSize: 12,
+    lineHeight: 15,
+  },
+  readingText: {
+    flex: 1,
+    minWidth: 0,
+    fontFamily: FONTS.glyph,
+    fontSize: 18,
+    lineHeight: 24,
+  },
+  summaryLabel: {
+    marginBottom: theme.spacing.xs,
   },
   summaryList: {
-    gap: theme.spacing.xxs,
+    borderRadius: theme.radii.lg,
+    overflow: 'hidden',
   },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    borderWidth: 1,
-    borderRadius: theme.radii.sm,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    gap: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+  },
+  summaryGlyphBox: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.radii.badge,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   summaryGlyph: {
-    fontFamily: FONTS.bold,
-    fontSize: 30,
-    lineHeight: 38,
-    width: 40,
-    textAlign: 'center',
+    fontFamily: FONTS.glyph,
+    fontSize: 22,
+    lineHeight: 28,
   },
   summaryText: {
     flex: 1,
     gap: 2,
     minWidth: 0,
-  },
-  summaryActions: {
-    gap: theme.spacing.xs,
-    marginTop: theme.spacing.sm,
   },
 });
