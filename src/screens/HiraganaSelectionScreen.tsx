@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { CheckRow } from '../components/practice/CheckRow';
-import { ModeTile } from '../components/practice/ModeTile';
+import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { AnimatedCollapsible } from '../components/ui/AnimatedCollapsible';
@@ -240,7 +240,7 @@ export function HiraganaSelectionScreen({
 
       <Step title="Qué querés hacer" />
 
-      <View style={styles.modeGrid}>
+      <ModeGrid>
         {MODES.map((item) => (
           <ModeTile
             key={item.mode}
@@ -250,7 +250,7 @@ export function HiraganaSelectionScreen({
             onPress={() => selectMode(item.mode)}
           />
         ))}
-      </View>
+      </ModeGrid>
 
       <AppText
         variant="bodySmall"
@@ -447,11 +447,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.xxs,
     marginBottom: theme.spacing.xs,
-  },
-  modeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
   },
   modeNote: {
     marginTop: theme.spacing.sm,

@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { DrillAnswerMode, DrillDirection } from '../../features/game/readingDrillEngine';
-import { useAppTheme } from '../../theme/AppThemeProvider';
 import { theme } from '../../theme/theme';
-import { AppText } from '../ui/AppText';
+import { SectionStep, Segmented } from '../ui/InkBits';
 import { ScreenBackground } from '../ui/ScreenBackground';
 import { ScreenHeader } from '../ui/ScreenHeader';
 import { CheckRow } from './CheckRow';
-import { ModeTile } from './ModeTile';
+import { ModeGrid, ModeTile } from './ModeTile';
 import { SelectChip } from './SelectChip';
 import { StartBar } from './StartBar';
 
@@ -42,9 +41,9 @@ type ReadingDrillSetupProps<Id extends string> = {
   }) => void;
 };
 
-const ANSWER_MODES: { id: DrillAnswerMode; label: string }[] = [
-  { id: 'choice', label: 'Elegir entre 4' },
-  { id: 'input', label: 'Escribir' },
+const ANSWER_MODES: { value: DrillAnswerMode; label: string }[] = [
+  { value: 'choice', label: 'Elegir entre 4' },
+  { value: 'input', label: 'Escribir' },
 ];
 
 export function ReadingDrillSetup<Id extends string>({
@@ -55,7 +54,6 @@ export function ReadingDrillSetup<Id extends string>({
   initialSetIds,
   onStart,
 }: ReadingDrillSetupProps<Id>) {
-  const { theme: activeTheme } = useAppTheme();
   const [direction, setDirection] = useState<DrillDirection>(directions[0].id);
   const [answerMode, setAnswerMode] = useState<DrillAnswerMode>('choice');
   const [setIds, setSetIds] = useState<Id[]>(initialSetIds);
@@ -81,8 +79,8 @@ export function ReadingDrillSetup<Id extends string>({
     >
       <ScreenHeader eyebrow={eyebrow} title={title} />
 
-      <Step title="Qué querés hacer" />
-      <View style={styles.modeGrid}>
+      <SectionStep n={1}>Qué querés hacer</SectionStep>
+      <ModeGrid wide>
         {directions.map((item) => (
           <ModeTile
             key={item.id}
@@ -94,77 +92,50 @@ export function ReadingDrillSetup<Id extends string>({
             onPress={() => setDirection(item.id)}
           />
         ))}
+      </ModeGrid>
+
+      <View style={styles.step}>
+        <SectionStep n={2}>Cómo respondés</SectionStep>
+        <Segmented options={ANSWER_MODES} value={answerMode} onChange={setAnswerMode} />
       </View>
 
-      <Step title="Cómo respondés" />
-      <View style={styles.presets}>
-        {ANSWER_MODES.map((mode) => (
+      <View style={styles.step}>
+        <SectionStep n={3}>Con qué</SectionStep>
+        <View style={styles.presets}>
           <SelectChip
-            key={mode.id}
-            label={mode.label}
-            selected={answerMode === mode.id}
-            onPress={() => setAnswerMode(mode.id)}
+            label="Todo"
+            selected={setIds.length === sets.length}
+            onPress={() => setSetIds(sets.map((set) => set.id))}
           />
-        ))}
-      </View>
-
-      <Step title="Con qué" />
-      <View style={styles.presets}>
-        <SelectChip
-          label="Todo"
-          selected={setIds.length === sets.length}
-          onPress={() => setSetIds(sets.map((set) => set.id))}
-        />
-      </View>
-      <View
-        style={[
-          styles.sections,
-          activeTheme.surfaces.card,
-          { backgroundColor: activeTheme.colors.card },
-        ]}
-      >
-        {sets.map((set) => (
-          <CheckRow
-            key={set.id}
-            title={set.label}
-            hint={set.hint}
-            state={setIds.includes(set.id) ? 'on' : 'off'}
-            onPress={() => toggleSet(set.id)}
-          />
-        ))}
+        </View>
+        <View style={styles.sets}>
+          {sets.map((set) => (
+            <CheckRow
+              key={set.id}
+              boxed
+              title={set.label}
+              hint={set.hint}
+              state={setIds.includes(set.id) ? 'on' : 'off'}
+              onPress={() => toggleSet(set.id)}
+            />
+          ))}
+        </View>
       </View>
     </ScreenBackground>
   );
 }
 
-function Step({ title }: { title: string }) {
-  return (
-    <View style={styles.step}>
-      <AppText variant="title">{title}</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   step: {
-    marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
-  },
-  modeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
   },
   presets: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    gap: 8,
+    marginBottom: 10,
   },
-  sections: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
-    overflow: 'hidden',
-    paddingHorizontal: theme.spacing.sm,
+  sets: {
+    gap: 8,
   },
 });

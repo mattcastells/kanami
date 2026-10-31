@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { ModeTile } from '../components/practice/ModeTile';
+import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { AppText } from '../components/ui/AppText';
@@ -133,7 +133,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
 
       <Step title="Qué querés entrenar" />
 
-      <View style={styles.modeGrid}>
+      <ModeGrid wide>
         {FOCUS_OPTIONS.map((option) => (
           <ModeTile
             key={option.focus}
@@ -145,7 +145,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
             onPress={() => setFocus(option.focus)}
           />
         ))}
-      </View>
+      </ModeGrid>
 
       <Step title="Con qué kanji" />
 
@@ -210,11 +210,6 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
-  },
-  modeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
   },
   presets: {
     flexDirection: 'row',

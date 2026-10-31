@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { CheckRow } from '../components/practice/CheckRow';
-import { ModeTile } from '../components/practice/ModeTile';
+import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { AnimatedCollapsible } from '../components/ui/AnimatedCollapsible';
@@ -151,7 +151,7 @@ export function VocabularyScreen({
 
       <Step title="Qué querés hacer" />
 
-      <View style={styles.modeGrid}>
+      <ModeGrid>
         {VOCAB_GAMES.map((game) => (
           <ModeTile
             key={game.mode}
@@ -161,7 +161,7 @@ export function VocabularyScreen({
             onPress={() => setSelectedGame(game.mode)}
           />
         ))}
-      </View>
+      </ModeGrid>
 
       <AppText
         variant="bodySmall"
@@ -318,11 +318,6 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
-  },
-  modeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
   },
   modeNote: {
     marginTop: theme.spacing.sm,

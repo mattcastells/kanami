@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { CheckRow } from '../components/practice/CheckRow';
-import { ModeTile } from '../components/practice/ModeTile';
+import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { AnimatedCollapsible } from '../components/ui/AnimatedCollapsible';
@@ -141,7 +141,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
 
       <Step title="Qué querés hacer" />
 
-      <View style={styles.modeGrid}>
+      <ModeGrid wide>
         {DIRECTIONS.map((item) => (
           // Anchos: "Qué significa" no entra en media fila de un teléfono de 360px.
           <ModeTile
@@ -154,7 +154,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
             onPress={() => setDirection(item.id)}
           />
         ))}
-      </View>
+      </ModeGrid>
 
       <Step title="Con qué" />
 
@@ -286,11 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.lg,
   },
-  modeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-  },
+
   presets: {
     flexDirection: 'row',
     flexWrap: 'wrap',

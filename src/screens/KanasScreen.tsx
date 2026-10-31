@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ModeTile } from '../components/practice/ModeTile';
+import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { useAppTheme } from '../theme/AppThemeProvider';
@@ -39,7 +39,7 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
   return (
     <ScreenBackground scrollable>
       <ScreenHeader eyebrow="字 · Kanas" title="¿Qué escritura?" />
-      <View style={styles.list}>
+      <ModeGrid wide>
         {options.map((option) => (
           <ModeTile
             key={option.title}
@@ -51,16 +51,10 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
             onPress={option.onPress}
           />
         ))}
-      </View>
+      </ModeGrid>
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  list: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-    marginTop: theme.spacing.lg,
-  },
 });
