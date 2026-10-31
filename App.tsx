@@ -5,12 +5,13 @@ import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
-import { ZenOldMincho_400Regular } from '@expo-google-fonts/zen-old-mincho/400Regular';
-import { ZenOldMincho_700Bold } from '@expo-google-fonts/zen-old-mincho/700Bold';
-import { ZenKakuGothicNew_400Regular } from '@expo-google-fonts/zen-kaku-gothic-new/400Regular';
-import { ZenKakuGothicNew_500Medium } from '@expo-google-fonts/zen-kaku-gothic-new/500Medium';
-import { ZenKakuGothicNew_700Bold } from '@expo-google-fonts/zen-kaku-gothic-new/700Bold';
-import { ZenKakuGothicNew_900Black } from '@expo-google-fonts/zen-kaku-gothic-new/900Black';
+import { DelaGothicOne_400Regular } from '@expo-google-fonts/dela-gothic-one/400Regular';
+import { KleeOne_400Regular } from '@expo-google-fonts/klee-one/400Regular';
+import { KleeOne_600SemiBold } from '@expo-google-fonts/klee-one/600SemiBold';
+import { ZenMaruGothic_400Regular } from '@expo-google-fonts/zen-maru-gothic/400Regular';
+import { ZenMaruGothic_500Medium } from '@expo-google-fonts/zen-maru-gothic/500Medium';
+import { ZenMaruGothic_700Bold } from '@expo-google-fonts/zen-maru-gothic/700Bold';
+import { ZenMaruGothic_900Black } from '@expo-google-fonts/zen-maru-gothic/900Black';
 
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { KanjiProgressProvider } from './src/features/kanji/KanjiProgressProvider';
@@ -22,12 +23,13 @@ import { AppThemeProvider, useAppTheme } from './src/theme/AppThemeProvider';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    ZenOldMincho_400Regular,
-    ZenOldMincho_700Bold,
-    ZenKakuGothicNew_400Regular,
-    ZenKakuGothicNew_500Medium,
-    ZenKakuGothicNew_700Bold,
-    ZenKakuGothicNew_900Black,
+    DelaGothicOne_400Regular,
+    ZenMaruGothic_400Regular,
+    ZenMaruGothic_500Medium,
+    ZenMaruGothic_700Bold,
+    ZenMaruGothic_900Black,
+    KleeOne_400Regular,
+    KleeOne_600SemiBold,
   });
 
   if (!fontsLoaded) {
