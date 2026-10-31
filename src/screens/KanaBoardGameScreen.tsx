@@ -1,16 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import {
-  LayoutChangeEvent,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { LayoutChangeEvent, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { FeedbackBanner } from '../components/game/FeedbackBanner';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
+import { ProgressTrack } from '../components/ui/InkBits';
+import { InkPressable } from '../components/ui/InkPressable';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
@@ -24,16 +19,16 @@ import { useKanaBoardGame } from '../features/game/useKanaBoardGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { FONTS, inkShadow, SIZES, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
-const CARD_GAP = theme.spacing.xs;
+const CARD_GAP = 6;
+// Ancho mínimo de una carta: en un teléfono de 360 entran 6 columnas; en pantallas
+// anchas, las que quepan.
+const MIN_CARD_WIDTH = 46;
 
 function columnsForWidth(width: number) {
-  if (width < 340) return 4;
-  if (width < 520) return 5;
-  if (width < 760) return 7;
-  return 9;
+  return Math.max(6, Math.floor((width + CARD_GAP) / (MIN_CARD_WIDTH + CARD_GAP)));
 }
 
 // Los combos (きゃ, ぎゃ, みゅ...) son DOS caracteres y ocupan casi el doble: con un
@@ -161,27 +156,30 @@ export function KanaBoardGameScreen({
 
         {struggled.length > 0 ? (
           <>
-            <AppText variant="overline" color={activeTheme.colors.textMuted}>
+            <AppText variant="overline" color={activeTheme.colors.textSecondary}>
               LO QUE TE COSTÓ
             </AppText>
             <View style={styles.missedList}>
               {struggled.map((card) => (
                 <View
                   key={card.id}
-                  style={[styles.missedRow, { borderColor: activeTheme.colors.line }]}
+                  style={[
+                    styles.missedRow,
+                    activeTheme.surfaces.outlined,
+                    { backgroundColor: activeTheme.colors.card },
+                  ]}
                 >
                   <AppText
-                    variant="kana"
                     numberOfLines={1}
                     style={[styles.missedKana, { fontSize: kanaFontSize(card.kana, 64) }]}
                   >
                     {card.kana}
                   </AppText>
                   <View style={styles.missedTexts}>
-                    <AppText variant="bodyStrong" color={activeTheme.colors.success}>
+                    <AppText variant="bodyStrong" color={activeTheme.colors.successInk}>
                       {card.romaji}
                     </AppText>
-                    <AppText variant="bodySmall" color={activeTheme.colors.error}>
+                    <AppText variant="bodySmall" color={activeTheme.colors.errorInk}>
                       {card.misses === 1
                         ? `Escribiste: ${card.submitted}`
                         : `${card.misses} fallos · último: ${card.submitted}`}
@@ -195,62 +193,38 @@ export function KanaBoardGameScreen({
 
         <View style={styles.summaryActions}>
           <PrimaryButton title="OTRO TABLERO" variant="primary" onPress={handleRestart} />
-          <PrimaryButton
-            title="VOLVER"
-            variant="ghost"
-            onPress={() => navigation.goBack()}
-          />
+          <PrimaryButton title="VOLVER" variant="secondary" onPress={() => navigation.goBack()} />
         </View>
       </ScreenBackground>
     );
   }
 
+  const { colors } = activeTheme;
+
   return (
-    <ScreenBackground scrollable keyboardShouldPersistTaps="always">
-      <ScreenHeader
-        eyebrow="盤 · Tablero"
-        title={scriptLabel}
-        subtitle={
-          state.round > 1
-            ? `Vuelta ${state.round} · repasando lo que fallaste`
-            : undefined
-        }
-        actionLabel="Terminar"
-        onActionPress={finish}
-      />
-
-      <GlassCard style={styles.promptCard} contentStyle={styles.promptContent}>
-        <View
-          style={[
-            styles.promptGlyph,
-            {
-              borderColor: activeTheme.colors.accent,
-              backgroundColor: hexToRgba(activeTheme.colors.accent, 0.08),
-            },
-          ]}
-        >
-          <AppText
-            variant="kana"
-            numberOfLines={1}
-            style={[
-              styles.promptKana,
-              { fontSize: kanaFontSize(activeCard?.kana ?? '', 92) },
-            ]}
-          >
-            {activeCard?.kana ?? '—'}
-          </AppText>
-        </View>
-
-        <View style={styles.promptInputWrap}>
-          <View
-            style={[
-              styles.inputUnderline,
-              {
-                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
-                borderColor: activeTheme.colors.line,
-              },
-            ]}
-          >
+    <ScreenBackground
+      scrollable
+      keyboardShouldPersistTaps="always"
+      bottomOverlay={
+        // Dock: la carta marcada, el único input y el botón. Va abajo, al alcance del
+        // pulgar y pegado al teclado; el resultado de la última carta queda arriba.
+        <View style={[styles.dock, { backgroundColor: colors.tabBar, borderTopColor: colors.line }]}>
+          <FeedbackBanner
+            status={lastFeedback.status}
+            promptText={lastFeedback.kana}
+            correctText={lastFeedback.correctText}
+            selectedText={lastFeedback.selectedText}
+          />
+          <View style={styles.dockRow}>
+            <View style={[styles.dockKana, { backgroundColor: colors.highlight, borderColor: colors.line }]}>
+              <AppText
+                numberOfLines={1}
+                style={[styles.dockKanaText, { fontSize: activeCard && activeCard.kana.length > 1 ? 18 : 24 }]}
+                color={colors.onHighlight}
+              >
+                {activeCard?.kana ?? '—'}
+              </AppText>
+            </View>
             <TextInput
               ref={inputRef}
               value={inputValue}
@@ -263,36 +237,46 @@ export function KanaBoardGameScreen({
               returnKeyType="done"
               maxLength={6}
               placeholder="romaji"
-              placeholderTextColor={activeTheme.colors.textMuted}
-              selectionColor={activeTheme.colors.accent}
-              style={[styles.input, { color: activeTheme.colors.textPrimary }]}
+              placeholderTextColor={colors.textMuted}
+              selectionColor={colors.primary}
+              style={[
+                styles.dockInput,
+                { color: colors.textPrimary, borderColor: colors.primary, backgroundColor: colors.card },
+              ]}
             />
+            <InkPressable
+              onPress={() => submit()}
+              disabled={inputValue.trim().length === 0}
+              accessibilityLabel="Listo"
+              style={[styles.dockButton, { backgroundColor: colors.primary, boxShadow: inkShadow(colors.shadow, 2) }]}
+            >
+              <AppText style={styles.dockArrow} color={colors.onPrimary}>
+                →
+              </AppText>
+            </InkPressable>
           </View>
-          <PrimaryButton
-            title="LISTO"
-            variant="primary"
-            size="compact"
-            disabled={inputValue.trim().length === 0}
-            onPress={() => submit()}
-            style={styles.submitButton}
-          />
         </View>
-      </GlassCard>
+      }
+    >
+      <ScreenHeader
+        eyebrow="盤 · Tablero"
+        title={scriptLabel}
+        compact
+        subtitle={state.round > 1 ? `Vuelta ${state.round} · repasando lo que fallaste` : undefined}
+        actionLabel="Terminar"
+        onActionPress={finish}
+      />
 
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={lastFeedback.status}
-          promptText={lastFeedback.kana}
-          correctText={lastFeedback.correctText}
-          selectedText={lastFeedback.selectedText}
-        />
+      <View style={styles.progressRow}>
+        <View style={styles.progressTrack}>
+          <ProgressTrack value={summary.total > 0 ? summary.solved / summary.total : 0} tone={colors.success} thin />
+        </View>
+        <AppText style={styles.progressText}>
+          {summary.solved} / {summary.total}
+        </AppText>
       </View>
 
-      <AppText
-        variant="bodySmall"
-        color={activeTheme.colors.textMuted}
-        style={styles.hint}
-      >
+      <AppText variant="bodySmall" color={colors.textSecondary} style={styles.hint}>
         Escribí el romaji de la carta marcada y mandá con Enter. Tocá cualquier otra para
         saltar a esa. Las que falles vuelven al final.
       </AppText>
@@ -303,7 +287,7 @@ export function KanaBoardGameScreen({
               <BoardCard
                 key={card.id}
                 card={card}
-                size={cardSize}
+                width={cardSize}
                 isActive={card.id === state.activeCardId}
                 onPress={() => handleSelect(card.id)}
               />
@@ -316,33 +300,33 @@ export function KanaBoardGameScreen({
 
 function BoardCard({
   card,
-  size,
+  width,
   isActive,
   onPress,
 }: {
   card: KanaBoardCard;
-  size: number;
+  width: number;
   isActive: boolean;
   onPress: () => void;
 }) {
   const { theme: activeTheme } = useAppTheme();
-
-  // Una pendiente que ya fallaste alguna vez se marca en ámbar: es la que volvió a la
-  // cola, y verla distinta es la mitad de la gracia de la segunda vuelta.
-  const tone =
-    card.status === 'correct'
-      ? activeTheme.colors.success
-      : card.status === 'incorrect'
-        ? activeTheme.colors.error
-        : isActive
-          ? activeTheme.colors.accent
-          : card.misses > 0
-            ? activeTheme.colors.warning
-            : null;
-
+  const { colors } = activeTheme;
   const resolved = card.status !== 'pending';
-  // Cuando se muestra el romaji abajo, el kana tiene menos alto disponible.
-  const fontSize = Math.round(kanaFontSize(card.kana, size) * (resolved ? 0.78 : 1));
+
+  // Actual: kihada con borde 3 y sombra. Resuelta: verde (o roja en el instante en que la
+  // fallás). Una pendiente que ya fallaste se marca en ámbar: es la que volvió a la cola,
+  // y verla distinta es la mitad de la gracia de la segunda vuelta.
+  const look = isActive
+    ? { border: colors.line, background: colors.highlight, text: colors.onHighlight }
+    : card.status === 'correct'
+      ? { border: colors.success, background: colors.successSoft, text: colors.successInk }
+      : card.status === 'incorrect'
+        ? { border: colors.error, background: colors.errorSoft, text: colors.errorInk }
+        : card.misses > 0
+          ? { border: colors.warning, background: colors.warningSoft, text: colors.textPrimary }
+          : { border: colors.hair, background: colors.card, text: colors.textPrimary };
+
+  const fontSize = card.kana.length > 1 ? 15 : 20;
 
   return (
     <Pressable
@@ -351,27 +335,24 @@ function BoardCard({
       style={({ pressed }) => [
         styles.card,
         {
-          width: size,
-          height: size,
-          borderColor: tone ?? activeTheme.colors.line,
-          borderWidth: isActive ? 2 : 1,
-          backgroundColor: tone
-            ? hexToRgba(tone, 0.1)
-            : activeTheme.colors.backgroundSecondary,
+          width,
+          borderColor: look.border,
+          borderWidth: isActive ? 3 : 2,
+          backgroundColor: look.background,
           opacity: pressed ? 0.7 : 1,
         },
+        isActive ? { boxShadow: inkShadow(colors.shadow, 2) } : null,
       ]}
     >
       <AppText
-        variant="kana"
         numberOfLines={1}
-        style={[styles.cardKana, { fontSize, lineHeight: Math.round(fontSize * 1.25) }]}
-        color={tone ?? activeTheme.colors.textPrimary}
+        style={[styles.cardKana, { fontSize, lineHeight: Math.round(fontSize * 1.3) }]}
+        color={look.text}
       >
         {card.kana}
       </AppText>
       {resolved ? (
-        <AppText variant="label" numberOfLines={1} color={tone ?? activeTheme.colors.textMuted}>
+        <AppText numberOfLines={1} style={styles.cardRomaji} color={look.text}>
           {card.romaji}
         </AppText>
       ) : null}
@@ -385,53 +366,20 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
     marginBottom: theme.spacing.lg,
   },
-  promptCard: {
-    marginBottom: theme.spacing.xs,
-  },
-  promptContent: {
-    padding: theme.spacing.md,
+  progressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-  },
-  promptGlyph: {
-    width: 92,
-    height: 80,
-    borderWidth: 2,
-    borderRadius: theme.radii.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  promptKana: {
-    lineHeight: 50,
-  },
-  promptInputWrap: {
-    flex: 1,
     gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
   },
-  inputUnderline: {
-    width: '100%',
-    maxWidth: 380,
-    borderWidth: 1.5,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+  progressTrack: {
+    flex: 1,
+    flexDirection: 'row',
   },
-  input: {
-    outlineWidth: 0,
-    fontFamily: 'ZenKakuGothicNew_500Medium',
-    fontSize: 22,
-    lineHeight: 28,
-    textAlign: 'center',
-    paddingVertical: 0,
-    minHeight: 36,
-  },
-  submitButton: {
-    alignSelf: 'stretch',
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xxs,
+  progressText: {
+    fontFamily: FONTS.black,
+    fontSize: 12,
+    lineHeight: 16,
   },
   hint: {
     marginBottom: theme.spacing.sm,
@@ -442,12 +390,67 @@ const styles = StyleSheet.create({
     gap: CARD_GAP,
   },
   card: {
-    borderRadius: theme.radii.sm,
+    height: SIZES.boardCell,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
+  cardRomaji: {
+    fontFamily: FONTS.black,
+    fontSize: 9,
+    lineHeight: 11,
+  },
+  dock: {
+    borderTopWidth: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    gap: 8,
+  },
+  dockRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dockKana: {
+    width: 46,
+    height: 46,
+    borderWidth: 2,
+    borderRadius: theme.radii.badge,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dockKanaText: {
+    fontFamily: FONTS.glyph,
+    lineHeight: 30,
+  },
+  dockInput: {
+    flex: 1,
+    minWidth: 0,
+    height: 46,
+    borderWidth: 2,
+    borderRadius: theme.radii.md,
+    paddingHorizontal: 14,
+    fontFamily: FONTS.bold,
+    fontSize: 18,
+    outlineStyle: 'solid',
+    outlineWidth: 0,
+    outlineColor: 'transparent',
+  },
+  dockButton: {
+    width: 46,
+    height: 46,
+    borderRadius: theme.radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dockArrow: {
+    fontFamily: FONTS.black,
+    fontSize: 20,
+    lineHeight: 24,
+  },
   cardKana: {
+    fontFamily: FONTS.glyph,
     ...(Platform.OS === 'web' ? { userSelect: 'none' as const } : null),
   },
   summaryCard: {
@@ -475,12 +478,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    borderWidth: 1,
-    borderRadius: theme.radii.sm,
+    borderRadius: theme.radii.md,
     paddingVertical: theme.spacing.xs,
     paddingHorizontal: theme.spacing.sm,
   },
   missedKana: {
+    fontFamily: FONTS.glyph,
     lineHeight: 40,
     minWidth: 52,
     textAlign: 'center',
