@@ -6,16 +6,16 @@ import { useReadingDrill } from '../../features/game/useReadingDrill';
 import { useTrackProgress } from '../../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { FONTS, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 import { GlassCard } from '../ui/GlassCard';
 import { PrimaryButton } from '../ui/PrimaryButton';
 import { ScreenBackground } from '../ui/ScreenBackground';
-import { ScreenHeader } from '../ui/ScreenHeader';
 import { SpeakButton } from '../ui/SpeakButton';
-import { StatPill } from '../ui/StatPill';
+import { AnswerInput } from './AnswerInput';
 import { AnswerOptionButton } from './AnswerOptionButton';
 import { FeedbackBanner } from './FeedbackBanner';
+import { GameHeader } from './GameHeader';
 
 // La partida de Números y de Fechas y hora: mismo ejercicio, otro contenido (lo pone el
 // `source`). Las pantallas solo arman la fuente y el título.
@@ -32,10 +32,10 @@ type ReadingDrillPlayProps = {
   displayNoun: string;
 };
 
-function promptStyle(text: string) {
-  if (text.length <= 6) return styles.promptLarge;
-  if (text.length <= 11) return styles.promptMedium;
-  return styles.promptSmall;
+// Las cifras van en Dela (56 si entran), la lectura en Klee.
+function promptStyle(text: string, glyph: boolean) {
+  const size = text.length <= 6 ? (glyph ? 60 : 56) : text.length <= 11 ? 40 : 28;
+  return { fontFamily: glyph ? FONTS.glyph : FONTS.display, fontSize: size, lineHeight: Math.round(size * 1.2) };
 }
 
 export function ReadingDrillPlay({
@@ -122,33 +122,28 @@ export function ReadingDrillPlay({
     ? 'La lectura, en romaji o kana'
     : `${displayNoun[0].toUpperCase()}${displayNoun.slice(1)}, con números`;
 
+  // El audio dice la lectura: si la lectura es lo que se pregunta, recién se puede
+  // escuchar después de responder.
+  const canSpeak = direction === 'to-display' || answered;
+  const helpText = answerIsReading ? (isInput ? 'Escribí la lectura' : '¿Cómo se lee?') : null;
+
   return (
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
-      <ScreenHeader eyebrow={eyebrow} title={title} />
-
-      <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={stats.correct} tone="success" />
-        <StatPill label="Fallidos" value={stats.incorrect} tone="error" />
-        <StatPill label="Racha" value={stats.streak} />
-      </View>
+      <GameHeader eyebrow={eyebrow} title={title} score={stats} />
 
       <GlassCard style={styles.card} contentStyle={styles.cardContent}>
-        {/* El audio dice la lectura: si la lectura es lo que se pregunta, recién se puede
-            escuchar después de responder. */}
-        {direction === 'to-display' || (answered && direction === 'to-japanese') ? (
-          <SpeakButton text={reading.kana} style={styles.speakCorner} />
+        {helpText ? (
+          <AppText style={styles.help} color={activeTheme.colors.textSecondary}>
+            {helpText}
+          </AppText>
         ) : null}
 
         <View style={styles.promptWrap}>
           {direction === 'to-display' ? (
-            <AppText variant="kana" style={promptStyle(reading.kana)}>
-              {reading.kana}
-            </AppText>
+            <AppText style={[styles.centered, promptStyle(reading.kana, true)]}>{reading.kana}</AppText>
           ) : (
             <>
-              <AppText variant="display" style={promptStyle(item.display)}>
-                {item.display}
-              </AppText>
+              <AppText style={[styles.centered, promptStyle(item.display, false)]}>{item.display}</AppText>
               {item.sub ? (
                 <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
                   {item.sub}
@@ -167,75 +162,42 @@ export function ReadingDrillPlay({
                 {item.sub ? ` · ${item.sub}` : ''}
               </AppText>
             ) : null}
-            <AppText
-              variant="bodySmall"
-              color={activeTheme.colors.textSecondary}
-              style={styles.centered}
-            >
-              {reading.kana} · {reading.romaji}
+            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
+              <AppText variant="bodySmall" style={styles.glyphInline} color={activeTheme.colors.textSecondary}>
+                {reading.kana}
+              </AppText>
+              {' · '}
+              {reading.romaji}
             </AppText>
             {item.readings.length > 1 ? (
-              <AppText
-                variant="bodySmall"
-                color={activeTheme.colors.textMuted}
-                style={styles.centered}
-              >
+              <AppText variant="bodySmall" color={activeTheme.colors.textMuted} style={styles.centered}>
                 También: {item.readings.slice(1).map((alt) => alt.kana).join(' · ')}
               </AppText>
             ) : null}
           </View>
         ) : null}
+
+        {/* Escribiendo, después de responder el audio pasa al botón cuadrado de abajo. */}
+        {canSpeak && !(isInput && answered) ? (
+          <SpeakButton text={reading.kana} style={styles.speakCorner} />
+        ) : null}
       </GlassCard>
 
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={answerState}
-          correctText={correctText}
-          selectedText={answerState === 'incorrect' ? selectedText : null}
-        />
-      </View>
-
       {isInput ? (
-        <View style={styles.inputSection}>
-          <View
-            style={[
-              styles.inputUnderline,
-              {
-                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
-                borderColor: activeTheme.colors.lineStrong,
-              },
-            ]}
-          >
-            <TextInput
-              ref={inputRef}
-              value={state.inputValue}
-              onChangeText={setInputValue}
-              onSubmitEditing={(event) =>
-                answered ? next() : submit(event.nativeEvent.text)
-              }
-              editable={!answered}
-              autoCapitalize="none"
-              autoCorrect={false}
-              blurOnSubmit={false}
-              keyboardType={answerIsReading ? 'default' : 'numbers-and-punctuation'}
-              returnKeyType="done"
-              maxLength={40}
-              placeholder={placeholder}
-              placeholderTextColor={activeTheme.colors.textMuted}
-              selectionColor={activeTheme.colors.accent}
-              style={[styles.input, { color: activeTheme.colors.textPrimary }]}
-            />
-          </View>
-
-          <PrimaryButton
-            title={answered ? 'SIGUIENTE' : 'RESPONDER'}
-            variant="primary"
-            size="compact"
-            disabled={!answered && state.inputValue.trim().length === 0}
-            onPress={() => (answered ? next() : submit(state.inputValue))}
-            style={styles.submitButton}
-          />
-        </View>
+        <AnswerInput
+          ref={inputRef}
+          value={state.inputValue}
+          onChangeText={setInputValue}
+          onSubmitEditing={(event) => (answered ? next() : submit(event.nativeEvent.text))}
+          editable={!answered}
+          status={answerState}
+          centered
+          blurOnSubmit={false}
+          keyboardType={answerIsReading ? 'default' : 'numbers-and-punctuation'}
+          returnKeyType="done"
+          maxLength={40}
+          placeholder={placeholder}
+        />
       ) : (
         <View style={styles.answersGrid}>
           {round.options.map((option) => (
@@ -250,62 +212,80 @@ export function ReadingDrillPlay({
           ))}
         </View>
       )}
+
+      <View style={styles.spacer} />
+
+      {answered ? (
+        <>
+          <View style={styles.feedbackSlot}>
+            <FeedbackBanner
+              status={answerState}
+              correctText={correctText}
+              selectedText={answerState === 'incorrect' ? selectedText : null}
+            />
+          </View>
+          <View style={styles.actions}>
+            {isInput ? <SpeakButton variant="square" text={reading.kana} /> : null}
+            <PrimaryButton title="SIGUIENTE" variant="primary" onPress={next} style={styles.nextButton} />
+          </View>
+        </>
+      ) : isInput ? (
+        <PrimaryButton
+          title="RESPONDER"
+          variant="primary"
+          disabled={state.inputValue.trim().length === 0}
+          onPress={() => submit(state.inputValue)}
+        />
+      ) : (
+        <View style={styles.waiting}>
+          <AppText variant="labelSmall" color={activeTheme.colors.textMuted}>
+            ELEGÍ UNA OPCIÓN
+          </AppText>
+        </View>
+      )}
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  statsRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
   card: {
-    marginBottom: theme.spacing.sm,
+    marginBottom: 18,
+    borderRadius: theme.radii.xl,
   },
   cardContent: {
-    padding: theme.spacing.md,
+    minHeight: 220,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  help: {
+    position: 'absolute',
+    top: 12,
+    left: 14,
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    lineHeight: 16,
   },
   speakCorner: {
     position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    zIndex: 2,
+    right: 12,
+    bottom: 12,
   },
   promptWrap: {
-    minHeight: 120,
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.xs,
     paddingHorizontal: theme.spacing.lg,
   },
-  promptLarge: {
-    fontSize: 60,
-    lineHeight: 70,
+  centered: {
     textAlign: 'center',
   },
-  promptMedium: {
-    fontSize: 40,
-    lineHeight: 50,
-    textAlign: 'center',
-  },
-  promptSmall: {
-    fontSize: 28,
-    lineHeight: 38,
-    textAlign: 'center',
+  glyphInline: {
+    fontFamily: FONTS.glyph,
   },
   reveal: {
     marginTop: theme.spacing.sm,
     gap: 2,
     alignItems: 'center',
-  },
-  centered: {
-    textAlign: 'center',
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xs,
   },
   answersGrid: {
     flexDirection: 'row',
@@ -313,31 +293,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
-  inputSection: {
-    paddingHorizontal: theme.spacing.lg,
+  spacer: {
+    flex: 1,
+    minHeight: theme.spacing.md,
+  },
+  feedbackSlot: {
+    marginBottom: theme.spacing.sm,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  nextButton: {
+    flex: 1,
+  },
+  waiting: {
+    height: 52,
     alignItems: 'center',
-  },
-  // Ancho fijo y no "lo que ocupe el texto": en web el input se achica al contenido y el
-  // placeholder quedaba cortado. Campo relleno: el borde entero toma el color del resultado.
-  inputUnderline: {
-    width: '100%',
-    maxWidth: 380,
-    borderWidth: 1.5,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  input: {
-    outlineWidth: 0,
-    fontFamily: 'ZenKakuGothicNew_500Medium',
-    fontSize: 22,
-    lineHeight: 28,
-    textAlign: 'center',
-    paddingVertical: 0,
-    minHeight: 36,
-  },
-  submitButton: {
-    marginTop: theme.spacing.lg,
-    minWidth: 180,
+    justifyContent: 'center',
   },
 });

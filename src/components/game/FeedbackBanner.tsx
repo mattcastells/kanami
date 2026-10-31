@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { StyleSheet, View } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { theme } from '../../theme/theme';
+import { FONTS, theme } from '../../theme/theme';
+import { AppText } from '../ui/AppText';
+import { GradeMark } from '../ui/InkBits';
 
 type FeedbackBannerProps = {
   status: 'idle' | 'correct' | 'incorrect';
@@ -12,92 +13,64 @@ type FeedbackBannerProps = {
   // Acertaste salvo por un carácter: cuenta como acierto pero se marca distinto para que
   // veas la forma correcta en vez de fijar el error.
   nearMiss?: boolean;
+  // Segunda línea cuando acertaste (ej. la traducción).
+  detail?: string | null;
 };
 
+// Tira de resultado: ○/× en un círculo, la respuesta correcta primero y debajo lo tuyo
+// (si erraste) o la traducción (si acertaste). En idle no dibuja nada, pero el slot que
+// la contiene conserva su alto para que la pantalla no salte.
 export function FeedbackBanner({
   status,
   promptText,
   correctText,
   selectedText,
   nearMiss = false,
+  detail,
 }: FeedbackBannerProps) {
   const { theme: activeTheme } = useAppTheme();
-  const successTone = activeTheme.colors.success;
-  const errorTone = activeTheme.colors.error;
+  const { colors } = activeTheme;
 
-  const tone =
-    status === 'correct'
-      ? nearMiss
-        ? activeTheme.colors.warning
-        : successTone
-      : status === 'incorrect'
-        ? errorTone
-        : activeTheme.colors.lineStrong;
+  if (status === 'idle') {
+    return null;
+  }
+
+  const ok = status === 'correct';
+  const tone = ok ? (nearMiss ? colors.warning : colors.success) : colors.error;
+  const soft = ok ? (nearMiss ? colors.warningSoft : colors.successSoft) : colors.errorSoft;
 
   const resolvedAnswerText = promptText ? `${promptText} — ${correctText}` : correctText;
 
-  // Cuando errás, LO QUE IMPORTA es la respuesta correcta. Antes iba todo en un renglón
-  // ("Incorrecto: <lo tuyo> -> <prompt> - <correcta>") con `numberOfLines={1}`, y en las
-  // frases largas se cortaba justo antes de la respuesta: el único momento en que el
-  // ejercicio enseña quedaba ilegible. Ahora va en dos líneas y la correcta encabeza.
-  const message =
-    status === 'correct'
-      ? nearMiss
-        ? `Casi — se escribe: ${resolvedAnswerText}`
-        : `Correcto: ${resolvedAnswerText}`
-      : resolvedAnswerText;
-  const secondaryMessage =
-    status === 'incorrect' && selectedText ? `Escribiste: ${selectedText}` : null;
+  // Cuando errás, LO QUE IMPORTA es la respuesta correcta: va primero y en dos líneas
+  // (en un renglón, las frases largas se cortaban justo antes de la respuesta).
+  const message = ok
+    ? nearMiss
+      ? `Casi — se escribe: ${resolvedAnswerText}`
+      : `Correcto: ${resolvedAnswerText}`
+    : resolvedAnswerText;
+  const secondaryMessage = !ok && selectedText ? `Escribiste: ${selectedText}` : ok ? detail : null;
 
   return (
-    <View
-      style={[
-        styles.container,
-        // Vacío no ocupa lugar visual (el slot igual reserva el alto); con resultado es
-        // una tira teñida del color del resultado.
-        status === 'idle'
-          ? null
-          : {
-              backgroundColor:
-                status === 'correct'
-                  ? nearMiss
-                    ? activeTheme.colors.warningSoft
-                    : activeTheme.colors.successSoft
-                  : activeTheme.colors.errorSoft,
-            },
-      ]}
-    >
-      {status === 'idle' ? null : (
-        <>
-          <MaterialCommunityIcons
-            name={
-              status === 'correct'
-                ? nearMiss
-                  ? 'alert-circle-outline'
-                  : 'check-circle-outline'
-                : 'close-circle-outline'
-            }
-            size={18}
-            color={tone}
-          />
-          <View style={styles.messageWrap}>
-            <Text
-              numberOfLines={2}
-              style={[styles.answerText, { color: activeTheme.colors.textPrimary }]}
-            >
-              {message}
-            </Text>
-            {secondaryMessage ? (
-              <Text
-                numberOfLines={1}
-                style={[styles.secondaryText, { color: activeTheme.colors.textMuted }]}
-              >
-                {secondaryMessage}
-              </Text>
-            ) : null}
-          </View>
-        </>
+    <View style={[styles.container, { borderColor: tone, backgroundColor: soft }]}>
+      {nearMiss && ok ? (
+        <View style={[styles.nearMissBadge, { backgroundColor: tone }]}>
+          <AppText style={styles.nearMissGlyph} color={colors.background}>
+            △
+          </AppText>
+        </View>
+      ) : (
+        <GradeMark ok={ok} />
       )}
+      <View style={styles.messageWrap}>
+        <AppText numberOfLines={2} style={styles.answerText}>
+          {message}
+        </AppText>
+        {secondaryMessage ? (
+          <AppText variant="bodySmall" numberOfLines={1} color={colors.textSecondary}>
+            {secondaryMessage}
+          </AppText>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -106,25 +79,31 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
-    minHeight: 44,
+    gap: 10,
+    borderWidth: 2,
     borderRadius: theme.radii.md,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 10,
   },
   messageWrap: {
     flex: 1,
     minWidth: 0,
   },
-  // La respuesta correcta es lo que hay que poder leer: va primero y con más cuerpo.
   answerText: {
-    fontFamily: theme.typography.bodyStrong.fontFamily,
-    fontSize: 13,
-    lineHeight: 16,
+    fontFamily: FONTS.bold,
+    fontSize: 15,
+    lineHeight: 20,
   },
-  secondaryText: {
-    fontFamily: theme.typography.bodySmall.fontFamily,
-    fontSize: 11,
-    lineHeight: 13,
+  nearMissBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nearMissGlyph: {
+    fontFamily: FONTS.black,
+    fontSize: 15,
+    lineHeight: 19,
   },
 });

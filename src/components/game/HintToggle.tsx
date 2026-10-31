@@ -1,66 +1,52 @@
-import { Pressable, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba } from '../../theme/theme';
+import { FONTS, theme } from '../../theme/theme';
+import { AppText } from '../ui/AppText';
+import { InkPressable } from '../ui/InkPressable';
 
 // Muestra/oculta la traducción bajo el prompt. Va en la esquina opuesta al SpeakButton
-// dentro de la tarjeta de la pregunta, con la misma forma para que se lean como pareja.
-// Apagado se ve tenue: es una ayuda opcional, no un control principal.
+// dentro de la tarjeta de la pregunta, con la misma forma (redondo 38, contorno, glifo
+// en Dela) para que se lean como pareja. Prendido = kihada, como todo lo elegido.
 export function HintToggle({
   enabled,
   onToggle,
-  size = 34,
-  iconSize = 18,
   style,
 }: {
   enabled: boolean;
   onToggle: () => void;
-  size?: number;
-  iconSize?: number;
   style?: StyleProp<ViewStyle>;
 }) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
 
   return (
-    <Pressable
-      accessibilityRole="switch"
-      accessibilityState={{ checked: enabled }}
-      accessibilityLabel={
-        enabled ? 'Ocultar la traducción' : 'Mostrar la traducción'
-      }
+    <InkPressable
       onPress={onToggle}
+      elevation="flat"
       hitSlop={6}
-      style={({ pressed }) => [
-        styles.button,
-        {
-          width: size,
-          height: size,
-          borderColor: enabled
-            ? hexToRgba(activeTheme.colors.accent, 0.4)
-            : activeTheme.colors.line,
-          backgroundColor: enabled
-            ? hexToRgba(activeTheme.colors.accent, 0.1)
-            : 'transparent',
-          opacity: pressed ? 0.7 : 1,
-        },
-        style,
-      ]}
+      accessibilityRole="switch"
+      accessibilityLabel={enabled ? 'Ocultar la traducción' : 'Mostrar la traducción'}
+      style={[styles.button, { backgroundColor: enabled ? colors.highlight : colors.card }, style]}
     >
-      <MaterialCommunityIcons
-        name={enabled ? 'eye-outline' : 'eye-off-outline'}
-        size={iconSize}
-        color={enabled ? activeTheme.colors.accent : activeTheme.colors.textMuted}
-      />
-    </Pressable>
+      <AppText style={styles.glyph} color={enabled ? colors.onHighlight : colors.textMuted}>
+        訳
+      </AppText>
+    </InkPressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 999,
-    borderWidth: 1,
+    width: 38,
+    height: 38,
+    borderRadius: theme.radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  glyph: {
+    fontFamily: FONTS.display,
+    fontSize: 14,
+    lineHeight: 18,
   },
 });

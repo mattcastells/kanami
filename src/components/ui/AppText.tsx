@@ -13,6 +13,8 @@ type AppTextProps = {
   // Ponelo en false donde el alto del contenedor es fijo y el escalado de fuente
   // del sistema recortaría el texto (por ejemplo, la barra de tabs).
   allowFontScaling?: boolean;
+  // Texto tocable dentro de un párrafo (link).
+  onPress?: () => void;
 };
 
 const variantStyles = StyleSheet.create(theme.typography);
@@ -24,6 +26,7 @@ export function AppText({
   style,
   numberOfLines,
   allowFontScaling,
+  onPress,
 }: AppTextProps) {
   const { theme: activeTheme } = useAppTheme();
 
@@ -31,6 +34,7 @@ export function AppText({
     <Text
       numberOfLines={numberOfLines}
       allowFontScaling={allowFontScaling}
+      onPress={onPress}
       style={[
         variantStyles[variant],
         { color: color ?? activeTheme.colors.textPrimary },

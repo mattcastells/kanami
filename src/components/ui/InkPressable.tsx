@@ -16,6 +16,8 @@ type Props = {
   style?: StyleProp<ViewStyle>;
   children: ReactNode;
   hitSlop?: number;
+  // En false, deshabilitado no se apaga (opción ya respondida: el resultado se tiene que leer).
+  dimDisabled?: boolean;
   accessibilityLabel?: string;
   accessibilityRole?: AccessibilityRole;
 };
@@ -28,6 +30,7 @@ export function InkPressable({
   style,
   children,
   hitSlop,
+  dimDisabled = true,
   accessibilityLabel,
   accessibilityRole = 'button',
 }: Props) {
@@ -47,7 +50,7 @@ export function InkPressable({
         { outlineWidth: 0, outlineColor: 'transparent' },
         style,
         elevation !== 'flat' && (sunken || (pressed && !disabled)) ? theme.surfaces.press : null,
-        disabled ? { opacity: 0.45 } : null,
+        disabled && dimDisabled ? { opacity: 0.45 } : null,
       ]}
     >
       {children}

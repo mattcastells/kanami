@@ -1,23 +1,16 @@
 import { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Easing,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  TextStyle,
-  ViewStyle,
-} from 'react-native';
+import { Animated, Easing, StyleProp, StyleSheet, TextStyle, View, ViewStyle } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { theme } from '../../theme/theme';
+import { FONTS, SIZES, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
+import { GradeMark } from '../ui/InkBits';
+import { InkPressable } from '../ui/InkPressable';
 
-export type AnswerOptionVisualState =
-  | 'idle'
-  | 'correct'
-  | 'incorrect'
-  | 'muted';
+// Kana o kanji en el texto: va en Klee (todo japonés que se lee va en FONTS.glyph).
+const JAPANESE = /[぀-ヿ一-鿿]/;
+
+export type AnswerOptionVisualState = 'idle' | 'selected' | 'correct' | 'incorrect' | 'muted';
 
 type AnswerOptionButtonProps = {
   label: string;
@@ -27,8 +20,13 @@ type AnswerOptionButtonProps = {
   labelWrapStyle?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;
   fullWidth?: boolean;
+  // Opción que es un kanji suelto: más alta y en Klee 40.
+  kanji?: boolean;
 };
 
+// Opción de respuesta. idle = card con sombra; selected = kihada hundida (antes de
+// confirmar); correcta/incorrecta = teñida, borde 3 del tono y ○/× en la esquina;
+// muted = apagada para que la vista vaya a las dos que importan.
 export function AnswerOptionButton({
   label,
   visualState,
@@ -37,30 +35,21 @@ export function AnswerOptionButton({
   labelWrapStyle,
   labelStyle,
   fullWidth = false,
+  kanji = false,
 }: AnswerOptionButtonProps) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
 
-  // Correct: subtle scale pulse 1 -> 1.02 -> 1 (180ms).
-  // Incorrect: horizontal shake +/-4px, 3 cycles (240ms).
-  // Feedback also carries via border color + text, never animation alone.
+  // Correcta: pulso 1 → 1.02 → 1 (180ms). Incorrecta: sacudida ±4px (240ms).
+  // El resultado también va por color y por ○/×, nunca solo por la animación.
   const pulse = useRef(new Animated.Value(0)).current;
   const shake = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visualState === 'correct') {
       Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 90,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0,
-          duration: 90,
-          easing: Easing.in(Easing.quad),
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulse, { toValue: 1, duration: 90, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 90, easing: Easing.in(Easing.quad), useNativeDriver: true }),
       ]).start();
     } else if (visualState === 'incorrect') {
       shake.setValue(0);
@@ -73,14 +62,30 @@ export function AnswerOptionButton({
     }
   }, [pulse, shake, visualState]);
 
-  const tone =
-    visualState === 'correct'
-      ? activeTheme.colors.success
-      : visualState === 'incorrect'
-        ? activeTheme.colors.error
-        : activeTheme.colors.accent;
+  const graded = visualState === 'correct' || visualState === 'incorrect';
+  const ok = visualState === 'correct';
 
-  const isMuted = visualState === 'muted';
+  const surface: ViewStyle =
+    visualState === 'correct'
+      ? { backgroundColor: colors.successSoft, borderWidth: 3, borderColor: colors.success, boxShadow: 'none' }
+      : visualState === 'incorrect'
+        ? { backgroundColor: colors.errorSoft, borderWidth: 3, borderColor: colors.error, boxShadow: 'none' }
+        : visualState === 'muted'
+          ? { backgroundColor: colors.surface2, borderColor: colors.hair, boxShadow: 'none' }
+          : visualState === 'selected'
+            ? { backgroundColor: colors.highlight }
+            : { backgroundColor: colors.card };
+
+  const textColor =
+    visualState === 'correct'
+      ? colors.successInk
+      : visualState === 'incorrect'
+        ? colors.errorInk
+        : visualState === 'muted'
+          ? colors.textMuted
+          : visualState === 'selected'
+            ? colors.onHighlight
+            : colors.textPrimary;
 
   const animatedStyle = {
     transform: [
@@ -90,57 +95,41 @@ export function AnswerOptionButton({
   };
 
   return (
-    <Pressable
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.wrap,
-        fullWidth ? styles.wrapFull : null,
-        pressed && !disabled ? styles.pressed : null,
-      ]}
-    >
-      {/* idle: card que flota; correcta/incorrecta: teñida y con borde del color del
-          resultado; muted: se apaga para que la vista vaya a las dos que importan. */}
-      <Animated.View
+    <Animated.View style={[styles.wrap, fullWidth ? styles.wrapFull : null, animatedStyle]}>
+      <InkPressable
+        onPress={onPress}
+        disabled={disabled}
+        sunken={visualState === 'selected'}
+        // Deshabilitada por estar respondida no se apaga: el resultado tiene que leerse.
+        dimDisabled={false}
         style={[
           styles.container,
-          visualState === 'idle' ? activeTheme.surfaces.card : null,
-          visualState === 'correct' || visualState === 'incorrect'
-            ? {
-                borderWidth: 1.5,
-                borderColor: tone,
-                backgroundColor:
-                  visualState === 'correct'
-                    ? activeTheme.colors.successSoft
-                    : activeTheme.colors.errorSoft,
-              }
-            : {
-                backgroundColor:
-                  visualState === 'muted'
-                    ? activeTheme.colors.backgroundTertiary
-                    : activeTheme.colors.card,
-              },
-          animatedStyle,
+          { minHeight: kanji ? SIZES.optionKanji : SIZES.option },
+          surface,
         ]}
       >
-        <Animated.View style={labelWrapStyle}>
+        {graded ? (
+          <View style={styles.mark}>
+            <GradeMark ok={ok} variant="inline" />
+          </View>
+        ) : null}
+        <View style={labelWrapStyle}>
           <AppText
             variant="option"
-            color={
-              isMuted
-                ? activeTheme.colors.textMuted
-                : visualState === 'idle'
-                  ? activeTheme.colors.textPrimary
-                  : tone
-            }
-            style={[styles.label, labelStyle]}
+            color={textColor}
+            style={[
+              styles.label,
+              JAPANESE.test(label) ? styles.glyphLabel : null,
+              kanji ? styles.kanjiLabel : null,
+              labelStyle,
+            ]}
             numberOfLines={1}
           >
             {label}
           </AppText>
-        </Animated.View>
-      </Animated.View>
-    </Pressable>
+        </View>
+      </InkPressable>
+    </Animated.View>
   );
 }
 
@@ -154,23 +143,29 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   container: {
-    minHeight: 64,
-    borderRadius: theme.radii.md,
+    borderRadius: theme.radii.lg,
     paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingVertical: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
     // Evita que un texto largo (ej. lecturas de horarios) se derrame del botón.
     overflow: 'hidden',
   },
+  mark: {
+    position: 'absolute',
+    top: 4,
+    right: 10,
+  },
   label: {
-    fontSize: 16,
-    lineHeight: 20,
     textAlign: 'center',
     maxWidth: '100%',
   },
-  pressed: {
-    opacity: 0.9,
+  glyphLabel: {
+    fontFamily: FONTS.glyph,
+  },
+  kanjiLabel: {
+    fontFamily: FONTS.glyph,
+    fontSize: 40,
+    lineHeight: 52,
   },
 });

@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
-import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, G, Line, Path, Text as SvgText } from 'react-native-svg';
 
 import { CharacterStroke } from '../../data/hiraganaStrokes';
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../../theme/theme';
+import { FONTS, hexToRgba, inkShadow, theme } from '../../theme/theme';
 import { DrawingPoint } from '../../features/game/drawingGameEngine';
 
 type DrawingCanvasProps = {
@@ -18,6 +18,8 @@ type DrawingCanvasProps = {
   nextStrokeIndex: number;
   disabled: boolean;
   onStrokeComplete: (points: DrawingPoint[]) => void;
+  // Fantasma, flecha del próximo trazo y números. Apagada, se dibuja de memoria.
+  showGuide?: boolean;
 };
 
 // Convert 0-100 points to a smooth SVG path in pixel space.
@@ -72,9 +74,10 @@ export function DrawingCanvas({
   nextStrokeIndex,
   disabled,
   onStrokeComplete,
+  showGuide = true,
 }: DrawingCanvasProps) {
-  const { theme: activeTheme, mode } = useAppTheme();
-  const isDark = mode === 'dark';
+  const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
 
   const onStrokeCompleteRef = useRef(onStrokeComplete);
   onStrokeCompleteRef.current = onStrokeComplete;
@@ -162,11 +165,10 @@ export function DrawingCanvas({
       runOnJS(endStroke)();
     });
 
-  const ghostColor = hexToRgba(activeTheme.colors.textPrimary, isDark ? 0.1 : 0.09);
-  const guideColor = hexToRgba(activeTheme.colors.textPrimary, isDark ? 0.16 : 0.14);
-  const nextGuideColor = hexToRgba(activeTheme.colors.accent, 0.55);
-  const activeStrokeColor = activeTheme.colors.accent;
-  const strokeInk = activeTheme.colors.textPrimary;
+  const ghostColor = hexToRgba(colors.textPrimary, 0.08);
+  const nextGuideColor = hexToRgba(colors.accent, 0.55);
+  const ghostWidth = Math.max(10, size * 0.07);
+  const half = size / 2;
 
   return (
     <GestureDetector gesture={pan}>
@@ -177,8 +179,9 @@ export function DrawingCanvas({
           {
             width: size,
             height: size,
-            backgroundColor: activeTheme.colors.backgroundTertiary,
-            borderColor: activeTheme.colors.line,
+            backgroundColor: colors.card,
+            borderColor: colors.line,
+            boxShadow: inkShadow(colors.shadow, 4),
           },
         ]}
       >
@@ -188,80 +191,58 @@ export function DrawingCanvas({
           viewBox={`0 0 ${size} ${size}`}
           style={StyleSheet.absoluteFill}
         >
-          {/* Ghost: the full character traced faintly behind everything. */}
-          {guideStrokes.map((stroke, index) => (
-            <Path
-              key={`ghost-${index}`}
-              d={guidePath(stroke, size)}
-              stroke={ghostColor}
-              strokeWidth={6}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          ))}
+          {/* Guías: cruz centrada, discontinua. */}
+          <Line x1={half} y1={0} x2={half} y2={size} stroke={colors.hair} strokeWidth={2} strokeDasharray="6 6" />
+          <Line x1={0} y1={half} x2={size} y2={half} stroke={colors.hair} strokeWidth={2} strokeDasharray="6 6" />
 
-          {/* Pending guides: number bubbles + highlighted next stroke with arrow. */}
-          {guideStrokes.map((stroke, index) => {
-            if (index < nextStrokeIndex) return null;
-            const isNext = index === nextStrokeIndex && !disabled;
-            const color = isNext ? nextGuideColor : guideColor;
-            return (
-              <G key={`guide-${index}`}>
-                {isNext ? (
-                  <>
-                    <Path
-                      d={guidePath(stroke, size)}
-                      stroke={color}
-                      strokeWidth={3}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                    />
-                    <Path
-                      d={arrowHead(stroke, size)}
-                      stroke={color}
-                      strokeWidth={3}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                    />
-                  </>
-                ) : null}
-                <Circle
-                  cx={(stroke[0][0] / 100) * size}
-                  cy={(stroke[0][1] / 100) * size}
-                  r={9}
-                  fill={isNext ? activeTheme.colors.accent : guideColor}
+          {/* Fantasma: el carácter entero, tenue, con los mismos trazos contra los que se
+              corrige (un glifo de fuente no coincidiría con ellos). */}
+          {showGuide
+            ? guideStrokes.map((stroke, index) => (
+                <Path
+                  key={`ghost-${index}`}
+                  d={guidePath(stroke, size)}
+                  stroke={ghostColor}
+                  strokeWidth={ghostWidth}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
                 />
-                <SvgText
-                  x={(stroke[0][0] / 100) * size}
-                  y={(stroke[0][1] / 100) * size + 3.5}
-                  textAnchor="middle"
-                  fill={isNext ? activeTheme.colors.onAccent : activeTheme.colors.textMuted}
-                  fontSize={10}
-                  fontWeight="bold"
-                >
-                  {String(index + 1)}
-                </SvgText>
-              </G>
-            );
-          })}
+              ))
+            : null}
 
-          {/* Completed user strokes, colored by per-stroke result. */}
+          {/* Próximo trazo: línea fina con flecha de dirección. */}
+          {showGuide && !disabled && guideStrokes[nextStrokeIndex] ? (
+            <G>
+              <Path
+                d={guidePath(guideStrokes[nextStrokeIndex], size)}
+                stroke={nextGuideColor}
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <Path
+                d={arrowHead(guideStrokes[nextStrokeIndex], size)}
+                stroke={nextGuideColor}
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </G>
+          ) : null}
+
+          {/* Trazos del usuario: ruri; verde si coincide, rojo si al corregir no. */}
           {userStrokes.map((stroke, index) => {
             const matched = strokeResults[index];
-            const color = matched
-              ? activeTheme.colors.success
-              : disabled
-                ? activeTheme.colors.error
-                : strokeInk;
+            const color = matched ? colors.success : disabled ? colors.error : colors.primary;
             return (
               <Path
                 key={`user-${index}`}
                 d={smoothPath(stroke, size)}
                 stroke={color}
-                strokeWidth={5}
+                strokeWidth={12}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 fill="none"
@@ -269,17 +250,33 @@ export function DrawingCanvas({
             );
           })}
 
-          {/* In-progress stroke. */}
+          {/* Trazo en curso. */}
           {activePath ? (
             <Path
               d={activePath}
-              stroke={activeStrokeColor}
-              strokeWidth={5}
+              stroke={colors.primary}
+              strokeWidth={12}
               strokeLinecap="round"
               strokeLinejoin="round"
               fill="none"
             />
           ) : null}
+
+          {/* Número de cada trazo, en su punto de inicio (encima de todo). */}
+          {showGuide
+            ? guideStrokes.map((stroke, index) => {
+                const cx = (stroke[0][0] / 100) * size;
+                const cy = (stroke[0][1] / 100) * size;
+                return (
+                  <G key={`badge-${index}`}>
+                    <Circle cx={cx} cy={cy} r={11} fill={colors.accent} stroke={colors.line} strokeWidth={2} />
+                    <SvgText x={cx} y={cy + 4} textAnchor="middle" fill={colors.onAccent} fontSize={11} fontFamily={FONTS.black}>
+                      {String(index + 1)}
+                    </SvgText>
+                  </G>
+                );
+              })
+            : null}
         </Svg>
       </View>
     </GestureDetector>
@@ -288,8 +285,8 @@ export function DrawingCanvas({
 
 const styles = StyleSheet.create({
   canvas: {
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
+    borderRadius: theme.radii.xl,
+    borderWidth: 2,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',

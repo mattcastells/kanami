@@ -714,7 +714,7 @@ function WordSyllablesGameView({
   if (sessionLength && state.stats.answered >= sessionLength) {
     return (
       <SessionSummary
-        title="Palabra guiada"
+        modeLabel="Palabra guiada"
         correct={state.stats.correct}
         incorrect={state.stats.incorrect}
         onRepeat={onRepeat}
@@ -1190,7 +1190,7 @@ function FillBlankGameView({
   if (sessionLength && state.stats.answered >= sessionLength) {
     return (
       <SessionSummary
-        title="Completar la palabra"
+        modeLabel="Completar la palabra"
         correct={state.stats.correct}
         incorrect={state.stats.incorrect}
         onRepeat={onRepeat}
@@ -1327,7 +1327,7 @@ function WordBuilderGameView({
   if (sessionLength && state.stats.answered >= sessionLength) {
     return (
       <SessionSummary
-        title="Constructor"
+        modeLabel="Constructor"
         correct={state.stats.correct}
         incorrect={state.stats.incorrect}
         onRepeat={onRepeat}
