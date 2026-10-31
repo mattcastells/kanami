@@ -1,11 +1,14 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
+import { GameCard } from '../components/practice/GameCard';
 import { AnimatedRow } from '../components/ui/AnimatedRow';
 import { AppText } from '../components/ui/AppText';
-import { GradientFill } from '../components/ui/GradientFill';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
+import { Seigaiha } from '../components/ui/Seigaiha';
+import { Tanzaku } from '../components/ui/Tanzaku';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, hexToRgba, theme } from '../theme/theme';
+import { FONTS, inkShadow, SIZES, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 // La pestaña 練 Practicar es SOLO juegos: una card por modo, todas del mismo tamaño.
@@ -27,44 +30,21 @@ type PracticeCard = {
 };
 
 export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>) {
-  const { theme: activeTheme } = useAppTheme();
-  const { colors } = activeTheme;
-
   const cards: PracticeCard[] = [
     // Hiragana, Katakana y Kanji viven adentro de "Kanas": tres cards de "qué escritura
     // practico" ocupaban media grilla.
     { glyph: '字', title: 'Kanas', onPress: () => navigation.navigate('Kanas') },
-    {
-      glyph: '語',
-      title: 'Vocabulario',
-      onPress: () => navigation.navigate('Vocabulary'),
-    },
-    {
-      glyph: '意',
-      title: 'Significados',
-      onPress: () => navigation.navigate('Meanings'),
-    },
-    {
-      glyph: '反',
-      title: 'Antónimos',
-      onPress: () => navigation.navigate('AntonymGame'),
-    },
+    { glyph: '語', title: 'Vocabulario', onPress: () => navigation.navigate('Vocabulary') },
+    { glyph: '意', title: 'Significados', onPress: () => navigation.navigate('Meanings') },
+    { glyph: '反', title: 'Antónimos', onPress: () => navigation.navigate('AntonymGame') },
     { glyph: '数', title: 'Números', onPress: () => navigation.navigate('Numbers') },
-    {
-      glyph: '暦',
-      title: 'Fechas y hora',
-      onPress: () => navigation.navigate('DateTime'),
-    },
+    { glyph: '暦', title: 'Fechas y hora', onPress: () => navigation.navigate('DateTime') },
     {
       glyph: '絵',
       title: 'Imágenes',
       onPress: () => navigation.navigate('EmojiGame', { script: 'mixed' }),
     },
-    {
-      glyph: '訳',
-      title: 'Traducción',
-      onPress: () => navigation.navigate('TranslationGame'),
-    },
+    { glyph: '訳', title: 'Traducción', onPress: () => navigation.navigate('TranslationGame') },
   ];
 
   // De a dos por fila. Si queda una impar, ocupa la fila entera: una card a media
@@ -76,24 +56,8 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
 
   return (
     <ScreenBackground scrollable showBack={false}>
-      {/* Cabecera índigo: el único bloque de color pleno de la pantalla. El kanji grande
-          en mincho es ilustración, no texto; el círculo sakura le da el punto cálido. */}
       <AnimatedRow index={0}>
-        <View style={[styles.hero, activeTheme.surfaces.raised]}>
-          <GradientFill from={colors.brand} to={colors.brandRaised} />
-          <View
-            style={[styles.heroSun, { backgroundColor: hexToRgba(colors.accent, 0.55) }]}
-          />
-          <AppText variant="overline" color={hexToRgba(colors.onBrand, 0.7)}>
-            練習 · Kanami
-          </AppText>
-          <AppText variant="display" color={colors.onBrand}>
-            Practicar
-          </AppText>
-          <AppText variant="bodySmall" color={hexToRgba(colors.onBrand, 0.75)}>
-            {cards.length} juegos para entrenar lo que ves en clase
-          </AppText>
-        </View>
+        <PracticeHero gameCount={cards.length} />
       </AnimatedRow>
 
       {/* Grilla pareja de 2 columnas. Todas las cards miden igual: ningún juego vale más
@@ -105,7 +69,7 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
           <AnimatedRow key={row.map((card) => card.title).join()} index={rowIndex + 1}>
             <View style={styles.row}>
               {row.map((card) => (
-                <PracticeTile key={card.title} {...card} />
+                <GameCard key={card.title} glyph={card.glyph} title={card.title} onPress={card.onPress} />
               ))}
             </View>
           </AnimatedRow>
@@ -115,87 +79,99 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
   );
 }
 
-function PracticeTile({ glyph, title, onPress }: PracticeCard) {
+// Cabecera: grabado de olas (seigaiha) con el sol bermellón y el tanzaku 練習. El único
+// bloque de color pleno de la pantalla.
+function PracticeHero({ gameCount }: { gameCount: number }) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
+  const [width, setWidth] = useState(0);
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.tile,
-        activeTheme.surfaces.card,
-        { backgroundColor: activeTheme.colors.card },
-        pressed && styles.pressed,
+    // La sombra va en un View aparte del que recorta: con overflow hidden en el mismo
+    // View, Android corta la sombra dura.
+    <View
+      style={[
+        styles.heroShadow,
+        { borderColor: colors.line, backgroundColor: colors.waveA, boxShadow: inkShadow(colors.shadow, 4) },
       ]}
     >
-      <View
-        style={[styles.badge, { backgroundColor: activeTheme.colors.highlight }]}
-      >
-        <AppText style={[styles.badgeGlyph, { color: activeTheme.colors.onHighlight }]}>{glyph}</AppText>
+      <View style={styles.heroClip} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+        <Seigaiha width={width} height={SIZES.heroHeight} a={colors.waveA} b={colors.waveB} />
+        <View style={[styles.sun, { backgroundColor: colors.accent, borderColor: colors.line }]} />
+        <Tanzaku text="練習" size={17} style={styles.tanzaku} />
+        <View style={styles.heroText}>
+          <View style={[styles.heroChip, { backgroundColor: colors.card, borderColor: colors.line }]}>
+            <AppText style={styles.heroChipText}>KANAMI · {gameCount} JUEGOS</AppText>
+          </View>
+          <AppText variant="display" color={colors.onWave} style={[styles.heroTitle, { textShadowColor: colors.shadow }]}>
+            Practicar
+          </AppText>
+        </View>
       </View>
-      {/* Sin numberOfLines: un título largo entra en dos renglones antes que cortarse.
-          Los títulos truncados eran el síntoma más visible del mosaico viejo. */}
-      <AppText variant="bodyStrong" style={styles.tileTitle}>
-        {title}
-      </AppText>
-    </Pressable>
+    </View>
   );
 }
 
-// Dos columnas con `gap`: cada tile ocupa la mitad menos medio gap.
 const GRID_GAP = theme.spacing.sm;
+const HERO_RADIUS = theme.radii.xl;
 
 const styles = StyleSheet.create({
-  hero: {
-    borderRadius: theme.radii.xl,
-    padding: theme.spacing.xl,
-    paddingTop: theme.spacing.xxl,
-    marginBottom: theme.spacing.lg,
-    overflow: 'hidden',
-    gap: 2,
+  heroShadow: {
+    height: SIZES.heroHeight,
+    borderRadius: HERO_RADIUS,
+    borderWidth: 2,
   },
-  heroSun: {
+  heroClip: {
+    flex: 1,
+    // El radio interno descuenta el borde para que el recorte no asome por la esquina.
+    borderRadius: HERO_RADIUS - 2,
+    overflow: 'hidden',
+  },
+  sun: {
     position: 'absolute',
-    top: -40,
-    right: -30,
-    width: 150,
-    height: 150,
-    borderRadius: 999,
+    right: -28,
+    top: -34,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
+    borderWidth: 2,
+  },
+  tanzaku: {
+    position: 'absolute',
+    right: 22,
+    top: 18,
+  },
+  heroText: {
+    position: 'absolute',
+    left: 16,
+    bottom: 14,
+    gap: 6,
+    alignItems: 'flex-start',
+  },
+  heroChip: {
+    borderWidth: 2,
+    borderRadius: theme.radii.pill,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+  },
+  heroChipText: {
+    fontFamily: FONTS.black,
+    fontSize: 10,
+    lineHeight: 13,
+    letterSpacing: 1.5,
+  },
+  heroTitle: {
+    textShadowOffset: { width: 3, height: 3 },
+    // En web, radio 0 no pinta la sombra: casi 0 da el mismo borde duro.
+    textShadowRadius: 0.01,
   },
   grid: {
     gap: GRID_GAP,
+    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.xxl,
   },
   row: {
     flexDirection: 'row',
     gap: GRID_GAP,
-  },
-  tile: {
-    flex: 1,
-    minWidth: 0,
-    borderRadius: theme.radii.lg,
-    padding: theme.spacing.md,
-    minHeight: 120,
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-  },
-  badge: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeGlyph: {
-    fontFamily: FONTS.bold,
-    fontSize: 19,
-    lineHeight: 24,
-  },
-  tileTitle: {
-    paddingRight: theme.spacing.xl,
-  },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
   },
 });

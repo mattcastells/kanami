@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
+import { GameCard } from '../components/practice/GameCard';
+import { AnimatedRow } from '../components/ui/AnimatedRow';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
-import { useAppTheme } from '../theme/AppThemeProvider';
 import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
@@ -14,7 +14,6 @@ import { RootStackScreenProps } from '../types/navigation';
 // Kanji no es kana, pero se agrupa acá a pedido: es la misma pregunta de "qué escritura
 // practico hoy". Cada opción abre su selección de siempre.
 export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
-  const { theme: activeTheme } = useAppTheme();
   const options = [
     {
       glyph: 'あ',
@@ -39,22 +38,25 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
   return (
     <ScreenBackground scrollable>
       <ScreenHeader eyebrow="字 · Kanas" title="¿Qué escritura?" />
-      <ModeGrid wide>
-        {options.map((option) => (
-          <ModeTile
-            key={option.title}
-            glyph={option.glyph}
-            title={option.title}
-            description={option.description}
-            wide
-            selected={false}
-            onPress={option.onPress}
-          />
+      <View style={styles.list}>
+        {options.map((option, index) => (
+          <AnimatedRow key={option.title} index={index}>
+            <GameCard
+              wide
+              glyph={option.glyph}
+              title={option.title}
+              description={option.description}
+              onPress={option.onPress}
+            />
+          </AnimatedRow>
         ))}
-      </ModeGrid>
+      </View>
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  list: {
+    gap: theme.spacing.sm,
+  },
 });
