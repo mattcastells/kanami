@@ -8,13 +8,12 @@ import { useTrackWeakItem } from '../../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { FONTS, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
-import { GlassCard } from '../ui/GlassCard';
 import { PrimaryButton } from '../ui/PrimaryButton';
 import { ScreenBackground } from '../ui/ScreenBackground';
 import { SpeakButton } from '../ui/SpeakButton';
 import { AnswerInput } from './AnswerInput';
 import { AnswerOptionButton } from './AnswerOptionButton';
-import { FeedbackBanner } from './FeedbackBanner';
+import { GameFooter, PromptCard, WaitingHint } from './GamePlay';
 import { GameHeader } from './GameHeader';
 
 // La partida de Números y de Fechas y hora: mismo ejercicio, otro contenido (lo pone el
@@ -131,57 +130,50 @@ export function ReadingDrillPlay({
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
       <GameHeader eyebrow={eyebrow} title={title} score={stats} />
 
-      <GlassCard style={styles.card} contentStyle={styles.cardContent}>
-        {helpText ? (
-          <AppText style={styles.help} color={activeTheme.colors.textSecondary}>
-            {helpText}
-          </AppText>
-        ) : null}
-
-        <View style={styles.promptWrap}>
-          {direction === 'to-display' ? (
-            <AppText style={[styles.centered, promptStyle(reading.kana, true)]}>{reading.kana}</AppText>
-          ) : (
-            <>
-              <AppText style={[styles.centered, promptStyle(item.display, false)]}>{item.display}</AppText>
-              {item.sub ? (
-                <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-                  {item.sub}
+      <PromptCard
+        size={isInput ? 'input' : 'choice'}
+        help={helpText ?? undefined}
+        // Escribiendo, después de responder el audio pasa al botón cuadrado de abajo.
+        bottomRight={canSpeak && !(isInput && answered) ? <SpeakButton text={reading.kana} /> : null}
+        below={
+          answered ? (
+            <View style={styles.reveal}>
+              {/* En cifra → lectura la cifra ya está a la vista: no se repite. */}
+              {direction !== 'to-japanese' ? (
+                <AppText variant="option" style={styles.centered}>
+                  {item.display}
+                  {item.sub ? ` · ${item.sub}` : ''}
                 </AppText>
               ) : null}
-            </>
-          )}
-        </View>
-
-        {answered ? (
-          <View style={styles.reveal}>
-            {/* En cifra → lectura la cifra ya está a la vista: no se repite. */}
-            {direction !== 'to-japanese' ? (
-              <AppText variant="option" style={styles.centered}>
-                {item.display}
-                {item.sub ? ` · ${item.sub}` : ''}
+              <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
+                <AppText variant="bodySmall" style={styles.glyphInline} color={activeTheme.colors.textSecondary}>
+                  {reading.kana}
+                </AppText>
+                {' · '}
+                {reading.romaji}
+              </AppText>
+              {item.readings.length > 1 ? (
+                <AppText variant="bodySmall" color={activeTheme.colors.textMuted} style={styles.centered}>
+                  También: {item.readings.slice(1).map((alt) => alt.kana).join(' · ')}
+                </AppText>
+              ) : null}
+            </View>
+          ) : null
+        }
+      >
+        {direction === 'to-display' ? (
+          <AppText style={[styles.centered, promptStyle(reading.kana, true)]}>{reading.kana}</AppText>
+        ) : (
+          <>
+            <AppText style={[styles.centered, promptStyle(item.display, false)]}>{item.display}</AppText>
+            {item.sub ? (
+              <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
+                {item.sub}
               </AppText>
             ) : null}
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
-              <AppText variant="bodySmall" style={styles.glyphInline} color={activeTheme.colors.textSecondary}>
-                {reading.kana}
-              </AppText>
-              {' · '}
-              {reading.romaji}
-            </AppText>
-            {item.readings.length > 1 ? (
-              <AppText variant="bodySmall" color={activeTheme.colors.textMuted} style={styles.centered}>
-                También: {item.readings.slice(1).map((alt) => alt.kana).join(' · ')}
-              </AppText>
-            ) : null}
-          </View>
-        ) : null}
-
-        {/* Escribiendo, después de responder el audio pasa al botón cuadrado de abajo. */}
-        {canSpeak && !(isInput && answered) ? (
-          <SpeakButton text={reading.kana} style={styles.speakCorner} />
-        ) : null}
-      </GlassCard>
+          </>
+        )}
+      </PromptCard>
 
       {isInput ? (
         <AnswerInput
@@ -213,69 +205,34 @@ export function ReadingDrillPlay({
         </View>
       )}
 
-      <View style={styles.spacer} />
-
-      {answered ? (
-        <>
-          <View style={styles.feedbackSlot}>
-            <FeedbackBanner
-              status={answerState}
-              correctText={correctText}
-              selectedText={answerState === 'incorrect' ? selectedText : null}
-            />
-          </View>
+      <GameFooter
+        feedback={{
+          status: answerState,
+          correctText,
+          selectedText: answerState === 'incorrect' ? selectedText : null,
+        }}
+      >
+        {answered ? (
           <View style={styles.actions}>
             {isInput ? <SpeakButton variant="square" text={reading.kana} /> : null}
             <PrimaryButton title="SIGUIENTE" variant="primary" onPress={next} style={styles.nextButton} />
           </View>
-        </>
-      ) : isInput ? (
-        <PrimaryButton
-          title="RESPONDER"
-          variant="primary"
-          disabled={state.inputValue.trim().length === 0}
-          onPress={() => submit(state.inputValue)}
-        />
-      ) : (
-        <View style={styles.waiting}>
-          <AppText variant="labelSmall" color={activeTheme.colors.textMuted}>
-            ELEGÍ UNA OPCIÓN
-          </AppText>
-        </View>
-      )}
+        ) : isInput ? (
+          <PrimaryButton
+            title="RESPONDER"
+            variant="primary"
+            disabled={state.inputValue.trim().length === 0}
+            onPress={() => submit(state.inputValue)}
+          />
+        ) : (
+          <WaitingHint visible />
+        )}
+      </GameFooter>
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    marginBottom: 18,
-    borderRadius: theme.radii.xl,
-  },
-  cardContent: {
-    minHeight: 220,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  help: {
-    position: 'absolute',
-    top: 12,
-    left: 14,
-    fontFamily: FONTS.bold,
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  speakCorner: {
-    position: 'absolute',
-    right: 12,
-    bottom: 12,
-  },
-  promptWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.lg,
-  },
   centered: {
     textAlign: 'center',
   },
@@ -293,23 +250,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
-  spacer: {
-    flex: 1,
-    minHeight: theme.spacing.md,
-  },
-  feedbackSlot: {
-    marginBottom: theme.spacing.sm,
-  },
   actions: {
     flexDirection: 'row',
     gap: 10,
   },
   nextButton: {
     flex: 1,
-  },
-  waiting: {
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

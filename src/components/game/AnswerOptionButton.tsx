@@ -6,9 +6,7 @@ import { FONTS, SIZES, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 import { GradeMark } from '../ui/InkBits';
 import { InkPressable } from '../ui/InkPressable';
-
-// Kana o kanji en el texto: va en Klee (todo japonés que se lee va en FONTS.glyph).
-const JAPANESE = /[぀-ヿ一-鿿]/;
+import { hasJapanese } from '../ui/japanese';
 
 export type AnswerOptionVisualState = 'idle' | 'selected' | 'correct' | 'incorrect' | 'muted';
 
@@ -119,7 +117,7 @@ export function AnswerOptionButton({
             color={textColor}
             style={[
               styles.label,
-              JAPANESE.test(label) ? styles.glyphLabel : null,
+              hasJapanese(label) ? styles.glyphLabel : null,
               kanji ? styles.kanjiLabel : null,
               labelStyle,
             ]}

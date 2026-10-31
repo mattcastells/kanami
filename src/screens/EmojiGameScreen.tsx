@@ -2,20 +2,20 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
-import { GlassCard } from '../components/ui/GlassCard';
+import { PillButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { StatPill } from '../components/ui/StatPill';
 import { getEmojiVocabulary } from '../data/vocabularyEmoji';
 import { EmojiGameMode } from '../features/game/emojiGameEngine';
 import { useEmojiGame } from '../features/game/useEmojiGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { theme } from '../theme/theme';
+import { FONTS, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
@@ -69,51 +69,30 @@ export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
 
   return (
     <ScreenBackground scrollable={false}>
-      <ScreenHeader
+      <GameHeader
         eyebrow="絵 · Imágenes"
         title={mode === 'word-to-emoji' ? 'Palabra → Imagen' : 'Imagen → Palabra'}
-        actionLabel="Invertir"
-        onActionPress={toggleMode}
+        score={stats}
+        action={<PillButton title="Invertir" onPress={toggleMode} />}
       />
 
-      <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={stats.correct} tone="success" />
-        <StatPill label="Fallidos" value={stats.incorrect} tone="error" />
-        <StatPill label="Racha" value={stats.streak} />
-      </View>
-
-      <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        {/* Imagen → palabra: escuchar la palabra antes de elegir sería darte la respuesta. */}
-        {!round.promptIsEmoji || showTranslation ? (
-          <SpeakButton text={round.kana} style={styles.speakCorner} />
-        ) : null}
-        <View style={styles.promptWrap}>
-          {round.promptIsEmoji ? (
-            <Text style={styles.emojiPrompt}>{round.promptText}</Text>
-          ) : (
-            <AppText variant="kana" style={styles.kanaPrompt}>
-              {round.promptText}
+      <PromptCard
+        // Imagen → palabra: escuchar la palabra antes de elegir sería darte la respuesta.
+        bottomRight={!round.promptIsEmoji || showTranslation ? <SpeakButton text={round.kana} /> : null}
+        below={
+          showTranslation ? (
+            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.translation}>
+              {round.kana} · {lastFeedback.translationText}
             </AppText>
-          )}
-        </View>
-        {showTranslation ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textSecondary}
-            style={styles.translation}
-          >
-            {round.kana} · {lastFeedback.translationText}
-          </AppText>
-        ) : null}
-      </GlassCard>
-
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={lastFeedback.status}
-          correctText={lastFeedback.correctText}
-          selectedText={lastFeedback.selectedText}
-        />
-      </View>
+          ) : null
+        }
+      >
+        {round.promptIsEmoji ? (
+          <Text style={styles.emojiPrompt}>{round.promptText}</Text>
+        ) : (
+          <AppText style={styles.kanaPrompt}>{round.promptText}</AppText>
+        )}
+      </PromptCard>
 
       <View style={styles.answersGrid}>
         {round.options.map((option) => (
@@ -128,42 +107,24 @@ export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
           />
         ))}
       </View>
+
+      <GameFooter feedback={lastFeedback}>
+        <WaitingHint visible={answerState === 'idle'} />
+      </GameFooter>
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  statsRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
-  questionCard: {
-    marginBottom: theme.spacing.sm,
-  },
-  questionCardContent: {
-    padding: theme.spacing.md,
-    alignItems: 'center',
-  },
-  speakCorner: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    zIndex: 2,
-  },
-  promptWrap: {
-    minHeight: 128,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   emojiPrompt: {
-    fontSize: 92,
-    lineHeight: 104,
+    fontSize: 64,
+    lineHeight: 76,
     textAlign: 'center',
   },
   kanaPrompt: {
-    fontSize: 46,
-    lineHeight: 56,
+    fontFamily: FONTS.glyph,
+    fontSize: 56,
+    lineHeight: 68,
     textAlign: 'center',
   },
   emojiOption: {
@@ -173,10 +134,6 @@ const styles = StyleSheet.create({
   translation: {
     marginTop: theme.spacing.sm,
     textAlign: 'center',
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xs,
   },
   answersGrid: {
     flexDirection: 'row',

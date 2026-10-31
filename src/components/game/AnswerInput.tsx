@@ -11,11 +11,22 @@ type AnswerInputProps = Omit<TextInputProps, 'style'> & {
   status?: 'idle' | 'correct' | 'incorrect';
   style?: StyleProp<ViewStyle>;
   centered?: boolean;
+  // Se escribe en kana: el texto va en Klee.
+  glyph?: boolean;
 };
 
 // Campo de respuesta de las partidas de escribir. idle: contorno de tinta; con foco,
 // ruri; respondido: borde 3 y fondo suave del resultado.
-export function AnswerInput({ ref, status = 'idle', style, centered = false, onFocus, onBlur, ...props }: AnswerInputProps) {
+export function AnswerInput({
+  ref,
+  status = 'idle',
+  style,
+  centered = false,
+  glyph = false,
+  onFocus,
+  onBlur,
+  ...props
+}: AnswerInputProps) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
   const [focused, setFocused] = useState(false);
@@ -52,6 +63,7 @@ export function AnswerInput({ ref, status = 'idle', style, centered = false, onF
         style={[
           styles.input,
           centered ? styles.centered : null,
+          glyph ? styles.glyph : null,
           { color: graded ? (ok ? colors.successInk : colors.errorInk) : colors.textPrimary },
         ]}
       />
@@ -73,7 +85,11 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     minWidth: 0,
+    // Sin anillo de foco del navegador (con estilo "auto" Chrome ignora el ancho 0): el
+    // foco lo marca el borde ruri del campo.
+    outlineStyle: 'solid',
     outlineWidth: 0,
+    outlineColor: 'transparent',
     fontFamily: FONTS.bold,
     fontSize: 22,
     lineHeight: 28,
@@ -82,5 +98,8 @@ const styles = StyleSheet.create({
   },
   centered: {
     textAlign: 'center',
+  },
+  glyph: {
+    fontFamily: FONTS.glyph,
   },
 });

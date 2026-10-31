@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
-import { SelectChip } from '../components/practice/SelectChip';
+import { AnswerInput } from '../components/game/AnswerInput';
+import { GameFooter, PromptCard } from '../components/game/GamePlay';
+import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
-import { GlassCard } from '../components/ui/GlassCard';
+import { Segmented } from '../components/ui/InkBits';
+import { InkPressable } from '../components/ui/InkPressable';
+import { hasJapanese } from '../components/ui/japanese';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
-import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { StatPill } from '../components/ui/StatPill';
 import {
   TranslationDirection,
   TranslationInputMode,
@@ -21,8 +22,19 @@ import { useTranslationGame } from '../features/game/useTranslationGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, hexToRgba, theme } from '../theme/theme';
+import { FONTS, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
+
+const DIRECTIONS: { value: TranslationDirection; label: string }[] = [
+  { value: 'es-to-jp', label: 'Es → 日本語' },
+  { value: 'jp-to-es', label: '日本語 → Es' },
+];
+
+const INPUT_MODES: { value: TranslationInputMode; label: string }[] = [
+  { value: 'tiles', label: 'Ordenar piezas' },
+  { value: 'typing', label: 'Escribir' },
+];
+
 
 export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>) {
   const { theme: activeTheme } = useAppTheme();
@@ -47,298 +59,192 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
   const placed = getPlacedText(state);
   const isJapanesePrompt = direction === 'jp-to-es';
 
+  const { colors } = activeTheme;
+  const pieceTextStyle = (text: string) => [styles.tileText, hasJapanese(text) ? styles.tileGlyph : null];
+
   return (
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
-      <ScreenHeader eyebrow="訳 · Traducción" title="Traducí la frase" />
+      <GameHeader eyebrow="訳 · Traducción" title="Traducí la frase" score={state.stats} />
 
       <View style={styles.selectors}>
-        <SelectChip
-          label="Es → 日本語"
-          grow
-          selected={direction === 'es-to-jp'}
-          onPress={() => setDirection('es-to-jp')}
-        />
-        <SelectChip
-          label="日本語 → Es"
-          grow
-          selected={direction === 'jp-to-es'}
-          onPress={() => setDirection('jp-to-es')}
-        />
+        <Segmented options={DIRECTIONS} value={direction} onChange={setDirection} />
+        <Segmented options={INPUT_MODES} value={mode} onChange={setMode} />
       </View>
 
-      <View style={styles.selectors}>
-        <SelectChip
-          label="Ordenar piezas"
-          grow
-          selected={mode === 'tiles'}
-          onPress={() => setMode('tiles')}
-        />
-        <SelectChip
-          label="Escribir"
-          grow
-          selected={mode === 'typing'}
-          onPress={() => setMode('typing')}
-        />
-      </View>
-
-      <View style={styles.statsRow}>
-        <StatPill
-          label="Aciertos"
-          value={state.stats.correct}
-          tone="success"
-        />
-        <StatPill
-          label="Fallidos"
-          value={state.stats.incorrect}
-          tone="error"
-        />
-        <StatPill
-          label="Racha"
-          value={state.stats.streak}
-         
-        />
-      </View>
-
-      <GlassCard style={styles.card} contentStyle={styles.cardContent}>
-        {isJapanesePrompt ? (
-          <SpeakButton text={state.round.kana} style={styles.speakCorner} />
-        ) : null}
-        <AppText variant="label" color={activeTheme.colors.textMuted}>
-          {isJapanesePrompt ? '¿Qué significa?' : 'Traducí al japonés'}
-        </AppText>
-        <AppText
-          variant={isJapanesePrompt ? 'title' : 'title'}
-          style={isJapanesePrompt ? styles.jpPrompt : styles.esPrompt}
-        >
-          {state.round.promptText}
-        </AppText>
-        {answered ? (
-          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-            {state.round.kana} · {state.round.romaji}
-          </AppText>
-        ) : null}
-      </GlassCard>
+      <PromptCard
+        size="compact"
+        help={isJapanesePrompt ? '¿Qué significa?' : 'Traducí al japonés'}
+        bottomRight={isJapanesePrompt ? <SpeakButton text={state.round.kana} /> : null}
+        below={
+          answered ? (
+            <AppText variant="bodySmall" color={colors.textSecondary} style={styles.reveal}>
+              <AppText variant="bodySmall" style={styles.glyphInline} color={colors.textSecondary}>
+                {state.round.kana}
+              </AppText>
+              {' · '}
+              {state.round.romaji}
+            </AppText>
+          ) : null
+        }
+      >
+        <AppText style={isJapanesePrompt ? styles.jpPrompt : styles.esPrompt}>{state.round.promptText}</AppText>
+      </PromptCard>
 
       {mode === 'tiles' ? (
         <>
-          {/* Ranura de la respuesta: tocar una pieza colocada la devuelve al pool. */}
-          <View
-            style={[
-              styles.slot,
-              activeTheme.surfaces.card,
-              { backgroundColor: activeTheme.colors.card },
-            ]}
-          >
+          {/* Ranura de la respuesta: tocar una pieza colocada la devuelve al pozo. */}
+          <View style={[styles.slot, activeTheme.surfaces.outlined, { backgroundColor: colors.card }]}>
             {placed.length === 0 ? (
-              <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
+              <AppText variant="bodySmall" color={colors.textMuted}>
                 Tocá las piezas en orden
               </AppText>
             ) : (
               placed.map((text, position) => (
-                <Pressable
+                <InkPressable
                   key={`${text}-${position}`}
                   onPress={() => removeAt(position)}
                   disabled={answered}
-                  style={({ pressed }) => [
-                    styles.tile,
-                    {
-                      borderColor: activeTheme.colors.accent,
-                      backgroundColor: hexToRgba(activeTheme.colors.accent, 0.12),
-                    },
-                    pressed && styles.pressed,
-                  ]}
+                  dimDisabled={false}
+                  elevation="flat"
+                  style={[styles.tile, { backgroundColor: colors.highlight }]}
                 >
-                  <AppText variant="option" style={styles.tileText}>
+                  <AppText style={pieceTextStyle(text)} color={colors.onHighlight}>
                     {text}
                   </AppText>
-                </Pressable>
+                </InkPressable>
               ))
             )}
           </View>
 
+          {/* El pozo: la pieza ya usada queda en su lugar, apagada, para que nada salte. */}
           <View style={styles.pool}>
             {state.round.shuffledTiles.map((text, tileIndex) => {
               const used = state.placed.includes(tileIndex);
-              if (used) return null;
+              if (used) {
+                return (
+                  <View
+                    key={`${text}-${tileIndex}`}
+                    style={[styles.tile, activeTheme.surfaces.quiet, { backgroundColor: colors.background }]}
+                  >
+                    <AppText style={pieceTextStyle(text)} color={colors.textMuted}>
+                      {text}
+                    </AppText>
+                  </View>
+                );
+              }
               return (
-                <Pressable
+                <InkPressable
                   key={`${text}-${tileIndex}`}
                   onPress={() => place(tileIndex)}
                   disabled={answered}
-                  style={({ pressed }) => [
-                    styles.tile,
-                    activeTheme.surfaces.card,
-                    { backgroundColor: activeTheme.colors.card },
-                    pressed && styles.pressed,
-                  ]}
+                  style={[styles.tile, { backgroundColor: colors.card }]}
                 >
-                  <AppText variant="option" style={styles.tileText}>
-                    {text}
-                  </AppText>
-                </Pressable>
+                  <AppText style={pieceTextStyle(text)}>{text}</AppText>
+                </InkPressable>
               );
             })}
           </View>
         </>
       ) : (
-        <View style={styles.inputSection}>
-          <View
-            style={[
-              styles.inputUnderline,
-              {
-                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
-                borderColor: activeTheme.colors.lineStrong,
-              },
-            ]}
-          >
-            <TextInput
-              value={state.inputValue}
-              onChangeText={setInputValue}
-              onSubmitEditing={() => (answered ? next() : submit())}
-              editable={!answered}
-              autoCapitalize="none"
-              autoCorrect={false}
-              blurOnSubmit={false}
-              returnKeyType="done"
-              maxLength={60}
-              placeholder={
-                direction === 'es-to-jp'
-                  ? 'Escribí la frase en kana'
-                  : 'Escribí la traducción'
-              }
-              placeholderTextColor={activeTheme.colors.textMuted}
-              selectionColor={activeTheme.colors.accent}
-              style={[styles.input, { color: activeTheme.colors.textPrimary }]}
-            />
-          </View>
-        </View>
+        <AnswerInput
+          value={state.inputValue}
+          onChangeText={setInputValue}
+          onSubmitEditing={() => (answered ? next() : submit())}
+          editable={!answered}
+          status={state.answerState}
+          centered
+          glyph={direction === 'es-to-jp'}
+          blurOnSubmit={false}
+          returnKeyType="done"
+          maxLength={60}
+          placeholder={direction === 'es-to-jp' ? 'Escribí la frase en kana' : 'Escribí la traducción'}
+        />
       )}
 
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={state.answerState}
-          correctText={state.round.answerText}
-          selectedText={
-            state.answerState === 'incorrect'
-              ? mode === 'tiles'
-                ? placed.join('')
-                : state.inputValue
-              : null
-          }
-        />
-      </View>
-
-      <PrimaryButton
-        title={answered ? 'SIGUIENTE' : 'RESPONDER'}
-        variant="primary"
-        size="compact"
-        disabled={!answered && !canSubmitTranslation(state, mode)}
-        onPress={() => (answered ? next() : submit())}
-        style={styles.advance}
-      />
+      <GameFooter
+        feedback={{
+          status: state.answerState,
+          correctText: state.round.answerText,
+          selectedText:
+            state.answerState === 'incorrect' ? (mode === 'tiles' ? placed.join('') : state.inputValue) : null,
+        }}
+      >
+        <View style={styles.actions}>
+          {/* Del español al japonés, el audio dice la respuesta: recién después de responder. */}
+          {answered && !isJapanesePrompt ? <SpeakButton variant="square" text={state.round.kana} /> : null}
+          <PrimaryButton
+            title={answered ? 'SIGUIENTE' : 'RESPONDER'}
+            variant="primary"
+            disabled={!answered && !canSubmitTranslation(state, mode)}
+            onPress={() => (answered ? next() : submit())}
+            style={styles.advance}
+          />
+        </View>
+      </GameFooter>
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
   selectors: {
-    flexDirection: 'row',
     gap: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginTop: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
-  card: {
-    marginBottom: theme.spacing.sm,
-  },
-  cardContent: {
-    padding: theme.spacing.lg,
-    minHeight: 130,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.xs,
-  },
-  speakCorner: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    zIndex: 2,
+    marginBottom: theme.spacing.md,
   },
   esPrompt: {
+    fontFamily: FONTS.bold,
     fontSize: 22,
     lineHeight: 30,
     textAlign: 'center',
   },
   jpPrompt: {
-    fontFamily: FONTS.medium,
+    fontFamily: FONTS.glyph,
     fontSize: 28,
     lineHeight: 40,
     textAlign: 'center',
   },
+  reveal: {
+    textAlign: 'center',
+    marginTop: theme.spacing.xs,
+  },
+  glyphInline: {
+    fontFamily: FONTS.glyph,
+  },
   slot: {
     minHeight: 62,
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
+    borderRadius: theme.radii.lg,
     padding: theme.spacing.xs,
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   pool: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
   },
   tile: {
-    borderWidth: 1,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    minHeight: 44,
+    borderRadius: theme.radii.badge,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     justifyContent: 'center',
   },
   tileText: {
+    fontFamily: FONTS.bold,
     fontSize: 18,
     lineHeight: 24,
   },
-  inputSection: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+  tileGlyph: {
+    fontFamily: FONTS.glyph,
   },
-  inputUnderline: {
-    width: '100%',
-    maxWidth: 380,
-    borderWidth: 1.5,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  input: {
-    outlineWidth: 0,
-    fontFamily: 'ZenKakuGothicNew_500Medium',
-    fontSize: 20,
-    lineHeight: 28,
-    textAlign: 'center',
-    paddingVertical: 0,
-    minHeight: 36,
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xs,
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
   },
   advance: {
-    marginBottom: theme.spacing.xl,
-  },
-  pressed: {
-    opacity: 0.75,
+    flex: 1,
   },
 });

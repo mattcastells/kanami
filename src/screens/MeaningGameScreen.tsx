@@ -2,13 +2,13 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
-import { GlassCard } from '../components/ui/GlassCard';
+import { PillButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { StatPill } from '../components/ui/StatPill';
 import {
   getMeaningPool,
   MEANING_DIRECTION_TITLES,
@@ -20,7 +20,7 @@ import { useMeaningGame } from '../features/game/useMeaningGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { theme } from '../theme/theme';
+import { FONTS, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 // Las frases (おさきにしつれいします) no entran a 46px en un teléfono.
@@ -103,55 +103,37 @@ function MeaningGamePlay({
   // por fila y en pantallas chicas no entran todas.
   return (
     <ScreenBackground scrollable>
-      <ScreenHeader
+      <GameHeader
         eyebrow="意 · Significados"
         title={MEANING_DIRECTION_TITLES[direction]}
-        actionLabel="Invertir"
-        onActionPress={() =>
-          setDirection((current) => (current === 'jp-to-es' ? 'es-to-jp' : 'jp-to-es'))
+        score={stats}
+        action={
+          <PillButton
+            title="Invertir"
+            onPress={() => setDirection((current) => (current === 'jp-to-es' ? 'es-to-jp' : 'jp-to-es'))}
+          />
         }
       />
 
-      <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={stats.correct} tone="success" />
-        <StatPill label="Fallidos" value={stats.incorrect} tone="error" />
-        <StatPill label="Racha" value={stats.streak} />
-      </View>
-
-      <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        {/* Si el prompt es en español, escuchar la palabra sería darte la respuesta. */}
-        {promptIsKana || answered ? (
-          <SpeakButton text={round.kana} style={styles.speakCorner} />
-        ) : null}
-        <View style={styles.promptWrap}>
-          {promptIsKana ? (
-            <AppText variant="kana" style={kanaPromptStyle(round.promptText)}>
-              {round.promptText}
+      <PromptCard
+        // Si el prompt es en español, escuchar la palabra sería darte la respuesta.
+        bottomRight={promptIsKana || answered ? <SpeakButton text={round.kana} /> : null}
+        below={
+          answered ? (
+            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.answerLine}>
+              {[round.kanji, round.kana, round.romaji].filter(Boolean).join(' · ')} — {round.es}
             </AppText>
-          ) : (
-            <AppText variant="headline" style={styles.esPrompt}>
-              {round.promptText}
-            </AppText>
-          )}
-        </View>
-        {answered ? (
-          <AppText
-            variant="bodySmall"
-            color={activeTheme.colors.textSecondary}
-            style={styles.answerLine}
-          >
-            {[round.kanji, round.kana, round.romaji].filter(Boolean).join(' · ')} — {round.es}
+          ) : null
+        }
+      >
+        {promptIsKana ? (
+          <AppText style={[styles.kanaPrompt, kanaPromptStyle(round.promptText)]}>{round.promptText}</AppText>
+        ) : (
+          <AppText variant="headline" style={styles.esPrompt}>
+            {round.promptText}
           </AppText>
-        ) : null}
-      </GlassCard>
-
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={lastFeedback.status}
-          correctText={lastFeedback.correctText}
-          selectedText={lastFeedback.selectedText}
-        />
-      </View>
+        )}
+      </PromptCard>
 
       <View style={styles.answersGrid}>
         {round.options.map((option) => (
@@ -165,49 +147,30 @@ function MeaningGamePlay({
           />
         ))}
       </View>
+
+      <GameFooter feedback={lastFeedback}>
+        <WaitingHint visible={!answered} />
+      </GameFooter>
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  statsRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
-  questionCard: {
-    marginBottom: theme.spacing.sm,
-  },
-  questionCardContent: {
-    padding: theme.spacing.md,
-    alignItems: 'center',
-  },
-  speakCorner: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    zIndex: 2,
-  },
-  promptWrap: {
-    minHeight: 104,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: theme.spacing.lg,
+  kanaPrompt: {
+    fontFamily: FONTS.glyph,
+    textAlign: 'center',
   },
   kanaPromptLarge: {
-    fontSize: 46,
-    lineHeight: 56,
-    textAlign: 'center',
+    fontSize: 56,
+    lineHeight: 68,
   },
   kanaPromptMedium: {
-    fontSize: 34,
-    lineHeight: 44,
-    textAlign: 'center',
+    fontSize: 38,
+    lineHeight: 48,
   },
   kanaPromptSmall: {
-    fontSize: 26,
-    lineHeight: 36,
-    textAlign: 'center',
+    fontSize: 28,
+    lineHeight: 38,
   },
   esPrompt: {
     textAlign: 'center',
@@ -215,10 +178,6 @@ const styles = StyleSheet.create({
   answerLine: {
     marginTop: theme.spacing.sm,
     textAlign: 'center',
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xs,
   },
   answersGrid: {
     flexDirection: 'row',

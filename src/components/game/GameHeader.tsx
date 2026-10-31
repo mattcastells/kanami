@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
@@ -17,11 +18,14 @@ type GameHeaderProps = {
   score?: { correct: number; incorrect: number };
   // Cerrar la partida. Por defecto vuelve atrás (lo resuelve ScreenBackground).
   onClose?: () => void;
+  // Pastilla a la derecha ("INVERTIR", "SALIR"). Solo en los modos sin total.
+  action?: ReactNode;
 };
 
 // Cabecera de partida. Con total: [cerrar] [barra] [7/20] y debajo eyebrow + puntaje.
-// Sin total: [cerrar] [eyebrow / título] [puntaje].
-export function GameHeader({ eyebrow, title, progress, score, onClose }: GameHeaderProps) {
+// Sin total: [cerrar] [eyebrow / título] [puntaje]. Con acción: [cerrar] [título]
+// [acción] y debajo eyebrow + puntaje.
+export function GameHeader({ eyebrow, title, progress, score, onClose, action }: GameHeaderProps) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
   const screenBack = useScreenBack();
@@ -37,6 +41,33 @@ export function GameHeader({ eyebrow, title, progress, score, onClose }: GameHea
       </AppText>
     </View>
   ) : null;
+
+  const metaRow =
+    eyebrow || scoreView ? (
+      <View style={styles.metaRow}>
+        <AppText variant="overline" color={colors.accentInk} numberOfLines={1} style={styles.metaEyebrow}>
+          {eyebrow ?? ''}
+        </AppText>
+        {scoreView}
+      </View>
+    ) : null;
+
+  if (!progress && action) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.row, styles.progressRow]}>
+          {handleClose ? <BackButton icon="close" onPress={handleClose} /> : null}
+          <View style={styles.titleBlock}>
+            <AppText variant="title" numberOfLines={2}>
+              {title}
+            </AppText>
+          </View>
+          {action}
+        </View>
+        {metaRow}
+      </View>
+    );
+  }
 
   if (!progress) {
     return (
@@ -70,14 +101,7 @@ export function GameHeader({ eyebrow, title, progress, score, onClose }: GameHea
           {progress.current}/{progress.total}
         </AppText>
       </View>
-      {eyebrow || scoreView ? (
-        <View style={styles.metaRow}>
-          <AppText variant="overline" color={colors.accentInk} numberOfLines={1} style={styles.metaEyebrow}>
-            {eyebrow ?? ''}
-          </AppText>
-          {scoreView}
-        </View>
-      ) : null}
+      {metaRow}
     </View>
   );
 }

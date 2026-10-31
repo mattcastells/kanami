@@ -1,34 +1,32 @@
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
-  Platform,
-  Pressable,
   StyleProp,
   StyleSheet,
   Text,
   TextInput,
   TextStyle,
   View,
-  ViewStyle,
 } from 'react-native';
 
+import { AnswerInput } from '../components/game/AnswerInput';
 import {
   AnswerOptionButton,
   AnswerOptionVisualState,
 } from '../components/game/AnswerOptionButton';
 import { DrawingPractice } from '../components/game/DrawingPractice';
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { GameHeader } from '../components/game/GameHeader';
+import { HintToggle } from '../components/game/HintToggle';
 import { SessionSummary } from '../components/game/SessionSummary';
 import { AppText } from '../components/ui/AppText';
-import { GlassCard } from '../components/ui/GlassCard';
+import { InkPressable } from '../components/ui/InkPressable';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { HintToggle } from '../components/game/HintToggle';
 import { useAppSettings } from '../settings/AppSettingsProvider';
-import { StatPill } from '../components/ui/StatPill';
 import { getKanaCharactersForGroupIds, getKanaScriptLabel, getKanaWordEntries } from '../data/kana';
 import { useFillBlankGame } from '../features/game/useFillBlankGame';
 import { useWordBuilderGame } from '../features/game/useWordBuilderGame';
@@ -57,11 +55,12 @@ import {
   sanitizeWordPracticeInput,
 } from '../features/game/wordGameEngine';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { hexToRgba, theme } from '../theme/theme';
+import { FONTS, theme } from '../theme/theme';
 import { HiraganaCharacter } from '../types/hiragana';
 import { RootStackScreenProps } from '../types/navigation';
 
-// Azul apagado (compañero del bermellón) para la racha.
+// Los modos de vocabulario mezclan los dos silabarios: su eyebrow dice "Vocabulario".
+const VOCAB_SECTION = 'Vocabulario';
 
 export function GameScreen({
   route,
@@ -171,13 +170,14 @@ export function GameScreen({
         <DrawingPractice
           pool={drawablePool}
           resetKey={resetKey}
-          title="Dibujo"
+          title={`Dibujo · ${scriptLabel}`}
         />
       ) : route.params.mode === 'writing' ? (
         <WritingGameView
           pool={kanaPool}
           resetKey={resetKey}
           inverted={route.params.inverted}
+          section={scriptLabel}
           scriptLabelLowercase={scriptLabelLowercase}
         />
       ) : route.params.mode === 'syllables' ? (
@@ -194,6 +194,7 @@ export function GameScreen({
           pool={phrasePool}
           resetKey={resetKey}
           inverted={route.params.inverted}
+          section={scriptLabel}
           scriptLabelLowercase={scriptLabelLowercase}
         />
       ) : route.params.mode === 'fill-blank' ? (
@@ -217,6 +218,7 @@ export function GameScreen({
           pool={kanaPool}
           resetKey={resetKey}
           inverted={route.params.inverted}
+          section={scriptLabel}
         />
       )}
     </ScreenBackground>
@@ -227,10 +229,12 @@ function ReadingGameView({
   pool,
   resetKey,
   inverted,
+  section,
 }: {
   pool: HiraganaCharacter[];
   resetKey: string;
   inverted: boolean;
+  section: string;
 }) {
   const { state, answer, lastFeedback } = useHiraganaGame(pool, resetKey, inverted);
   useTrackProgress('reading', state.stats);
@@ -300,31 +304,21 @@ function ReadingGameView({
 
   return (
     <View style={styles.screen}>
-      <GameTopBlock
-        title={inverted ? 'Lectura inversa' : 'Lectura'}
-        stats={state.stats}
-        lastFeedback={lastFeedback}
-      />
+      <GameTopBlock title={inverted ? 'Lectura inversa' : 'Lectura'} section={section} stats={state.stats} />
 
-      <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <PromptBoard
-          topRight={
-            state.answerState !== 'idle' ? (
-              <SpeakButton text={state.round.prompt.kana} />
-            ) : null
-          }
-        >
-          <View style={styles.kanaWrap}>
-            <Animated.View style={[styles.promptAnimatedWrap, kanaTextAnimatedStyle]}>
-              <PromptGlyph
-                style={inverted ? styles.readingRomajiPrompt : styles.readingKanaPrompt}
-              >
-                {promptText}
-              </PromptGlyph>
-            </Animated.View>
-          </View>
-        </PromptBoard>
-      </GlassCard>
+      <PromptCard
+        size="choice"
+        help={inverted ? undefined : '¿Cómo se lee?'}
+        bottomRight={
+          state.answerState !== 'idle' ? <SpeakButton text={state.round.prompt.kana} /> : null
+        }
+      >
+        <Animated.View style={[styles.promptAnimatedWrap, kanaTextAnimatedStyle]}>
+          <PromptGlyph style={inverted ? styles.readingRomajiPrompt : styles.readingKanaPrompt}>
+            {promptText}
+          </PromptGlyph>
+        </Animated.View>
+      </PromptCard>
 
       <View style={styles.answersGrid}>
         {state.round.options.map((option) => (
@@ -338,6 +332,10 @@ function ReadingGameView({
           />
         ))}
       </View>
+
+      <GameFooter feedback={lastFeedback}>
+        <WaitingHint visible={state.answerState === 'idle'} />
+      </GameFooter>
     </View>
   );
 }
@@ -346,11 +344,13 @@ function WritingGameView({
   pool,
   resetKey,
   inverted,
+  section,
   scriptLabelLowercase,
 }: {
   pool: HiraganaCharacter[];
   resetKey: string;
   inverted: boolean;
+  section: string;
   scriptLabelLowercase: string;
 }) {
   const { theme: activeTheme } = useAppTheme();
@@ -368,12 +368,10 @@ function WritingGameView({
     speakText: state.round.prompts.map((character) => character.kana).join(''),
   });
   const promptTransition = useRef(new Animated.Value(1)).current;
-  const inputLineTransition = useRef(new Animated.Value(0)).current;
-  const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<TextInput>(null);
-  const [inputFeedbackTone, setInputFeedbackTone] = useState<string | null>(null);
   const promptKind = getWritingPromptKind(inverted);
   const answerKind = getWritingAnswerKind(inverted);
+  const moraCount = state.round.prompts.length;
 
   useEffect(() => {
     promptTransition.setValue(0);
@@ -393,56 +391,6 @@ function WritingGameView({
       clearTimeout(focusTimeout);
     };
   }, [promptTransition, state.round.roundKey]);
-
-  useEffect(() => {
-    if (state.answerState === 'idle') {
-      return;
-    }
-
-    const nextTone =
-      state.answerState === 'correct' ? activeTheme.colors.success : activeTheme.colors.error;
-
-    if (inputLineResetTimeoutRef.current) {
-      clearTimeout(inputLineResetTimeoutRef.current);
-      inputLineResetTimeoutRef.current = null;
-    }
-
-    setInputFeedbackTone(nextTone);
-    inputLineTransition.stopAnimation();
-    inputLineTransition.setValue(0);
-
-    Animated.sequence([
-      Animated.timing(inputLineTransition, {
-        toValue: 1,
-        duration: 120,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-      Animated.delay(680),
-      Animated.timing(inputLineTransition, {
-        toValue: 0,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-    ]).start();
-
-    inputLineResetTimeoutRef.current = setTimeout(() => {
-      setInputFeedbackTone(null);
-      inputLineResetTimeoutRef.current = null;
-    }, 1000);
-  }, [inputLineTransition, state.answerState]);
-
-  useEffect(
-    () => () => {
-      if (inputLineResetTimeoutRef.current) {
-        clearTimeout(inputLineResetTimeoutRef.current);
-      }
-
-      inputLineTransition.stopAnimation();
-    },
-    [inputLineTransition],
-  );
 
   const promptAnimatedStyle = {
     opacity: promptTransition,
@@ -466,103 +414,54 @@ function WritingGameView({
     state.answerState === 'idle' &&
     sanitizeWritingInput(state.inputValue, answerKind).length > 0;
 
-  const neutralInputLineColor = activeTheme.colors.lineStrong;
-  const inputLineColor = inputLineTransition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      neutralInputLineColor,
-      inputFeedbackTone ?? neutralInputLineColor,
-    ],
-  });
-
-  const handleChangeText = (value: string) => {
-    setInputValue(value);
-  };
-
   return (
-    <View style={styles.writingScreen}>
-      <GameTopBlock
-        title={inverted ? 'Escritura inversa' : 'Escritura'}
-        stats={state.stats}
-        lastFeedback={lastFeedback}
+    <View style={styles.screen}>
+      <GameTopBlock title={inverted ? 'Escritura inversa' : 'Escritura'} section={section} stats={state.stats} />
+
+      <PromptCard
+        size="input"
+        help={promptKind === 'kana' ? 'Escribí la lectura' : undefined}
+        bottomRight={
+          state.answerState !== 'idle' ? (
+            <SpeakButton text={state.round.prompts.map((prompt) => prompt.kana).join('')} />
+          ) : null
+        }
+      >
+        <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
+          <PromptGlyph
+            style={promptKind === 'kana' ? styles.writingKanaPrompt : styles.writingRomajiPrompt}
+          >
+            {state.round.promptText}
+          </PromptGlyph>
+          {promptKind === 'kana' ? (
+            <AppText style={styles.moras} color={activeTheme.colors.textMuted}>
+              {moraCount} {moraCount === 1 ? 'mora' : 'moras'}
+            </AppText>
+          ) : null}
+        </Animated.View>
+      </PromptCard>
+
+      <AnswerInput
+        ref={inputRef}
+        value={state.inputValue}
+        onChangeText={setInputValue}
+        onSubmitEditing={(event) => submit(event.nativeEvent.text)}
+        editable={state.answerState === 'idle'}
+        status={state.answerState}
+        blurOnSubmit={false}
+        returnKeyType="done"
+        maxLength={answerKind === 'kana' ? 8 : 12}
+        placeholder={answerKind === 'kana' ? `Escribi en ${scriptLabelLowercase}` : 'Escribi en romaji'}
       />
 
-      <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
-        <PromptBoard
-          style={styles.writingPromptBoard}
-          topRight={
-            state.answerState !== 'idle' ? (
-              <SpeakButton
-                text={state.round.prompts.map((prompt) => prompt.kana).join('')}
-              />
-            ) : null
-          }
-        >
-          <View style={styles.writingPromptWrap}>
-            <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
-              <PromptGlyph
-                style={
-                  promptKind === 'kana'
-                    ? styles.writingKanaPrompt
-                    : styles.writingRomajiPrompt
-                }
-              >
-                {state.round.promptText}
-              </PromptGlyph>
-            </Animated.View>
-          </View>
-        </PromptBoard>
-      </GlassCard>
-
-      <View style={styles.inputSection}>
-        <Animated.View
-          style={[
-            styles.inputUnderline,
-            {
-              backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
-              borderColor: inputFeedbackTone
-                ? inputLineColor
-                : neutralInputLineColor,
-            },
-          ]}
-        >
-          <TextInput
-            ref={inputRef}
-            value={state.inputValue}
-            onChangeText={handleChangeText}
-            onSubmitEditing={(event) => submit(event.nativeEvent.text)}
-            editable={state.answerState === 'idle'}
-            autoCapitalize="none"
-            autoCorrect={false}
-            blurOnSubmit={false}
-            returnKeyType="done"
-            maxLength={answerKind === 'kana' ? 8 : 12}
-            placeholder={
-              answerKind === 'kana'
-                ? `Escribi en ${scriptLabelLowercase}`
-                : 'Escribi en romaji'
-            }
-            placeholderTextColor={activeTheme.colors.textMuted}
-            selectionColor={activeTheme.colors.accent}
-            style={[
-              styles.input,
-              answerKind === 'kana' ? styles.kanaInput : null,
-              {
-                color: activeTheme.colors.textPrimary,
-              },
-            ]}
-          />
-        </Animated.View>
-
+      <GameFooter feedback={lastFeedback}>
         <PrimaryButton
           title="ENVIAR"
           variant="primary"
-          size="compact"
           disabled={!canSubmit}
           onPress={() => submit(state.inputValue)}
-          style={styles.submitButton}
         />
-      </View>
+      </GameFooter>
     </View>
   );
 }
@@ -601,10 +500,7 @@ function WordSyllablesGameView({
     speakText: state.round.word.kana,
   });
   const promptTransition = useRef(new Animated.Value(1)).current;
-  const inputLineTransition = useRef(new Animated.Value(0)).current;
-  const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<TextInput>(null);
-  const [inputFeedbackTone, setInputFeedbackTone] = useState<string | null>(null);
   const answerKind = getWordAnswerKind('syllables');
 
   useEffect(() => {
@@ -625,56 +521,6 @@ function WordSyllablesGameView({
       clearTimeout(focusTimeout);
     };
   }, [promptTransition, state.round.roundKey]);
-
-  useEffect(() => {
-    if (state.answerState === 'idle') {
-      return;
-    }
-
-    const nextTone =
-      state.answerState === 'correct' ? activeTheme.colors.success : activeTheme.colors.error;
-
-    if (inputLineResetTimeoutRef.current) {
-      clearTimeout(inputLineResetTimeoutRef.current);
-      inputLineResetTimeoutRef.current = null;
-    }
-
-    setInputFeedbackTone(nextTone);
-    inputLineTransition.stopAnimation();
-    inputLineTransition.setValue(0);
-
-    Animated.sequence([
-      Animated.timing(inputLineTransition, {
-        toValue: 1,
-        duration: 120,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-      Animated.delay(980),
-      Animated.timing(inputLineTransition, {
-        toValue: 0,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-    ]).start();
-
-    inputLineResetTimeoutRef.current = setTimeout(() => {
-      setInputFeedbackTone(null);
-      inputLineResetTimeoutRef.current = null;
-    }, 1240);
-  }, [inputLineTransition, state.answerState]);
-
-  useEffect(
-    () => () => {
-      if (inputLineResetTimeoutRef.current) {
-        clearTimeout(inputLineResetTimeoutRef.current);
-      }
-
-      inputLineTransition.stopAnimation();
-    },
-    [inputLineTransition],
-  );
 
   const promptAnimatedStyle = {
     opacity: promptTransition,
@@ -698,19 +544,6 @@ function WordSyllablesGameView({
     state.answerState === 'idle' &&
     sanitizeWordPracticeInput(state.inputValue, answerKind).length > 0;
 
-  const neutralInputLineColor = activeTheme.colors.lineStrong;
-  const inputLineColor = inputLineTransition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      neutralInputLineColor,
-      inputFeedbackTone ?? neutralInputLineColor,
-    ],
-  });
-
-  const handleChangeText = (value: string) => {
-    setInputValue(value);
-  };
-
   if (sessionLength && state.stats.answered >= sessionLength) {
     return (
       <SessionSummary
@@ -724,92 +557,55 @@ function WordSyllablesGameView({
   }
 
   return (
-    <View style={styles.writingScreen}>
+    <View style={styles.screen}>
       <GameTopBlock
         title="Palabra guiada"
+        section={VOCAB_SECTION}
         stats={state.stats}
-        lastFeedback={lastFeedback}
+        sessionLength={sessionLength}
       />
 
-      <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
-        <PromptBoard
-          style={styles.writingPromptBoard}
-          topLeft={
-            <HintToggle
-              enabled={wordHintEnabled}
-              onToggle={() => setWordHintEnabled(!wordHintEnabled)}
-            />
-          }
-          topRight={
-            state.answerState !== 'idle' ? (
-              <SpeakButton text={state.round.word.kana} />
-            ) : null
-          }
-        >
-          <View style={styles.syllablesPromptWrap}>
-            <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
-              <PromptGlyph style={styles.syllablesPrompt}>
-                {state.round.promptText}
-              </PromptGlyph>
-              {wordHintEnabled ? (
-                <AppText
-                  variant="bodySmall"
-                  color={activeTheme.colors.textMuted}
-                  style={styles.promptHint}
-                >
-                  {state.round.word.translations[0]}
-                </AppText>
-              ) : null}
-            </Animated.View>
-          </View>
-        </PromptBoard>
-      </GlassCard>
-
-      <View style={styles.inputSection}>
-        <Animated.View
-          style={[
-            styles.inputUnderline,
-            {
-              backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
-              borderColor: inputFeedbackTone
-                ? inputLineColor
-                : neutralInputLineColor,
-            },
-          ]}
-        >
-          <TextInput
-            ref={inputRef}
-            value={state.inputValue}
-            onChangeText={handleChangeText}
-            onSubmitEditing={(event) => submit(event.nativeEvent.text)}
-            editable={state.answerState === 'idle'}
-            autoCapitalize="none"
-            autoCorrect={false}
-            blurOnSubmit={false}
-            returnKeyType="done"
-            maxLength={24}
-            placeholder={`Escribi la palabra en ${scriptLabelLowercase}`}
-            placeholderTextColor={activeTheme.colors.textMuted}
-            selectionColor={activeTheme.colors.accent}
-            style={[
-              styles.input,
-              styles.kanaInput,
-              {
-                color: activeTheme.colors.textPrimary,
-              },
-            ]}
-          />
+      <PromptCard
+        size="input"
+        topRight={
+          <HintToggle enabled={wordHintEnabled} onToggle={() => setWordHintEnabled(!wordHintEnabled)} />
+        }
+        bottomRight={
+          state.answerState !== 'idle' ? <SpeakButton text={state.round.word.kana} /> : null
+        }
+      >
+        <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
+          <PromptGlyph style={styles.syllablesPrompt}>{state.round.promptText}</PromptGlyph>
+          {wordHintEnabled ? (
+            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.promptHint}>
+              {state.round.word.translations[0]}
+            </AppText>
+          ) : null}
         </Animated.View>
+      </PromptCard>
 
+      <AnswerInput
+        ref={inputRef}
+        value={state.inputValue}
+        onChangeText={setInputValue}
+        onSubmitEditing={(event) => submit(event.nativeEvent.text)}
+        editable={state.answerState === 'idle'}
+        status={state.answerState}
+        blurOnSubmit={false}
+        returnKeyType="done"
+        maxLength={24}
+        placeholder={`Escribi la palabra en ${scriptLabelLowercase}`}
+        glyph
+      />
+
+      <GameFooter feedback={lastFeedback}>
         <PrimaryButton
           title="ENVIAR"
           variant="primary"
-          size="compact"
           disabled={!canSubmit}
           onPress={() => submit(state.inputValue)}
-          style={styles.submitButton}
         />
-      </View>
+      </GameFooter>
     </View>
   );
 }
@@ -818,11 +614,13 @@ function PhraseGameView({
   pool,
   resetKey,
   inverted,
+  section,
   scriptLabelLowercase,
 }: {
   pool: PhraseEntry[];
   resetKey: string;
   inverted: boolean;
+  section: string;
   scriptLabelLowercase: string;
 }) {
   const { theme: activeTheme } = useAppTheme();
@@ -840,12 +638,10 @@ function PhraseGameView({
     speakText: state.round.phrase.kana,
   });
   const promptTransition = useRef(new Animated.Value(1)).current;
-  const inputLineTransition = useRef(new Animated.Value(0)).current;
-  const inputLineResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<TextInput>(null);
-  const [inputFeedbackTone, setInputFeedbackTone] = useState<string | null>(null);
   const promptKind = getPhrasePromptKind(inverted);
   const answerKind = getPhraseAnswerKind(inverted);
+  const answered = state.answerState !== 'idle';
 
   useEffect(() => {
     promptTransition.setValue(0);
@@ -865,56 +661,6 @@ function PhraseGameView({
       clearTimeout(focusTimeout);
     };
   }, [promptTransition, state.round.roundKey]);
-
-  useEffect(() => {
-    if (state.answerState === 'idle') {
-      return;
-    }
-
-    const nextTone =
-      state.answerState === 'correct' ? activeTheme.colors.success : activeTheme.colors.error;
-
-    if (inputLineResetTimeoutRef.current) {
-      clearTimeout(inputLineResetTimeoutRef.current);
-      inputLineResetTimeoutRef.current = null;
-    }
-
-    setInputFeedbackTone(nextTone);
-    inputLineTransition.stopAnimation();
-    inputLineTransition.setValue(0);
-
-    Animated.sequence([
-      Animated.timing(inputLineTransition, {
-        toValue: 1,
-        duration: 120,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-      Animated.delay(980),
-      Animated.timing(inputLineTransition, {
-        toValue: 0,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-    ]).start();
-
-    inputLineResetTimeoutRef.current = setTimeout(() => {
-      setInputFeedbackTone(null);
-      inputLineResetTimeoutRef.current = null;
-    }, 1240);
-  }, [inputLineTransition, state.answerState]);
-
-  useEffect(
-    () => () => {
-      if (inputLineResetTimeoutRef.current) {
-        clearTimeout(inputLineResetTimeoutRef.current);
-      }
-
-      inputLineTransition.stopAnimation();
-    },
-    [inputLineTransition],
-  );
 
   const promptAnimatedStyle = {
     opacity: promptTransition,
@@ -938,166 +684,78 @@ function PhraseGameView({
     state.answerState === 'idle' &&
     sanitizePhraseInput(state.inputValue, answerKind).length > 0;
 
-  const neutralInputLineColor = activeTheme.colors.lineStrong;
-  const inputLineColor = inputLineTransition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      neutralInputLineColor,
-      inputFeedbackTone ?? neutralInputLineColor,
-    ],
-  });
-
-  const handleChangeText = (value: string) => {
-    setInputValue(value);
-  };
-
-  const showTranslation =
-    state.answerState !== 'idle' && lastFeedback.translationText;
+  const showTranslation = answered && lastFeedback.translationText;
 
   return (
-    <View style={styles.writingScreen}>
-      <GameTopBlock
-        title={inverted ? 'Frases inversas' : 'Frases'}
-        stats={state.stats}
-        lastFeedback={lastFeedback}
-        hideStats
+    <View style={styles.screen}>
+      <GameTopBlock title={inverted ? 'Frases inversas' : 'Frases'} section={section} stats={state.stats} />
+
+      {/* La consigna arriba del prompt, no solo en el placeholder: el placeholder se
+          tapa apenas empezás a escribir y no dice qué se pide. Es transcripción, no
+          traducción — sin decirlo, se escribe la traducción al español. */}
+      <PromptCard
+        size="input"
+        help={answerKind === 'kana' ? `Transcribí en ${scriptLabelLowercase}` : 'Transcribí en romaji'}
+        below={
+          showTranslation ? (
+            <View style={[styles.phraseTranslationCard, { backgroundColor: activeTheme.colors.surface2 }]}>
+              <AppText variant="overline" color={activeTheme.colors.textSecondary}>
+                SIGNIFICADO
+              </AppText>
+              <AppText variant="body" style={styles.phraseTranslationText}>
+                {lastFeedback.translationText}
+              </AppText>
+              {lastFeedback.correctText ? (
+                <AppText
+                  variant="bodySmall"
+                  color={activeTheme.colors.textSecondary}
+                  style={styles.phraseTranslationReading}
+                >
+                  {lastFeedback.correctText}
+                </AppText>
+              ) : null}
+            </View>
+          ) : null
+        }
+      >
+        <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
+          <PromptGlyph style={promptKind === 'kana' ? styles.phraseKanaPrompt : styles.phraseRomajiPrompt}>
+            {state.round.promptText}
+          </PromptGlyph>
+        </Animated.View>
+      </PromptCard>
+
+      <AnswerInput
+        ref={inputRef}
+        value={state.inputValue}
+        onChangeText={setInputValue}
+        onSubmitEditing={(event) => submit(event.nativeEvent.text)}
+        editable={!answered}
+        status={state.answerState}
+        blurOnSubmit={false}
+        returnKeyType="done"
+        maxLength={answerKind === 'kana' ? 30 : 40}
+        placeholder={
+          answerKind === 'kana'
+            ? `Escribi la frase en ${scriptLabelLowercase}`
+            : 'Escribi la frase en romaji'
+        }
+        glyph={answerKind === 'kana'}
       />
 
-      <GlassCard style={styles.questionCard} contentStyle={styles.writingCardContent}>
-        {/* La consigna arriba del prompt, no solo en el placeholder: el placeholder se
-            tapa apenas empezás a escribir y no dice qué se pide. Es transcripción, no
-            traducción — sin decirlo, se escribe la traducción al español. */}
-        <AppText
-          variant="overline"
-          color={activeTheme.colors.textMuted}
-          style={styles.phraseConsigna}
-        >
-          {answerKind === 'kana'
-            ? `Transcribí en ${scriptLabelLowercase}`
-            : 'Transcribí en romaji'}
-        </AppText>
-        <PromptBoard
-          style={styles.writingPromptBoard}
-          topRight={
-            state.answerState !== 'idle' ? (
-              <SpeakButton text={state.round.phrase.kana} />
-            ) : null
-          }
-        >
-          <View style={styles.phrasePromptWrap}>
-            <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
-              <PromptGlyph
-                style={
-                  promptKind === 'kana'
-                    ? styles.phraseKanaPrompt
-                    : styles.phraseRomajiPrompt
-                }
-              >
-                {state.round.promptText}
-              </PromptGlyph>
-            </Animated.View>
-          </View>
-        </PromptBoard>
-        {showTranslation ? (
-          <View
-            style={[
-              styles.phraseTranslationCard,
-              {
-                borderColor: hexToRgba(activeTheme.colors.accent, 0.3),
-                backgroundColor: hexToRgba(activeTheme.colors.accent, 0.08),
-              },
-            ]}
-          >
-            <AppText variant="overline" color={activeTheme.colors.textMuted}>
-              SIGNIFICADO
-            </AppText>
-            <AppText
-              variant="body"
-              color={activeTheme.colors.textPrimary}
-              style={styles.phraseTranslationText}
-            >
-              {lastFeedback.translationText}
-            </AppText>
-            {lastFeedback.correctText ? (
-              <AppText
-                variant="bodySmall"
-                color={activeTheme.colors.textSecondary}
-                style={styles.phraseTranslationReading}
-              >
-                {lastFeedback.correctText}
-              </AppText>
-            ) : null}
-          </View>
-        ) : null}
-      </GlassCard>
-
-      <View style={styles.inputSection}>
-        <Animated.View
-          style={[
-            styles.inputUnderline,
-            {
-              backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.04),
-              borderColor: inputFeedbackTone
-                ? inputLineColor
-                : neutralInputLineColor,
-            },
-          ]}
-        >
-          <TextInput
-            ref={inputRef}
-            value={state.inputValue}
-            onChangeText={handleChangeText}
-            onSubmitEditing={(event) => submit(event.nativeEvent.text)}
-            editable={state.answerState === 'idle'}
-            autoCapitalize="none"
-            autoCorrect={false}
-            blurOnSubmit={false}
-            returnKeyType="done"
-            maxLength={answerKind === 'kana' ? 30 : 40}
-            placeholder={
-              answerKind === 'kana'
-                ? `Escribi la frase en ${scriptLabelLowercase}`
-                : 'Escribi la frase en romaji'
-            }
-            placeholderTextColor={activeTheme.colors.textMuted}
-            selectionColor={activeTheme.colors.accent}
-            style={[
-              styles.input,
-              answerKind === 'kana' ? styles.kanaInput : null,
-              {
-                color: activeTheme.colors.textPrimary,
-              },
-            ]}
-          />
-        </Animated.View>
-
-        <PrimaryButton
-          title={state.answerState !== 'idle' ? 'SIGUIENTE' : 'ENVIAR'}
-          variant="primary"
-          size="compact"
-          disabled={state.answerState === 'idle' && !canSubmit}
-          onPress={state.answerState !== 'idle' ? next : () => submit(state.inputValue)}
-          style={styles.submitButton}
-        />
-
-        <View style={[styles.statsRow, { marginTop: theme.spacing.xl }]}>
-          <StatPill
-            label="Aciertos"
-            value={state.stats.correct}
-            tone="success"
-          />
-          <StatPill
-            label="Fallidos"
-            value={state.stats.incorrect}
-            tone="error"
-          />
-          <StatPill
-            label="Racha"
-            value={state.stats.streak}
-           
+      <GameFooter feedback={lastFeedback}>
+        <View style={styles.actionRow}>
+          {/* El audio dice la frase: recién después de responder. */}
+          {answered ? <SpeakButton variant="square" text={state.round.phrase.kana} /> : null}
+          <PrimaryButton
+            title={answered ? 'SIGUIENTE' : 'ENVIAR'}
+            variant="primary"
+            disabled={!answered && !canSubmit}
+            onPress={answered ? next : () => submit(state.inputValue)}
+            style={styles.actionMain}
           />
         </View>
-      </View>
+      </GameFooter>
     </View>
   );
 }
@@ -1111,7 +769,7 @@ function FillBlankGameView({
   onRepeat,
   onBack,
 }: {
-  pool: import('../data/wordVocabulary').WordPracticeEntry[];
+  pool: WordPracticeEntry[];
   resetKey: string;
   sessionLength?: number;
   onRepeat: () => void;
@@ -1203,50 +861,41 @@ function FillBlankGameView({
     <View style={styles.screen}>
       <GameTopBlock
         title="Completar la Palabra"
+        section={VOCAB_SECTION}
         stats={state.stats}
-        lastFeedback={lastFeedback}
+        sessionLength={sessionLength}
       />
 
-      <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <PromptBoard
-          topRight={
-            state.answerState !== 'idle' ? (
-              <SpeakButton text={state.round.word.kana} />
-            ) : null
-          }
-        >
-          <View style={styles.kanaWrap}>
-            <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
-              <View style={styles.fillBlankRow}>
-                {syllables.map((syl, index) => (
-                  <AppText
-                    key={index}
-                    variant="kana"
-                    style={[
-                      styles.fillBlankSyllable,
-                      {
-                        color:
-                          index === blankIndex
-                            ? activeTheme.colors.accent
-                            : activeTheme.colors.textPrimary,
-                      },
-                    ]}
-                  >
-                    {index === blankIndex ? '＿' : syl}
-                  </AppText>
-                ))}
-              </View>
-              <AppText
-                variant="bodySmall"
-                color={activeTheme.colors.textMuted}
-                style={styles.fillBlankTranslation}
-              >
-                {translation}
-              </AppText>
-            </Animated.View>
+      <PromptCard
+        size="choice"
+        bottomRight={
+          state.answerState !== 'idle' ? <SpeakButton text={state.round.word.kana} /> : null
+        }
+      >
+        <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
+          <View style={styles.fillBlankRow}>
+            {syllables.map((syl, index) =>
+              index === blankIndex ? (
+                // El hueco: caja punteada ruri (la misma que el completar de Kanji Grind).
+                <View
+                  key={index}
+                  style={[
+                    styles.blankBox,
+                    { borderColor: activeTheme.colors.primary, backgroundColor: activeTheme.colors.primarySoft },
+                  ]}
+                />
+              ) : (
+                <AppText key={index} style={styles.fillBlankSyllable}>
+                  {syl}
+                </AppText>
+              ),
+            )}
           </View>
-        </PromptBoard>
-      </GlassCard>
+          <AppText variant="body" color={activeTheme.colors.textSecondary} style={styles.fillBlankTranslation}>
+            {translation}
+          </AppText>
+        </Animated.View>
+      </PromptCard>
 
       <View style={styles.answersGrid}>
         {state.round.options.map((option) => (
@@ -1260,6 +909,10 @@ function FillBlankGameView({
           />
         ))}
       </View>
+
+      <GameFooter feedback={lastFeedback}>
+        <WaitingHint visible={state.answerState === 'idle'} />
+      </GameFooter>
     </View>
   );
 }
@@ -1273,13 +926,14 @@ function WordBuilderGameView({
   onRepeat,
   onBack,
 }: {
-  pool: import('../data/wordVocabulary').WordPracticeEntry[];
+  pool: WordPracticeEntry[];
   resetKey: string;
   sessionLength?: number;
   onRepeat: () => void;
   onBack: () => void;
 }) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
   const { state, tapTile, clear, submit, next, lastFeedback } = useWordBuilderGame(
     pool,
     resetKey,
@@ -1295,6 +949,7 @@ function WordBuilderGameView({
   const promptTransition = useRef(new Animated.Value(1)).current;
   const allPlaced =
     state.placedTileIds.length === state.round.syllableCount;
+  const answered = state.answerState !== 'idle';
 
   useEffect(() => {
     promptTransition.setValue(0);
@@ -1340,29 +995,18 @@ function WordBuilderGameView({
     <View style={styles.screen}>
       <GameTopBlock
         title="Constructor"
+        section={VOCAB_SECTION}
         stats={state.stats}
-        lastFeedback={lastFeedback}
+        sessionLength={sessionLength}
       />
 
-      <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <PromptBoard
-          topRight={
-            state.answerState !== 'idle' ? (
-              <SpeakButton text={state.round.word.kana} />
-            ) : null
-          }
-        >
-          <View style={styles.wordBuilderPromptWrap}>
-            <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
-              <PromptGlyph style={styles.wordTranslationPrompt}>
-                {state.round.promptText}
-              </PromptGlyph>
-            </Animated.View>
-          </View>
-        </PromptBoard>
-      </GlassCard>
+      <PromptCard size="compact">
+        <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
+          <PromptGlyph style={styles.wordTranslationPrompt}>{state.round.promptText}</PromptGlyph>
+        </Animated.View>
+      </PromptCard>
 
-      {/* Answer slots */}
+      {/* Casilleros de la respuesta: tocar uno devuelve la pieza al pozo. */}
       <View style={styles.wordBuilderSlots}>
         {Array.from({ length: state.round.syllableCount }).map((_, index) => {
           const tileId = state.placedTileIds[index];
@@ -1370,171 +1014,103 @@ function WordBuilderGameView({
             ? (state.round.tiles.find((t) => t.id === tileId)?.kana ?? '')
             : '';
           const isEmpty = !tileId;
-          const isIncorrect =
-            state.answerState === 'incorrect' && !isEmpty;
+          const isIncorrect = state.answerState === 'incorrect' && !isEmpty;
+          const isCorrect = state.answerState === 'correct';
 
           return (
-            <Pressable
+            <InkPressable
               key={index}
+              elevation="flat"
               onPress={() => {
                 if (tileId) tapTile(tileId);
               }}
               style={[
                 styles.wordBuilderSlot,
-                {
-                  borderColor: isEmpty
-                    ? hexToRgba(activeTheme.colors.textPrimary, 0.22)
-                    : isIncorrect
-                      ? activeTheme.colors.error
-                      : state.answerState === 'correct'
-                        ? activeTheme.colors.success
-                        : activeTheme.colors.accent,
-                  backgroundColor: isEmpty
-                    ? hexToRgba(activeTheme.colors.textPrimary, 0.04)
-                    : hexToRgba(activeTheme.colors.accent, 0.08),
-                },
+                isEmpty
+                  ? { borderColor: colors.hair, backgroundColor: colors.surface2 }
+                  : isIncorrect
+                    ? { borderColor: colors.error, backgroundColor: colors.errorSoft }
+                    : isCorrect
+                      ? { borderColor: colors.success, backgroundColor: colors.successSoft }
+                      : { backgroundColor: colors.card },
               ]}
             >
               <AppText
-                variant="kana"
-                style={[
-                  styles.wordBuilderSlotKana,
-                  {
-                    color: isIncorrect
-                      ? activeTheme.colors.error
-                      : state.answerState === 'correct'
-                        ? activeTheme.colors.success
-                        : activeTheme.colors.textPrimary,
-                  },
-                ]}
+                style={styles.wordBuilderKana}
+                color={isIncorrect ? colors.errorInk : isCorrect ? colors.successInk : colors.textPrimary}
               >
                 {kana}
               </AppText>
-            </Pressable>
+            </InkPressable>
           );
         })}
       </View>
 
-      {/* Tile pool — los tiles ya colocados salen del pool (viven en los slots). */}
+      {/* Pozo de piezas — las ya colocadas salen de acá (viven en los casilleros). */}
       <View style={styles.wordBuilderTiles}>
         {state.round.tiles
           .filter((tile) => !state.placedTileIds.includes(tile.id))
           .map((tile) => (
-            <Pressable
+            <InkPressable
               key={tile.id}
               onPress={() => tapTile(tile.id)}
-              disabled={state.answerState !== 'idle'}
-              style={({ pressed }) => [
-                styles.wordBuilderTile,
-                {
-                  borderColor: hexToRgba(activeTheme.colors.textPrimary, 0.28),
-                  backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.05),
-                  opacity: pressed ? 0.75 : 1,
-                },
-              ]}
+              disabled={answered}
+              style={[styles.wordBuilderTile, { backgroundColor: colors.card }]}
             >
-              <AppText
-                variant="kana"
-                style={[
-                  styles.wordBuilderTileKana,
-                  { color: activeTheme.colors.textPrimary },
-                ]}
-              >
-                {tile.kana}
-              </AppText>
-            </Pressable>
+              <AppText style={styles.wordBuilderKana}>{tile.kana}</AppText>
+            </InkPressable>
           ))}
       </View>
 
-      <View style={styles.wordBuilderActions}>
-        <PrimaryButton
-          title={state.answerState !== 'idle' ? 'SIGUIENTE' : 'ENVIAR'}
-          variant="primary"
-          size="compact"
-          disabled={state.answerState === 'idle' && !allPlaced}
-          onPress={state.answerState !== 'idle' ? next : submit}
-          style={styles.wordBuilderSubmit}
-        />
-
-        {state.answerState === 'idle' ? (
-          <Pressable
-            onPress={clear}
-            disabled={state.placedTileIds.length === 0}
-            style={({ pressed }) => [
-              styles.wordBuilderClearBtn,
-              {
-                borderColor: activeTheme.colors.line,
-                backgroundColor: hexToRgba(activeTheme.colors.textPrimary, 0.05),
-                opacity:
-                  state.placedTileIds.length === 0 ? 0.4 : pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <AppText variant="label" color={activeTheme.colors.textSecondary}>
-              LIMPIAR
-            </AppText>
-          </Pressable>
-        ) : null}
-      </View>
+      <GameFooter feedback={lastFeedback}>
+        <View style={styles.actionRow}>
+          {answered ? (
+            <SpeakButton variant="square" text={state.round.word.kana} />
+          ) : (
+            <PrimaryButton
+              title="LIMPIAR"
+              variant="secondary"
+              disabled={state.placedTileIds.length === 0}
+              onPress={clear}
+              style={styles.actionSecondary}
+            />
+          )}
+          <PrimaryButton
+            title={answered ? 'SIGUIENTE' : 'ENVIAR'}
+            variant="primary"
+            disabled={!answered && !allPlaced}
+            onPress={answered ? next : submit}
+            style={styles.actionMain}
+          />
+        </View>
+      </GameFooter>
     </View>
   );
 }
 
+// Cabecera de partida de los modos de GameScreen: "LECTURA · HIRAGANA", ○/× y, si la
+// sesión tiene largo, la barra con "7/20".
 function GameTopBlock({
   title,
+  section,
   stats,
-  lastFeedback,
-  hideStats,
+  sessionLength,
 }: {
   title: string;
+  section: string;
   stats: GameStats;
-  lastFeedback: {
-    status: GameSessionState['answerState'];
-    promptText?: string;
-    correctText: string;
-    selectedText?: string | null;
-    nearMiss?: boolean;
-  };
-  hideStats?: boolean;
+  sessionLength?: number;
 }) {
-  const { theme: activeTheme } = useAppTheme();
-
   return (
-    <View style={styles.topBlock}>
-      <AppText variant="headline" style={styles.title}>
-        {title}
-      </AppText>
-
-      {!hideStats && (
-        <View style={styles.statsRow}>
-          <StatPill
-            label="Aciertos"
-            value={stats.correct}
-            tone="success"
-          />
-          <StatPill
-            label="Fallidos"
-            value={stats.incorrect}
-            tone="error"
-          />
-          <StatPill
-            label="Racha"
-            value={stats.streak}
-           
-          />
-        </View>
-      )}
-
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={lastFeedback.status}
-          promptText={lastFeedback.promptText}
-          correctText={lastFeedback.correctText}
-          selectedText={lastFeedback.selectedText}
-          nearMiss={lastFeedback.nearMiss}
-        />
-      </View>
-    </View>
+    <GameHeader
+      eyebrow={`${title} · ${section}`}
+      score={stats}
+      progress={
+        sessionLength
+          ? { current: Math.min(stats.answered + 1, sessionLength), total: sessionLength }
+          : undefined
+      }
+    />
   );
 }
 
@@ -1565,29 +1141,6 @@ function getFillBlankOptionState(
   if (optionId === state.round.correctOptionId) return 'correct';
   if (optionId === state.selectedOptionId && state.answerState === 'incorrect') return 'incorrect';
   return 'muted';
-}
-
-// Los controles de la ronda (audio, ayuda) van en las esquinas DEL BOARD, no de la
-// tarjeta: ancladas a la tarjeta quedaban montadas sobre el borde del recuadro, mitad
-// adentro y mitad afuera. Se resuelve acá para que los seis modos queden iguales.
-function PromptBoard({
-  children,
-  style,
-  topLeft,
-  topRight,
-}: {
-  children: ReactNode;
-  style?: StyleProp<ViewStyle>;
-  topLeft?: ReactNode;
-  topRight?: ReactNode;
-}) {
-  return (
-    <View style={[styles.promptBoard, style]}>
-      {topLeft ? <View style={styles.boardCornerLeft}>{topLeft}</View> : null}
-      {topRight ? <View style={styles.boardCornerRight}>{topRight}</View> : null}
-      {children}
-    </View>
-  );
 }
 
 function estimatePromptTextWidth(
@@ -1675,74 +1228,29 @@ function PromptGlyph({
 }
 
 const styles = StyleSheet.create({
+  // Partida a pantalla completa: crece hasta el alto disponible para que el espacio
+  // libre (spacer) empuje el pie hacia abajo.
   screen: {
-    flex: 1,
-  },
-  writingScreen: {
+    flexGrow: 1,
     width: '100%',
-    paddingBottom: theme.spacing.xxxl,
   },
   writingScreenContent: {
-    paddingBottom: theme.spacing.xxxl,
-  },
-  topBlock: {
-    marginBottom: theme.spacing.xs,
-  },
-  // Alineado a la izquierda, como ScreenHeader en el resto de la app.
-  title: {
-    marginBottom: theme.spacing.md,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xs,
-  },
-  questionCard: {
-    marginBottom: theme.spacing.sm,
-  },
-  boardCornerLeft: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    left: theme.spacing.xs,
-    zIndex: 2,
-  },
-  boardCornerRight: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    zIndex: 2,
+    paddingBottom: theme.spacing.xl,
   },
   promptHint: {
     textAlign: 'center',
     marginTop: theme.spacing.xs,
   },
-  questionCardContent: {
-    padding: theme.spacing.md,
-  },
-  writingCardContent: {
-    padding: theme.spacing.md,
-  },
-  promptBoard: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-  },
-  writingPromptBoard: {
-    paddingVertical: theme.spacing.lg,
-  },
-  kanaWrap: {
-    minHeight: 148,
-    alignItems: 'center',
-    justifyContent: 'center',
+  moras: {
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 4,
   },
   promptGlyph: {
     textAlign: 'center',
     includeFontPadding: false,
-    fontFamily: Platform.OS === 'web' ? 'ZenKakuGothicNew_700Bold' : undefined,
-    fontWeight: Platform.OS === 'web' ? '600' : '700',
+    fontFamily: FONTS.bold,
   },
   promptGlyphWrap: {
     width: '100%',
@@ -1762,28 +1270,15 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   readingKanaPrompt: {
-    fontSize: 78,
-    lineHeight: 82,
+    ...theme.typography.kana,
   },
   readingRomajiPrompt: {
     fontSize: 52,
     lineHeight: 58,
     letterSpacing: 0.8,
   },
-  writingPromptWrap: {
-    minHeight: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  syllablesPromptWrap: {
-    minHeight: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   writingKanaPrompt: {
-    fontSize: 61,
-    lineHeight: 69,
-    letterSpacing: 0.6,
+    ...theme.typography.word,
   },
   writingRomajiPrompt: {
     fontSize: 38,
@@ -1800,18 +1295,10 @@ const styles = StyleSheet.create({
     lineHeight: 46,
     letterSpacing: 0.8,
   },
-  phraseConsigna: {
-    textAlign: 'center',
-    marginBottom: theme.spacing.xs,
-  },
-  phrasePromptWrap: {
-    minHeight: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   phraseKanaPrompt: {
+    fontFamily: FONTS.glyph,
     fontSize: 36,
-    lineHeight: 44,
+    lineHeight: 46,
     letterSpacing: 0.3,
   },
   phraseRomajiPrompt: {
@@ -1820,22 +1307,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   phraseTranslationCard: {
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.sm,
     alignItems: 'center',
     gap: 2,
-    borderWidth: 1,
     borderRadius: theme.radii.md,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
   },
   phraseTranslationText: {
     textAlign: 'center',
-    lineHeight: 22,
   },
   phraseTranslationReading: {
     textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 18,
   },
   answersGrid: {
     flexDirection: 'row',
@@ -1843,36 +1326,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
-  inputSection: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    alignItems: 'center',
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  inputUnderline: {
-    width: '100%',
-    maxWidth: 380,
-    borderWidth: 1.5,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+  actionMain: {
+    flex: 1,
   },
-  input: {
-    outlineWidth: 0,
-    fontFamily: 'ZenKakuGothicNew_500Medium',
-    fontSize: 22,
-    lineHeight: 28,
-    textAlign: 'center',
-    paddingVertical: 0,
-    minHeight: 36,
-  },
-  kanaInput: {
-    fontFamily: Platform.OS === 'web' ? 'ZenKakuGothicNew_700Bold' : undefined,
-    fontWeight: Platform.OS === 'web' ? '600' : '700',
-    letterSpacing: 0.4,
-  },
-  submitButton: {
-    marginTop: theme.spacing.md,
-    minWidth: 180,
+  actionSecondary: {
+    flex: 1,
   },
   // Fill-in-the-blank
   fillBlankRow: {
@@ -1881,77 +1343,57 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: theme.spacing.sm,
   },
   fillBlankSyllable: {
+    fontFamily: FONTS.glyph,
     fontSize: 40,
-    lineHeight: 50,
+    lineHeight: 54,
+  },
+  blankBox: {
+    width: 54,
+    height: 54,
+    borderWidth: 3,
+    borderStyle: 'dashed',
+    borderRadius: theme.radii.badge,
   },
   fillBlankTranslation: {
     textAlign: 'center',
-    marginTop: theme.spacing.xs,
-    fontStyle: 'italic',
+    marginTop: theme.spacing.sm,
   },
   // Word builder
-  wordBuilderPromptWrap: {
-    minHeight: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   wordBuilderSlots: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   wordBuilderSlot: {
-    minWidth: 44,
-    height: 52,
+    minWidth: 48,
+    height: 54,
     paddingHorizontal: theme.spacing.sm,
-    borderRadius: theme.radii.md,
-    borderWidth: 1.5,
+    borderRadius: theme.radii.badge,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  wordBuilderSlotKana: {
-    fontSize: 22,
-    lineHeight: 28,
   },
   wordBuilderTiles: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
   },
   wordBuilderTile: {
-    minWidth: 44,
-    height: 52,
-    paddingHorizontal: theme.spacing.sm,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
+    minWidth: 48,
+    height: 50,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: theme.radii.badge,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  wordBuilderTileKana: {
+  wordBuilderKana: {
+    fontFamily: FONTS.glyph,
     fontSize: 22,
-    lineHeight: 28,
-  },
-  wordBuilderActions: {
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
-  },
-  wordBuilderSubmit: {
-    minWidth: 180,
-  },
-  wordBuilderClearBtn: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radii.pill,
-    borderWidth: 1,
+    lineHeight: 30,
   },
 });

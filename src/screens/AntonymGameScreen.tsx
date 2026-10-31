@@ -2,20 +2,18 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
+import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { GameHeader } from '../components/game/GameHeader';
 import { HintToggle } from '../components/game/HintToggle';
 import { AppText } from '../components/ui/AppText';
-import { GlassCard } from '../components/ui/GlassCard';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
-import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { StatPill } from '../components/ui/StatPill';
 import { AntonymWord } from '../features/game/antonymGameEngine';
 import { useAntonymGame } from '../features/game/useAntonymGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { theme } from '../theme/theme';
+import { FONTS, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 function describe(word: AntonymWord) {
@@ -50,56 +48,37 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
 
   return (
     <ScreenBackground scrollable>
-      <ScreenHeader eyebrow="反 · Antónimos" title="¿Cuál es el opuesto?" />
+      <GameHeader eyebrow="反 · Antónimos" title="¿Cuál es el opuesto?" score={stats} />
 
-      <View style={styles.statsRow}>
-        <StatPill label="Aciertos" value={stats.correct} tone="success" />
-        <StatPill label="Fallidos" value={stats.incorrect} tone="error" />
-        <StatPill label="Racha" value={stats.streak} />
-      </View>
-
-      <GlassCard style={styles.questionCard} contentStyle={styles.questionCardContent}>
-        <HintToggle
-          enabled={hintEnabled}
-          onToggle={() => setHintEnabled((current) => !current)}
-          style={styles.hintCorner}
-        />
-        {/* Escuchar la consigna no da la respuesta: la respuesta es la OTRA palabra. */}
-        <SpeakButton text={round.prompt.kana} style={styles.speakCorner} />
-        <View style={styles.promptWrap}>
-          {round.prompt.kanji ? (
-            <AppText variant="bodySmall" color={activeTheme.colors.textMuted}>
-              {round.prompt.kanji}
-            </AppText>
-          ) : null}
-          <AppText variant="kana" style={styles.prompt}>
-            {round.prompt.kana}
+      <PromptCard
+        topRight={<HintToggle enabled={hintEnabled} onToggle={() => setHintEnabled((current) => !current)} />}
+        // Escuchar la consigna no da la respuesta: la respuesta es la OTRA palabra.
+        bottomRight={<SpeakButton text={round.prompt.kana} />}
+        below={
+          answered ? (
+            <View style={styles.reveal}>
+              <AppText variant="overline" color={activeTheme.colors.textSecondary}>
+                EL OPUESTO
+              </AppText>
+              <AppText variant="option" style={styles.centered}>
+                {describe(round.answer)}
+              </AppText>
+            </View>
+          ) : null
+        }
+      >
+        {round.prompt.kanji ? (
+          <AppText style={styles.kanji} color={activeTheme.colors.textSecondary}>
+            {round.prompt.kanji}
           </AppText>
-          {hintEnabled || answered ? (
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-              {round.prompt.es}
-            </AppText>
-          ) : null}
-        </View>
-        {answered ? (
-          <View style={styles.reveal}>
-            <AppText variant="overline" color={activeTheme.colors.textMuted}>
-              EL OPUESTO
-            </AppText>
-            <AppText variant="option" style={styles.centered}>
-              {describe(round.answer)}
-            </AppText>
-          </View>
         ) : null}
-      </GlassCard>
-
-      <View style={styles.feedbackSlot}>
-        <FeedbackBanner
-          status={lastFeedback.status}
-          correctText={lastFeedback.correctText}
-          selectedText={lastFeedback.selectedText}
-        />
-      </View>
+        <AppText style={styles.prompt}>{round.prompt.kana}</AppText>
+        {hintEnabled || answered ? (
+          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
+            {round.prompt.es}
+          </AppText>
+        ) : null}
+      </PromptCard>
 
       <View style={styles.answersGrid}>
         {round.options.map((option) => (
@@ -113,45 +92,24 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
           />
         ))}
       </View>
+
+      <GameFooter feedback={lastFeedback}>
+        <WaitingHint visible={!answered} />
+      </GameFooter>
     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  statsRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-  },
-  questionCard: {
-    marginBottom: theme.spacing.sm,
-  },
-  questionCardContent: {
-    padding: theme.spacing.md,
-    alignItems: 'center',
-  },
-  hintCorner: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    left: theme.spacing.xs,
-    zIndex: 2,
-  },
-  speakCorner: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    zIndex: 2,
-  },
-  promptWrap: {
-    minHeight: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    paddingHorizontal: theme.spacing.xl,
+  kanji: {
+    fontFamily: FONTS.glyph,
+    fontSize: 16,
+    lineHeight: 22,
   },
   prompt: {
-    fontSize: 46,
-    lineHeight: 56,
+    fontFamily: FONTS.glyph,
+    fontSize: 56,
+    lineHeight: 68,
     textAlign: 'center',
   },
   reveal: {
@@ -161,10 +119,6 @@ const styles = StyleSheet.create({
   },
   centered: {
     textAlign: 'center',
-  },
-  feedbackSlot: {
-    minHeight: 56,
-    marginBottom: theme.spacing.xs,
   },
   answersGrid: {
     flexDirection: 'row',
