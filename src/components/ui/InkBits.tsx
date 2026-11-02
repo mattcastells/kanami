@@ -57,7 +57,8 @@ export function ProgressTrack({ value, tone, thin = false }: { value: number; to
 
 // ── Paso numerado de las pantallas de selección ("① QUÉ QUERÉS HACER") ───────
 // Círculo 20 `textPrimary` con el número 900 11 color `background`; texto overline, gap 8, mb 10.
-export function SectionStep({ n, children }: { n: number; children: string }) {
+// `right`: algo al final de la fila (el CheckAll de "Con qué").
+export function SectionStep({ n, children, right }: { n: number; children: string; right?: ReactNode }) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   return (
@@ -68,6 +69,7 @@ export function SectionStep({ n, children }: { n: number; children: string }) {
       <AppText variant="overline" color={colors.textPrimary}>
         {children}
       </AppText>
+      {right ? <View style={styles.stepRight}>{right}</View> : null}
     </View>
   );
 }
@@ -126,6 +128,7 @@ const styles = StyleSheet.create({
   track: { flex: 1, borderWidth: 2, borderRadius: 999, overflow: 'hidden' },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   stepDot: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  stepRight: { marginLeft: 'auto' },
   seg: { flexDirection: 'row', gap: 4, padding: 4, borderWidth: 2, borderRadius: 12 },
   segOpt: { flex: 1, height: SIZES.segmentHeight, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   markerWrap: { position: 'relative', paddingHorizontal: 2 },

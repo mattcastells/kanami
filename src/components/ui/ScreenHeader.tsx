@@ -1,9 +1,10 @@
 import { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { FONTS, theme } from '../../theme/theme';
+import { theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { AppText } from './AppText';
+import { HeaderTitle } from './HeaderTitle';
 import { PillButton } from './PrimaryButton';
 import { BackButton, useScreenBack } from './ScreenBackground';
 
@@ -41,6 +42,7 @@ export function ScreenHeader({
   const { colors } = activeTheme;
   const screenBack = useScreenBack();
   const handleBack = onBack ?? (screenBack.canGoBack ? screenBack.goBack : undefined);
+  const variant = compact ? 'title' : handleBack ? 'headline' : 'headlineRoot';
 
   const right =
     rightSlot ??
@@ -52,14 +54,15 @@ export function ScreenHeader({
     <View style={styles.container}>
       <View style={styles.row}>
         {handleBack ? <BackButton onPress={handleBack} /> : null}
-        <View style={styles.titleBlock}>
-          <AppText variant={compact ? 'title' : handleBack ? 'headline' : 'headlineRoot'}>
-            {glyph ? (
-              <Text style={[styles.glyph, { color: colors.accentInk }]}>{`${glyph} · `}</Text>
-            ) : null}
-            {title}
-          </AppText>
-        </View>
+        {glyph ? (
+          <HeaderTitle glyph={glyph} title={title} variant={variant} />
+        ) : (
+          // Sin glyph el título es un aviso ("No hay palabras suficientes."): ese sí baja
+          // de renglón.
+          <View style={styles.titleBlock}>
+            <AppText variant={variant}>{title}</AppText>
+          </View>
+        )}
         {right ? <View style={styles.right}>{right}</View> : null}
       </View>
       {subtitle ? (
@@ -86,9 +89,6 @@ const styles = StyleSheet.create({
   },
   right: {
     alignSelf: 'center',
-  },
-  glyph: {
-    fontFamily: FONTS.glyph,
   },
   subtitle: {
     marginTop: theme.spacing.xs,

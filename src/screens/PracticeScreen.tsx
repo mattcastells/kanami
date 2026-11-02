@@ -141,10 +141,12 @@ const styles = StyleSheet.create({
   heroText: {
     position: 'absolute',
     left: 16,
-    // Arriba, a la altura del tanzaku: abajo quedaba suelto en medio de las olas.
-    top: 14,
+    // Centrado en el alto del hero.
+    top: 0,
+    bottom: 0,
     gap: 6,
     alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   heroTitle: {
     // Un poco menos que `display` (38): a ese tamaño el logo pisaba el sol.

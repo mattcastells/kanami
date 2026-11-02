@@ -178,24 +178,6 @@ export function getKanjiMastery(data: KanjiProgressData, char: string): number {
   return total / (KANJI_SKILLS.length * MASTERY_STREAK);
 }
 
-export type KanjiStatusCounts = Record<KanjiStatus, number>;
-
-export function countByStatus(
-  data: KanjiProgressData,
-  chars: string[],
-): KanjiStatusCounts {
-  const counts: KanjiStatusCounts = {
-    nuevo: 0,
-    estudiando: 0,
-    practicando: 0,
-    dominado: 0,
-  };
-  chars.forEach((char) => {
-    counts[getKanjiStatus(data, char)] += 1;
-  });
-  return counts;
-}
-
 // ── Normalización ──────────────────────────────────────────────────────────────────
 
 function toSkillStats(value: unknown): KanjiSkillStats {

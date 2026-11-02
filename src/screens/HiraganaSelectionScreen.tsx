@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { CheckRow, CheckSection } from '../components/practice/CheckRow';
+import { CheckAll, CheckRow, CheckSection, selectionState } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
-import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { AppText } from '../components/ui/AppText';
 import { SectionStep, Segmented } from '../components/ui/InkBits';
@@ -38,9 +37,8 @@ type ModeMeta = {
   title: string;
   cta: string;
   ctaInverted?: string;
-  note: string;
-  // Descripción del switch invertido; ausente = el modo no lo soporta.
-  invertedNote?: (scriptLabel: string) => string;
+  // Tiene modo invertido (romaji → kana).
+  invertible?: boolean;
 };
 
 const MODES: ModeMeta[] = [
@@ -50,8 +48,7 @@ const MODES: ModeMeta[] = [
     title: 'Lectura',
     cta: 'COMENZAR LECTURA',
     ctaInverted: 'COMENZAR LECTURA INVERSA',
-    note: 'Ves el carácter y elegís cómo se lee.',
-    invertedNote: (script) => `Muestra el romaji y elegís el ${script}.`,
+    invertible: true,
   },
   {
     mode: 'writing',
@@ -59,22 +56,19 @@ const MODES: ModeMeta[] = [
     title: 'Escritura',
     cta: 'COMENZAR ESCRITURA',
     ctaInverted: 'COMENZAR ESCRITURA INVERSA',
-    note: 'Ves el carácter y escribís su lectura.',
-    invertedNote: (script) => `Muestra el romaji y escribís el ${script}.`,
+    invertible: true,
   },
   {
     mode: 'drawing',
     glyph: '描',
     title: 'Dibujo',
     cta: 'COMENZAR DIBUJO',
-    note: 'Dibujás el carácter con su orden de trazos.',
   },
   {
     mode: 'board',
     glyph: '盤',
     title: 'Tablero',
     cta: 'COMENZAR TABLERO',
-    note: 'Escribís el romaji de todo el mazo, carta por carta.',
   },
   {
     mode: 'phrases',
@@ -82,8 +76,7 @@ const MODES: ModeMeta[] = [
     title: 'Frases',
     cta: 'COMENZAR FRASES',
     ctaInverted: 'COMENZAR FRASES INVERSAS',
-    note: 'Transcribís una frase entera. No usa los grupos.',
-    invertedNote: (script) => `Muestra la frase en romaji y la escribís en ${script}.`,
+    invertible: true,
   },
 ];
 
@@ -102,7 +95,6 @@ export function HiraganaSelectionScreen({
   // silabarios juntos. Como variante vive mejor adentro que ocupando un lugar afuera.
   const [script, setScript] = useState<KanaScript>(route.params.script);
   const scriptLabel = getKanaScriptLabel(script);
-  const scriptLabelLowercase = scriptLabel.toLowerCase();
 
   const availableSections = getKanaSections(script);
   const availableGroups = getKanaGroups(script);
@@ -110,14 +102,6 @@ export function HiraganaSelectionScreen({
     () => availableGroups.map((group) => group.id),
     [availableGroups],
   );
-  const baseGroupIds = useMemo(
-    () =>
-      availableSections
-        .find((section) => section.id === 'base')
-        ?.groups.map((group) => group.id) ?? [],
-    [availableSections],
-  );
-
   const [selectedGroupIds, setSelectedGroupIds] =
     useState<HiraganaGroupId[]>(allGroupIds);
   const [selectedMode, setSelectedMode] = useState<KanaSelectionMode>(
@@ -134,15 +118,10 @@ export function HiraganaSelectionScreen({
   // En mixto, escritura invertida (romaji→kana) sería ambigua: no se sabe qué
   // silabario escribir. Se permite en un solo silabario.
   const supportsInvertedMode = Boolean(
-    modeMeta.invertedNote && !(selectedMode === 'writing' && isMixedScript),
+    modeMeta.invertible && !(selectedMode === 'writing' && isMixedScript),
   );
   const usesGroups = selectedMode !== 'phrases';
   const canStart = !usesGroups || selectedGroupIds.length > 0;
-
-  const selectedCharacterCount = useMemo(
-    () => getKanaCharactersForGroupIds(script, selectedGroupIds).length,
-    [script, selectedGroupIds],
-  );
 
   // Cambiar de silabario cambia los grupos disponibles, así que la selección vuelve a
   // cero. También apaga el modo invertido: en mixto no siempre está permitido.
@@ -178,7 +157,7 @@ export function HiraganaSelectionScreen({
   const selectMode = (nextMode: KanaSelectionMode) => {
     setSelectedMode(nextMode);
     const next = MODES.find((item) => item.mode === nextMode);
-    if (!next?.invertedNote) {
+    if (!next?.invertible) {
       setInvertedMode(false);
     }
   };
@@ -199,11 +178,6 @@ export function HiraganaSelectionScreen({
   };
 
   const invertedActive = supportsInvertedMode && invertedMode;
-  const presetIsAll = selectedGroupIds.length === allGroupIds.length;
-  const presetIsBase =
-    selectedGroupIds.length === baseGroupIds.length &&
-    baseGroupIds.every((id) => selectedGroupIds.includes(id));
-
   return (
     <ScreenBackground
       scrollable
@@ -213,11 +187,6 @@ export function HiraganaSelectionScreen({
             canStart
               ? (invertedActive ? modeMeta.ctaInverted : modeMeta.cta) ?? modeMeta.cta
               : 'ELEGÍ AL MENOS UN GRUPO'
-          }
-          summary={
-            usesGroups
-              ? `${selectedCharacterCount} ${selectedCharacterCount === 1 ? 'carácter' : 'caracteres'} en juego`
-              : undefined
           }
           disabled={!canStart}
           onPress={startPractice}
@@ -244,18 +213,11 @@ export function HiraganaSelectionScreen({
         ))}
       </ModeGrid>
 
-      <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.modeNote}>
-        {modeMeta.note}
-      </AppText>
-
-      {supportsInvertedMode && modeMeta.invertedNote ? (
+      {supportsInvertedMode ? (
         <View style={[styles.invertRow, { backgroundColor: activeTheme.colors.surface2 }]}>
-          <View style={styles.invertText}>
-            <AppText variant="bodyStrong">Modo invertido</AppText>
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
-              {modeMeta.invertedNote(scriptLabelLowercase)}
-            </AppText>
-          </View>
+          <AppText variant="bodyStrong" style={styles.invertText}>
+            Modo invertido
+          </AppText>
           <InkSwitch value={invertedMode} onValueChange={setInvertedMode} />
         </View>
       ) : (
@@ -264,17 +226,19 @@ export function HiraganaSelectionScreen({
 
       {usesGroups ? (
         <>
-          <SectionStep n={2}>Con qué</SectionStep>
-
-          <View style={styles.presets}>
-            <SelectChip label="Todo" selected={presetIsAll} onPress={() => setSelectedGroupIds(allGroupIds)} />
-            <SelectChip
-              label="Solo básico"
-              selected={presetIsBase}
-              onPress={() => setSelectedGroupIds(baseGroupIds)}
-            />
-            <SelectChip label="Limpiar" selected={false} onPress={() => setSelectedGroupIds([])} />
-          </View>
+          <SectionStep
+            n={2}
+            right={
+              <CheckAll
+                state={selectionState(selectedGroupIds.length, allGroupIds.length)}
+                onToggle={() =>
+                  setSelectedGroupIds(selectedGroupIds.length === allGroupIds.length ? [] : allGroupIds)
+                }
+              />
+            }
+          >
+            Con qué
+          </SectionStep>
 
           <View style={styles.sections}>
             {availableSections.map((section) => {
@@ -328,9 +292,6 @@ const styles = StyleSheet.create({
   scriptRow: {
     marginBottom: 18,
   },
-  modeNote: {
-    marginTop: 10,
-  },
   invertRow: {
     marginTop: theme.spacing.sm,
     marginBottom: theme.spacing.lg,
@@ -347,12 +308,6 @@ const styles = StyleSheet.create({
   },
   stepGap: {
     height: theme.spacing.lg,
-  },
-  presets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
   },
   sections: {
     gap: 8,

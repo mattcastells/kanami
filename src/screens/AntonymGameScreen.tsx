@@ -85,11 +85,12 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
 
       {answered ? (
         <AnswerNote>
-          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
+          {/* La palabra y su opuesto, iguales: uno debajo del otro, sin flecha. */}
+          <AppText variant="option" style={styles.centered}>
             {describe(round.prompt)}
           </AppText>
           <AppText variant="option" style={styles.centered}>
-            ↔ {describe(round.answer)}
+            {describe(round.answer)}
           </AppText>
         </AnswerNote>
       ) : null}

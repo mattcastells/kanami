@@ -216,7 +216,89 @@ const aizomeDark = fromSeed({
   shadow: '#000000', waveA: '#16295A', waveB: '#213A78', onWave: '#FFFFFF', tabBar: '#121A2E',
 }, 'dark');
 
-export type PaletteId = 'hanga' | 'sumi' | 'matcha' | 'sakura' | 'aizome';
+// 紫 Murasaki: violeta para la acción, 藤 fuji (glicina) para lo elegido, 牡丹 botan de adorno.
+const murasakiLight = fromSeed({
+  background: '#F6F2F7', card: '#FFFFFF', surface2: '#EAE2EE',
+  textPrimary: '#1E1528', textSecondary: '#52475E', textMuted: '#7D7288',
+  line: '#1E1528', hair: 'rgba(30, 21, 40, 0.16)',
+  primary: '#5B2A86', onPrimary: '#FFFFFF', primarySoft: '#E6DAF2',
+  accent: '#E0457B', accentInk: '#AD2457', onAccent: '#FFFFFF',
+  highlight: '#D9C2F2', onHighlight: '#1E1528',
+  shadow: '#1E1528', waveA: '#5B2A86', waveB: '#7442A3', onWave: '#FFFFFF', tabBar: '#FFFFFF',
+}, 'light');
+const murasakiDark = fromSeed({
+  background: '#15111C', card: '#1F1929', surface2: '#2B2338',
+  textPrimary: '#F1EAF6', textSecondary: '#C6BBD0', textMuted: '#8F869A',
+  line: '#E5DCEC', hair: 'rgba(241, 234, 246, 0.16)',
+  primary: '#B994E6', onPrimary: '#1A0B2E', primarySoft: '#33264A',
+  accent: '#FF6B9E', accentInk: '#FF94B8', onAccent: '#15111C',
+  highlight: '#E3CCFA', onHighlight: '#15111C',
+  shadow: '#000000', waveA: '#2E1C48', waveB: '#432966', onWave: '#FFFFFF', tabBar: '#1A1522',
+}, 'dark');
+
+// 海 Umi: verde mar para la acción, 杏 anzu (damasco) para lo elegido, coral de adorno.
+const umiLight = fromSeed({
+  background: '#EFF5F3', card: '#FFFFFF', surface2: '#DDEAE6',
+  textPrimary: '#10231F', textSecondary: '#3E544F', textMuted: '#6E827E',
+  line: '#10231F', hair: 'rgba(16, 35, 31, 0.16)',
+  primary: '#0B6E72', onPrimary: '#FFFFFF', primarySoft: '#D3ECEA',
+  accent: '#FF6F59', accentInk: '#B63B27', onAccent: '#10231F',
+  highlight: '#FFD3A1', onHighlight: '#10231F',
+  shadow: '#10231F', waveA: '#0B6E72', waveB: '#178A8C', onWave: '#FFFFFF', tabBar: '#FFFFFF',
+}, 'light');
+const umiDark = fromSeed({
+  background: '#0D1715', card: '#15221F', surface2: '#1F302C',
+  textPrimary: '#E6F2EF', textSecondary: '#B3C6C1', textMuted: '#7E928D',
+  line: '#D6E6E2', hair: 'rgba(230, 242, 239, 0.16)',
+  primary: '#5FD3C8', onPrimary: '#062421', primarySoft: '#1B3A36',
+  accent: '#FF8A75', accentInk: '#FFA898', onAccent: '#0D1715',
+  highlight: '#F5C98E', onHighlight: '#0D1715',
+  shadow: '#000000', waveA: '#0F3B3A', waveB: '#165150', onWave: '#FFFFFF', tabBar: '#111D1A',
+}, 'dark');
+
+// 楓 Kaede: rojo arce para la acción, ámbar para lo elegido, 金 kin (oro) de adorno.
+const kaedeLight = fromSeed({
+  background: '#F7EFE6', card: '#FFFAF4', surface2: '#EEDFCF',
+  textPrimary: '#24140E', textSecondary: '#5C4336', textMuted: '#86705F',
+  line: '#24140E', hair: 'rgba(36, 20, 14, 0.16)',
+  primary: '#A3301F', onPrimary: '#FFFFFF', primarySoft: '#F5DAD2',
+  accent: '#E3A21A', accentInk: '#875A00', onAccent: '#24140E',
+  highlight: '#F7B267', onHighlight: '#24140E',
+  shadow: '#24140E', waveA: '#A3301F', waveB: '#C04A2E', onWave: '#FFFFFF', tabBar: '#FFFAF4',
+}, 'light');
+const kaedeDark = fromSeed({
+  background: '#1A110D', card: '#251914', surface2: '#33241C',
+  textPrimary: '#F6E9DF', textSecondary: '#CDB8A9', textMuted: '#97836F',
+  line: '#EBDACC', hair: 'rgba(246, 233, 223, 0.16)',
+  primary: '#F08A6C', onPrimary: '#2A0B04', primarySoft: '#4A2219',
+  accent: '#F2B83A', accentInk: '#F7CA6A', onAccent: '#1A110D',
+  highlight: '#F7B267', onHighlight: '#1A110D',
+  shadow: '#000000', waveA: '#4A1A12', waveB: '#66261A', onWave: '#FFFFFF', tabBar: '#20150F',
+}, 'dark');
+
+// 鉛 Namari: gris pizarra para la acción, lima para lo elegido, celeste de adorno.
+const namariLight = fromSeed({
+  background: '#EEF0F2', card: '#FFFFFF', surface2: '#DFE3E7',
+  textPrimary: '#171B21', textSecondary: '#454D57', textMuted: '#727A84',
+  line: '#171B21', hair: 'rgba(23, 27, 33, 0.16)',
+  primary: '#2E3A48', onPrimary: '#FFFFFF', primarySoft: '#DCE2EA',
+  accent: '#2BB6D6', accentInk: '#0A6F86', onAccent: '#171B21',
+  highlight: '#C8EF3C', onHighlight: '#171B21',
+  shadow: '#171B21', waveA: '#2E3A48', waveB: '#425266', onWave: '#FFFFFF', tabBar: '#FFFFFF',
+}, 'light');
+const namariDark = fromSeed({
+  background: '#111418', card: '#1A1F25', surface2: '#252C34',
+  textPrimary: '#E9EDF1', textSecondary: '#B6BEC7', textMuted: '#828B95',
+  line: '#D9DFE5', hair: 'rgba(233, 237, 241, 0.16)',
+  primary: '#A9B8C9', onPrimary: '#111418', primarySoft: '#2A3440',
+  accent: '#4CCBE8', accentInk: '#7FDBF0', onAccent: '#111418',
+  highlight: '#C8EF3C', onHighlight: '#111418',
+  shadow: '#000000', waveA: '#222A33', waveB: '#323D4A', onWave: '#FFFFFF', tabBar: '#161A1F',
+}, 'dark');
+
+export type PaletteId =
+  | 'hanga' | 'sumi' | 'matcha' | 'sakura' | 'aizome'
+  | 'murasaki' | 'umi' | 'kaede' | 'namari';
 export const DEFAULT_PALETTE: PaletteId = 'hanga';
 
 // El orden es el del selector de Perfil.
@@ -226,6 +308,10 @@ export const PALETTES: Record<PaletteId, { name: string; kanji: string; light: T
   matcha: { name: 'Matcha', kanji: '茶', light: matchaLight, dark: matchaDark },
   sakura: { name: 'Sakura', kanji: '桜', light: sakuraLight, dark: sakuraDark },
   aizome: { name: 'Aizome', kanji: '藍', light: aizomeLight, dark: aizomeDark },
+  murasaki: { name: 'Murasaki', kanji: '紫', light: murasakiLight, dark: murasakiDark },
+  umi: { name: 'Umi', kanji: '海', light: umiLight, dark: umiDark },
+  kaede: { name: 'Kaede', kanji: '楓', light: kaedeLight, dark: kaedeDark },
+  namari: { name: 'Namari', kanji: '鉛', light: namariLight, dark: namariDark },
 };
 
 export const PALETTE_IDS = Object.keys(PALETTES) as PaletteId[];

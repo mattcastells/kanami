@@ -7,13 +7,11 @@ const DIRECTIONS: DrillDirectionOption[] = [
     id: 'to-japanese',
     glyph: '読',
     title: 'Decila en japonés',
-    description: '10月3日 → じゅうがつみっか',
   },
   {
     id: 'to-display',
     glyph: '暦',
     title: 'Leé el japonés',
-    description: 'じゅうがつみっか → 10/3',
   },
 ];
 

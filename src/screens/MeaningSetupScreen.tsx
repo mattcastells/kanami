@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { CheckRow, CheckSection } from '../components/practice/CheckRow';
+import { CheckAll, CheckRow, CheckSection, selectionState } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
-import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { SectionStep } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
@@ -23,16 +22,14 @@ import {
 import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
-const DIRECTIONS: { id: MeaningDirection; glyph: string; note: string }[] = [
+const DIRECTIONS: { id: MeaningDirection; glyph: string }[] = [
   {
     id: 'jp-to-es',
     glyph: '意',
-    note: 'Ves la palabra en japonés y elegís su significado.',
   },
   {
     id: 'es-to-jp',
     glyph: '言',
-    note: 'Ves el significado y elegís la palabra.',
   },
 ];
 
@@ -61,16 +58,6 @@ const COUNT_BY_CATEGORY = new Map(
     group.categories.map((category) => [category.id, category.count] as const),
   ),
 );
-
-function categoryIdsOfKind(kind: ClassVocabKind) {
-  return KIND_GROUPS.find((group) => group.id === kind)?.categories.map(
-    (category) => category.id,
-  ) ?? [];
-}
-
-function sameSelection(a: ClassVocabCategoryId[], b: ClassVocabCategoryId[]) {
-  return a.length === b.length && b.every((id) => a.includes(id));
-}
 
 // Mismo flujo que las otras pantallas de selección: primero qué hacer, después con qué,
 // todo preseleccionado y el botón de arranque fijo abajo.
@@ -127,7 +114,6 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
               ? 'COMENZAR'
               : `ELEGÍ AL MENOS ${MEANING_MIN_POOL} PALABRAS`
           }
-          summary={`${selectedWordCount} ${selectedWordCount === 1 ? 'palabra' : 'palabras'} de tus clases`}
           disabled={!canStart}
           onPress={startPractice}
         />
@@ -137,15 +123,12 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
 
       <SectionStep n={1}>Qué querés hacer</SectionStep>
 
-      <ModeGrid wide>
+      <ModeGrid>
         {DIRECTIONS.map((item) => (
-          // Anchos: "Qué significa" no entra en media fila de un teléfono de 360px.
           <ModeTile
             key={item.id}
             glyph={item.glyph}
             title={MEANING_DIRECTION_TITLES[item.id]}
-            description={item.note}
-            wide
             selected={direction === item.id}
             onPress={() => setDirection(item.id)}
           />
@@ -153,26 +136,21 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
       </ModeGrid>
 
       <View style={styles.step}>
-        <SectionStep n={2}>Con qué</SectionStep>
-      </View>
-
-      <View style={styles.presets}>
-        <SelectChip
-          label="Todo"
-          selected={sameSelection(selectedCategoryIds, ALL_CATEGORY_IDS)}
-          onPress={() => setSelectedCategoryIds(ALL_CATEGORY_IDS)}
-        />
-        {KIND_GROUPS.map((group) => {
-          const ids = categoryIdsOfKind(group.id);
-          return (
-            <SelectChip
-              key={group.id}
-              label={group.label}
-              selected={sameSelection(selectedCategoryIds, ids)}
-              onPress={() => setSelectedCategoryIds(ids)}
+        <SectionStep
+          n={2}
+          right={
+            <CheckAll
+              state={selectionState(selectedCategoryIds.length, ALL_CATEGORY_IDS.length)}
+              onToggle={() =>
+                setSelectedCategoryIds(
+                  selectedCategoryIds.length === ALL_CATEGORY_IDS.length ? [] : ALL_CATEGORY_IDS,
+                )
+              }
             />
-          );
-        })}
+          }
+        >
+          Con qué
+        </SectionStep>
       </View>
 
       <View style={styles.sections}>
@@ -231,12 +209,6 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
 const styles = StyleSheet.create({
   step: {
     marginTop: theme.spacing.lg,
-  },
-  presets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
   },
   sections: {
     gap: 8,

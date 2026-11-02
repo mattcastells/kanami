@@ -100,7 +100,7 @@ Pestañas: **練 Practicar · 復 Repaso · 私 Perfil**. 復 Repaso ocupa el lu
   (la práctica de kanji), KanjiDraw,
   **EmojiGame** (matcheo palabra↔emoji),
   **TranslationGame** (traducir frases enteras en las dos direcciones, ordenando piezas o
-  escribiendo), **Meanings** + **MeaningGame** (Significados: reconocer palabras de la
+  escribiendo; al ordenar, 6 de cada 10 rondas traen 2 o 3 piezas de otras frases que no van), **Meanings** + **MeaningGame** (Significados: reconocer palabras de la
   cursada, 4 opciones, en las dos direcciones), **AntonymGame** (Antónimos: elegir el
   opuesto de una palabra de la cursada), **Numbers** + **NumbersGame** y **DateTime** +
   **DateTimeGame** (ver "Números y Fechas y hora" abajo).
@@ -162,13 +162,13 @@ Lo único propio de cada uno es la **fuente** de ítems (`numberDrillSource`, `d
 
 Siguen el mismo flujo y comparten primitives (`src/components/practice/`):
 
-1. **① Qué querés hacer** — grilla de `ModeTile` (glifo + nombre). El modo primero.
-2. **② Con qué** — presets (`SelectChip`) + secciones plegables de `CheckRow`.
-3. `StartBar` fija abajo, vía el `bottomOverlay` de `ScreenBackground`.
+1. **① Qué querés hacer** — grilla de `ModeTile` (glifo + nombre). El modo primero. Sin descripción debajo ni dentro del tile: el nombre alcanza.
+2. **② Con qué** — secciones plegables de `CheckRow`; a la derecha del paso, un `CheckAll` que marca o desmarca todo. Sin pastillas de atajo (Todo / Limpiar / De tus clases): se sacaron el 2026-11-02.
+3. `StartBar` fija abajo, vía el `bottomOverlay` de `ScreenBackground`. Solo el botón: sin resumen ("104 caracteres en juego") arriba.
 
 **Todo arranca preseleccionado**: el botón de arranque nunca queda muerto esperando que
 elijas algo. `ScreenBackground` **mide** el overlay con `onLayout` para reservar el padding
-de scroll — no asumas un alto fijo, una barra con resumen mide bastante más que una sin él.
+de scroll — no asumas un alto fijo, cambia con la fuente del sistema y el safe area.
 
 ### Los dos mazos de vocabulario (no mezclarlos)
 
@@ -271,7 +271,7 @@ Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"
 `handoff/referencia/*.png` (12 pantallas × claro/oscuro) y `handoff/SPEC-*.md` (medidas exactas).
 
 - **Una paleta activa, elegible en Perfil** (desde 2026-11-01): `PALETTES` en `theme.ts` —
-  版 Hanga (default), 墨 Sumi, 茶 Matcha, 桜 Sakura, 藍 Aizome —, cada una con claro y oscuro,
+  版 Hanga (default), 墨 Sumi, 茶 Matcha, 桜 Sakura, 藍 Aizome, 紫 Murasaki, 海 Umi, 楓 Kaede, 鉛 Namari —, cada una con claro y oscuro,
   persistida en `settings.palette`. Todas cumplen los mismos roles y comparten los colores de
   estado (○/× se leen igual). Sigue sin haber color por juego (`tints`/`TintName` se borraron;
   no los vuelvas a agregar). Los nombres de abajo son los de Hanga:
@@ -287,7 +287,7 @@ Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"
 - **Formas**: `radii` — badge 8–10, controles/botones 12, tiles/opciones 14, cards 16, hero/prompt 18, pill.
 - **Medidas** de control en `SIZES` (botón 52, tile 54/92, opción 66, input 60, back 40…). No uses números sueltos.
 - `ScreenHeader`: UN renglón, `glyph` + `title` → "字 · Kanas" (kanji en `accentInk`, título Dela 26 con back, 28 en raíz de pestaña). Sin eyebrow chico arriba de un título grande (se sacó el 2026-11-01: decían dos veces lo mismo). Lo que antes iba en el título grande, si hace falta, va en `subtitle`.
-- `GameHeader` (partidas sin total): igual, `glyph` + `title` → "反 · Antónimos" en Dela 20. Nada más en esa fila: el título no se corta.
+- `GameHeader` (partidas sin total): igual, `glyph` + `title` → "反 · Antónimos" en Dela 20. Nada más en esa fila: el título no se corta. Los dos usan `HeaderTitle` (`components/ui`), que achica la fuente lo justo si el título no entra: nunca baja a dos renglones.
 - `PromptCard`: tiene SOLO la pregunta. Esquinas: consigna (`help`) arriba a la izquierda, puntaje ○/× (`score`) arriba a la derecha, 訳 (`bottomLeft`) abajo a la izquierda, audio (`bottomRight`) abajo a la derecha. Lo que se revela al responder (traducción, lectura, el opuesto) va en `AnswerNote`, DEBAJO de las opciones o del campo.
 - Cambiar de dirección (Significados, Imágenes, Traducción) es un `Segmented` debajo de la cabecera, no una pastilla "Invertir".
 - Opción correcta = verde, sin ○. La errada lleva ×.

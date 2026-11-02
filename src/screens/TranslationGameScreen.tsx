@@ -73,7 +73,7 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
 
       <PromptCard
         size="compact"
-        help={isJapanesePrompt ? '¿Qué significa?' : 'Traducí al japonés'}
+        help={isJapanesePrompt ? '¿Qué significa?' : undefined}
         score={state.stats}
         bottomRight={isJapanesePrompt ? <SpeakButton text={state.round.kana} /> : null}
       >

@@ -15,7 +15,8 @@ export type TranslationRound = {
   promptText: string;
   // Las piezas en su orden correcto.
   solution: string[];
-  // Las mismas piezas barajadas, para el modo de ordenar.
+  // Las mismas piezas barajadas, para el modo de ordenar. A veces trae 2 o 3 de más
+  // (sacadas de otras frases) que no van: así no alcanza con usar todas.
   shuffledTiles: string[];
   // La respuesta escrita esperada (sin espacios en japonés, con espacios en español).
   answerText: string;
@@ -68,6 +69,42 @@ export function getTranslationPool(script: KanaScript): PhraseEntry[] {
   return getPhrases(script);
 }
 
+function getTiles(entry: PhraseEntry, direction: TranslationDirection): string[] {
+  return direction === 'es-to-jp'
+    ? getPhraseTiles(entry.kana, entry.romaji)
+    : // Del lado español las piezas son las palabras tal cual.
+      entry.translation.split(/\s+/).filter(Boolean);
+}
+
+// Cuántas rondas traen piezas de más, y cuántas.
+const DECOY_CHANCE = 0.6;
+const DECOY_COUNTS = [2, 3];
+
+// Piezas de otras frases que no se confundan con ninguna de la respuesta: en español se
+// comparan sin acentos ni puntuación ("días." = "días"), en japonés tal cual.
+function pickDecoys(
+  pool: PhraseEntry[],
+  entry: PhraseEntry,
+  direction: TranslationDirection,
+  solution: string[],
+): string[] {
+  const key = (tile: string) =>
+    direction === 'es-to-jp' ? tile : normalizeTranslationAnswer(tile);
+  const taken = new Set(solution.map(key));
+  const candidates: string[] = [];
+
+  shuffle(pool.filter((other) => other.id !== entry.id)).forEach((other) => {
+    getTiles(other, direction).forEach((tile) => {
+      const tileKey = key(tile);
+      if (!tileKey || taken.has(tileKey)) return;
+      taken.add(tileKey);
+      candidates.push(tile);
+    });
+  });
+
+  return shuffle(candidates).slice(0, pickRandom(DECOY_COUNTS));
+}
+
 export function createTranslationRound(
   pool: PhraseEntry[],
   direction: TranslationDirection,
@@ -80,17 +117,14 @@ export function createTranslationRound(
 
   const entry = pickRandom(candidates);
 
-  const solution =
-    direction === 'es-to-jp'
-      ? getPhraseTiles(entry.kana, entry.romaji)
-      : // Del lado español las piezas son las palabras tal cual.
-        entry.translation.split(/\s+/).filter(Boolean);
+  const solution = getTiles(entry, direction);
+  const decoys = Math.random() < DECOY_CHANCE ? pickDecoys(pool, entry, direction, solution) : [];
 
   return {
     phraseId: entry.id,
     promptText: direction === 'es-to-jp' ? entry.translation : entry.kana,
     solution,
-    shuffledTiles: shuffleUntilDifferent(solution),
+    shuffledTiles: shuffleUntilDifferent([...solution, ...decoys], solution),
     answerText: direction === 'es-to-jp' ? entry.kana : entry.translation,
     kana: entry.kana,
     romaji: entry.romaji,
@@ -98,16 +132,17 @@ export function createTranslationRound(
   };
 }
 
-// Barajar y que salga el orden correcto de una arruina la ronda. Con 2 piezas hay 50%
-// de chance, así que se reintenta unas veces antes de aceptarlo.
-function shuffleUntilDifferent(solution: string[]): string[] {
-  if (solution.length < 2) return [...solution];
+// Barajar y que la frase salga armada al principio del pozo arruina la ronda. Con 2
+// piezas hay 50% de chance, así que se reintenta unas veces antes de aceptarlo.
+function shuffleUntilDifferent(tiles: string[], solution: string[]): string[] {
+  if (tiles.length < 2) return [...tiles];
 
+  const answer = solution.join('');
   for (let attempt = 0; attempt < 6; attempt += 1) {
-    const candidate = shuffle(solution);
-    if (candidate.join('') !== solution.join('')) return candidate;
+    const candidate = shuffle(tiles);
+    if (candidate.slice(0, solution.length).join('') !== answer) return candidate;
   }
-  return shuffle(solution);
+  return shuffle(tiles);
 }
 
 export function createInitialTranslationState(

@@ -11,14 +11,11 @@ type ModeTileProps = {
   title: string;
   selected: boolean;
   onPress: () => void;
-  // Para modos cuyo nombre no alcanza (ej. "Kanji → Significado"). Va con `wide`.
-  description?: string;
-  wide?: boolean;
 };
 
 // Tile de "qué querés hacer": badge con el glifo + nombre. Elegido = kihada y hundido;
-// el badge se invierte (fondo tinta, glifo color papel).
-export function ModeTile({ glyph, title, selected, onPress, description, wide = false }: ModeTileProps) {
+// el badge se invierte (fondo tinta, glifo color papel). Sin descripción: el nombre alcanza.
+export function ModeTile({ glyph, title, selected, onPress }: ModeTileProps) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
 
@@ -28,7 +25,6 @@ export function ModeTile({ glyph, title, selected, onPress, description, wide = 
       sunken={selected}
       style={[
         styles.tile,
-        wide ? styles.wide : null,
         { backgroundColor: selected ? colors.highlight : colors.card },
       ]}
     >
@@ -47,24 +43,15 @@ export function ModeTile({ glyph, title, selected, onPress, description, wide = 
         <AppText variant="bodyStrong" numberOfLines={2} color={selected ? colors.onHighlight : colors.textPrimary}>
           {title}
         </AppText>
-        {description ? (
-          <AppText variant="bodySmall" color={selected ? colors.onHighlight : colors.textSecondary}>
-            {description}
-          </AppText>
-        ) : null}
       </View>
     </InkPressable>
   );
 }
 
 // Grilla de ModeTile: 2 columnas con gap 10, armada por filas. Si queda uno impar NO se
-// estira: ocupa media fila y el hueco queda vacío. Con `wide`, una columna.
-export function ModeGrid({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+// estira: ocupa media fila y el hueco queda vacío.
+export function ModeGrid({ children }: { children: ReactNode }) {
   const tiles = Children.toArray(children);
-
-  if (wide) {
-    return <View style={styles.column}>{tiles}</View>;
-  }
 
   const rows: ReactNode[][] = [];
   for (let index = 0; index < tiles.length; index += 2) {
@@ -97,9 +84,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-  },
-  wide: {
-    paddingVertical: 9,
   },
   badge: {
     width: SIZES.modeTileBadge,

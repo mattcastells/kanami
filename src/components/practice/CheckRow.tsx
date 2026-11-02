@@ -7,7 +7,7 @@ import { FONTS, theme } from '../../theme/theme';
 import { AnimatedCollapsible } from '../ui/AnimatedCollapsible';
 import { AppText } from '../ui/AppText';
 
-type CheckState = 'on' | 'off' | 'partial';
+export type CheckState = 'on' | 'off' | 'partial';
 
 type CheckRowProps = {
   title: string;
@@ -38,7 +38,6 @@ export function CheckRow({
 }: CheckRowProps) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
-  const active = state !== 'off';
 
   return (
     <Pressable
@@ -51,13 +50,7 @@ export function CheckRow({
         pressed && styles.pressed,
       ]}
     >
-      <View style={[styles.box, { borderColor: colors.line, backgroundColor: active ? colors.primary : colors.card }]}>
-        {active ? (
-          <AppText style={styles.mark} color={colors.onPrimary}>
-            {state === 'partial' ? '−' : '✓'}
-          </AppText>
-        ) : null}
-      </View>
+      <CheckBox state={state} />
 
       <AppText variant="bodyStrong" numberOfLines={1} style={styles.title}>
         {title}
@@ -79,6 +72,45 @@ export function CheckRow({
         </AppText>
       ) : null}
     </Pressable>
+  );
+}
+
+// Estado de un "marcar todo": cuántos de cuántos están elegidos.
+export function selectionState(selected: number, total: number): CheckState {
+  if (selected === 0) return 'off';
+  return selected === total ? 'on' : 'partial';
+}
+
+// El checkbox solo, a la derecha de "Con qué" (`SectionStep` con `right`): marca todo o,
+// si ya está todo, lo desmarca. Reemplaza a las pastillas Todo / Limpiar.
+export function CheckAll({ state, onToggle }: { state: CheckState; onToggle: () => void }) {
+  return (
+    <Pressable
+      onPress={onToggle}
+      hitSlop={10}
+      accessibilityRole="checkbox"
+      accessibilityLabel="Marcar todo"
+      accessibilityState={{ checked: state === 'partial' ? 'mixed' : state === 'on' }}
+      style={({ pressed }) => [styles.focusReset, pressed && styles.pressed]}
+    >
+      <CheckBox state={state} />
+    </Pressable>
+  );
+}
+
+function CheckBox({ state }: { state: CheckState }) {
+  const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
+  const active = state !== 'off';
+
+  return (
+    <View style={[styles.box, { borderColor: colors.line, backgroundColor: active ? colors.primary : colors.card }]}>
+      {active ? (
+        <AppText style={styles.mark} color={colors.onPrimary}>
+          {state === 'partial' ? '−' : '✓'}
+        </AppText>
+      ) : null}
+    </View>
   );
 }
 

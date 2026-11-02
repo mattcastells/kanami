@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { CheckRow, CheckSection } from '../components/practice/CheckRow';
+import { CheckAll, CheckRow, CheckSection, selectionState } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
-import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
 import { AppText } from '../components/ui/AppText';
 import { SectionStep, Segmented } from '../components/ui/InkBits';
@@ -23,28 +22,24 @@ const VOCAB_GAMES: {
   glyph: string;
   title: string;
   cta: string;
-  note: string;
 }[] = [
   {
     mode: 'syllables',
     glyph: '綴',
     title: 'Palabra guiada',
     cta: 'COMENZAR PALABRA GUIADA',
-    note: 'Ves la palabra escrita en romaji y la pasás a kana.',
   },
   {
     mode: 'fill-blank',
     glyph: '空',
     title: 'Completar',
     cta: 'COMENZAR COMPLETAR',
-    note: 'Falta una sílaba y elegís cuál.',
   },
   {
     mode: 'word-builder',
     glyph: '組',
     title: 'Constructor',
     cta: 'COMENZAR CONSTRUCTOR',
-    note: 'Ordenás las sílabas para armar la palabra.',
   },
 ];
 
@@ -92,14 +87,6 @@ export function VocabularyScreen({
   const gameMeta =
     VOCAB_GAMES.find((game) => game.mode === selectedGame) ?? VOCAB_GAMES[0];
 
-  const selectedWordCount = useMemo(
-    () =>
-      categories
-        .filter((category) => selectedCategoryIds.includes(category.id))
-        .reduce((total, category) => total + category.count, 0),
-    [categories, selectedCategoryIds],
-  );
-
   const toggleCategory = (categoryId: WordPracticeCategoryId) => {
     setSelectedCategoryIds((current) =>
       current.includes(categoryId)
@@ -140,7 +127,6 @@ export function VocabularyScreen({
       bottomOverlay={
         <StartBar
           title={canStart ? gameMeta.cta : 'ELEGÍ AL MENOS UNA TEMÁTICA'}
-          summary={`${selectedWordCount} ${selectedWordCount === 1 ? 'palabra' : 'palabras'} en juego`}
           disabled={!canStart}
           onPress={startPractice}
         />
@@ -162,10 +148,6 @@ export function VocabularyScreen({
         ))}
       </ModeGrid>
 
-      <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.modeNote}>
-        {gameMeta.note}
-      </AppText>
-
       <AppText variant="overline" color={activeTheme.colors.textSecondary} style={styles.lengthLabel}>
         Largo de la ronda
       </AppText>
@@ -177,24 +159,21 @@ export function VocabularyScreen({
       />
 
       <View style={styles.step}>
-        <SectionStep n={2}>Con qué</SectionStep>
-      </View>
-
-      <View style={styles.presets}>
-        <SelectChip
-          label="De tus clases"
-          selected={
-            selectedCategoryIds.length === defaultCategoryIds.length &&
-            defaultCategoryIds.every((id) => selectedCategoryIds.includes(id))
+        <SectionStep
+          n={2}
+          right={
+            <CheckAll
+              state={selectionState(selectedCategoryIds.length, categories.length)}
+              onToggle={() =>
+                setSelectedCategoryIds(
+                  selectedCategoryIds.length === categories.length ? [] : categories.map((category) => category.id),
+                )
+              }
+            />
           }
-          onPress={() => setSelectedCategoryIds(defaultCategoryIds)}
-        />
-        <SelectChip
-          label="Todo"
-          selected={selectedCategoryIds.length === categories.length}
-          onPress={() => setSelectedCategoryIds(categories.map((category) => category.id))}
-        />
-        <SelectChip label="Limpiar" selected={false} onPress={() => setSelectedCategoryIds([])} />
+        >
+          Con qué
+        </SectionStep>
       </View>
 
       <View style={styles.sections}>
@@ -237,18 +216,9 @@ const styles = StyleSheet.create({
   step: {
     marginTop: theme.spacing.lg,
   },
-  modeNote: {
-    marginTop: 10,
-  },
   lengthLabel: {
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.xs,
-  },
-  presets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
   },
   sections: {
     gap: 8,

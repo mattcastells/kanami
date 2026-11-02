@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { FONTS, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
+import { HeaderTitle } from '../ui/HeaderTitle';
 import { ProgressTrack } from '../ui/InkBits';
 import { BackButton, useScreenBack } from '../ui/ScreenBackground';
 
@@ -42,16 +43,11 @@ export function GameHeader({ glyph, title, eyebrow, progress, onClose }: GameHea
     return (
       <View style={[styles.row, styles.container]}>
         {handleClose ? <BackButton icon="close" onPress={handleClose} /> : null}
-        <View style={styles.titleBlock}>
-          {title ? (
-            <AppText variant="title" numberOfLines={1}>
-              {glyph ? <Text style={[styles.glyph, { color: colors.accentInk }]}>{`${glyph} · `}</Text> : null}
-              {title}
-            </AppText>
-          ) : (
-            eyebrowView
-          )}
-        </View>
+        {title ? (
+          <HeaderTitle glyph={glyph} title={title} variant="title" />
+        ) : (
+          <View style={styles.titleBlock}>{eyebrowView}</View>
+        )}
       </View>
     );
   }
@@ -96,8 +92,5 @@ const styles = StyleSheet.create({
   titleBlock: {
     flex: 1,
     minWidth: 0,
-  },
-  glyph: {
-    fontFamily: FONTS.glyph,
   },
 });

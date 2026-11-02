@@ -9,15 +9,14 @@ type GameCardProps = {
   glyph: string;
   title: string;
   onPress: () => void;
-  // Ancho completo (Kanas): badge a la izquierda, título y descripción al lado.
+  // Ancho completo (Kanas): badge a la izquierda y el título al lado.
   wide?: boolean;
-  description?: string;
 };
 
 // Card de juego: badge kihada con el glifo en Dela + título. Paleta única: todas iguales,
 // ningún juego tiene color propio. Sin numberOfLines: un título largo baja de renglón
 // antes que cortarse.
-export function GameCard({ glyph, title, onPress, wide = false, description }: GameCardProps) {
+export function GameCard({ glyph, title, onPress, wide = false }: GameCardProps) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
 
@@ -37,14 +36,9 @@ export function GameCard({ glyph, title, onPress, wide = false, description }: G
           {glyph}
         </AppText>
       </View>
-      <View style={wide ? styles.textWide : null}>
-        <AppText variant="tileTitle">{title}</AppText>
-        {description ? (
-          <AppText variant="bodySmall" color={colors.textSecondary}>
-            {description}
-          </AppText>
-        ) : null}
-      </View>
+      <AppText variant="tileTitle" style={wide ? styles.textWide : null}>
+        {title}
+      </AppText>
     </InkPressable>
   );
 }

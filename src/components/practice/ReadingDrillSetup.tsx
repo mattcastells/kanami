@@ -6,9 +6,8 @@ import { theme } from '../../theme/theme';
 import { SectionStep, Segmented } from '../ui/InkBits';
 import { ScreenBackground } from '../ui/ScreenBackground';
 import { ScreenHeader } from '../ui/ScreenHeader';
-import { CheckRow } from './CheckRow';
+import { CheckAll, CheckRow, selectionState } from './CheckRow';
 import { ModeGrid, ModeTile } from './ModeTile';
-import { SelectChip } from './SelectChip';
 import { StartBar } from './StartBar';
 
 // Selección de Números y de Fechas y hora. Mismo flujo que las otras pantallas de
@@ -19,7 +18,6 @@ export type DrillDirectionOption = {
   id: DrillDirection;
   glyph: string;
   title: string;
-  description: string;
 };
 
 export type DrillSetOption<Id extends string> = {
@@ -71,7 +69,6 @@ export function ReadingDrillSetup<Id extends string>({
       bottomOverlay={
         <StartBar
           title={canStart ? 'COMENZAR' : 'ELEGÍ AL MENOS UNO'}
-          summary={`${setIds.length} de ${sets.length} seleccionados`}
           disabled={!canStart}
           onPress={() => canStart && onStart({ direction, answerMode, setIds })}
         />
@@ -80,14 +77,12 @@ export function ReadingDrillSetup<Id extends string>({
       <ScreenHeader glyph={glyph} title={title} />
 
       <SectionStep n={1}>Qué querés hacer</SectionStep>
-      <ModeGrid wide>
+      <ModeGrid>
         {directions.map((item) => (
           <ModeTile
             key={item.id}
             glyph={item.glyph}
             title={item.title}
-            description={item.description}
-            wide
             selected={direction === item.id}
             onPress={() => setDirection(item.id)}
           />
@@ -100,14 +95,17 @@ export function ReadingDrillSetup<Id extends string>({
       </View>
 
       <View style={styles.step}>
-        <SectionStep n={3}>Con qué</SectionStep>
-        <View style={styles.presets}>
-          <SelectChip
-            label="Todo"
-            selected={setIds.length === sets.length}
-            onPress={() => setSetIds(sets.map((set) => set.id))}
-          />
-        </View>
+        <SectionStep
+          n={3}
+          right={
+            <CheckAll
+              state={selectionState(setIds.length, sets.length)}
+              onToggle={() => setSetIds(setIds.length === sets.length ? [] : sets.map((set) => set.id))}
+            />
+          }
+        >
+          Con qué
+        </SectionStep>
         <View style={styles.sets}>
           {sets.map((set) => (
             <CheckRow
@@ -128,12 +126,6 @@ export function ReadingDrillSetup<Id extends string>({
 const styles = StyleSheet.create({
   step: {
     marginTop: theme.spacing.lg,
-  },
-  presets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
   },
   sets: {
     gap: 8,

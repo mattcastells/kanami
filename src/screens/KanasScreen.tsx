@@ -18,19 +18,16 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
     {
       glyph: 'あ',
       title: 'Hiragana',
-      description: 'Lectura, escritura, dibujo, tablero y frases.',
       onPress: () => navigation.navigate('KanaGroups', { script: 'hiragana' }),
     },
     {
       glyph: 'ア',
       title: 'Katakana',
-      description: 'Los mismos modos, con katakana o los dos mezclados.',
       onPress: () => navigation.navigate('KanaGroups', { script: 'katakana' }),
     },
     {
       glyph: '漢',
       title: 'Kanji',
-      description: 'Kanji Grind: significado, lectura y en palabras.',
       onPress: () => navigation.navigate('KanjiGrind'),
     },
   ];
@@ -45,7 +42,6 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
               wide
               glyph={option.glyph}
               title={option.title}
-              description={option.description}
               onPress={option.onPress}
             />
           </AnimatedRow>

@@ -1,21 +1,14 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { CheckAll, selectionState } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { SelectChip } from '../components/practice/SelectChip';
 import { StartBar } from '../components/practice/StartBar';
-import { AppText } from '../components/ui/AppText';
 import { SectionStep } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
-import { useKanjiProgress } from '../features/kanji/KanjiProgressProvider';
-import {
-  getAllKanji,
-  getKanjiCategories,
-  getKanjiOrigin,
-} from '../features/kanji/kanjiCatalog';
-import { countByStatus, getKanjiStatus } from '../features/kanji/kanjiProgressStore';
-import { useAppTheme } from '../theme/AppThemeProvider';
+import { getAllKanji, getKanjiCategories } from '../features/kanji/kanjiCatalog';
 import { theme } from '../theme/theme';
 import { KanjiCategoryId, KanjiGrindFocus } from '../types/kanji';
 import { RootStackScreenProps } from '../types/navigation';
@@ -24,7 +17,6 @@ type FocusOption = {
   focus: KanjiGrindFocus;
   glyph: string;
   label: string;
-  description: string;
 };
 
 const FOCUS_OPTIONS: FocusOption[] = [
@@ -32,45 +24,27 @@ const FOCUS_OPTIONS: FocusOption[] = [
     focus: 'mixto',
     glyph: '練',
     label: 'Mixto',
-    description: 'Significado, lectura y reconocimiento, según lo que te falte',
   },
   {
     focus: 'meaning',
     glyph: '意',
     label: 'Significado',
-    description: 'Del kanji al significado y al revés',
   },
   {
     focus: 'reading',
     glyph: '読',
     label: 'Lectura',
-    description: 'Del kanji a la lectura y al revés',
   },
   {
     focus: 'recognition',
     glyph: '語',
     label: 'En palabras',
-    description: 'Descubrí qué kanji falta en una palabra real',
   },
 ];
-
-// Qué kanji entran al mazo de la sesión. Es el filtro grueso: adentro, el engine elige
-// el lote según lo que ya sabés.
-type Preset = 'todos' | 'clases' | 'pendientes' | 'nuevos';
-
-const PRESET_LABELS: Record<Preset, string> = {
-  todos: 'Todos',
-  clases: 'Los de mis clases',
-  pendientes: 'Lo que me falta',
-  nuevos: 'Kanji nuevos',
-};
 
 // Mismo flujo que kana, vocabulario y el resto: modo primero, contenido después, todo
 // preseleccionado y la barra de arranque fija abajo.
 export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrind'>) {
-  const { theme: activeTheme } = useAppTheme();
-  const { data: progress } = useKanjiProgress();
-
   const allKanji = getAllKanji();
   const categories = getKanjiCategories();
   const allCategoryIds = useMemo(
@@ -79,28 +53,14 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
   );
 
   const [focus, setFocus] = useState<KanjiGrindFocus>('mixto');
-  const [preset, setPreset] = useState<Preset>('todos');
   const [selectedCategories, setSelectedCategories] =
     useState<KanjiCategoryId[]>(allCategoryIds);
 
-  const counts = useMemo(
-    () => countByStatus(progress, allKanji.map((entry) => entry.char)),
-    [progress, allKanji],
-  );
-
   const pool = useMemo(() => {
     const enabled = new Set(selectedCategories);
-    return allKanji
-      .filter((entry) => enabled.has(entry.category))
-      .filter((entry) => {
-        if (preset === 'clases') return getKanjiOrigin(entry.char) === 'clase';
-        if (preset === 'pendientes') return getKanjiStatus(progress, entry.char) !== 'dominado';
-        if (preset === 'nuevos') return getKanjiStatus(progress, entry.char) === 'nuevo';
-        return true;
-      });
-  }, [allKanji, selectedCategories, preset, progress]);
+    return allKanji.filter((entry) => enabled.has(entry.category));
+  }, [allKanji, selectedCategories]);
 
-  const focusMeta = FOCUS_OPTIONS.find((option) => option.focus === focus) ?? FOCUS_OPTIONS[0];
   const canStart = pool.length > 0;
 
   const toggleCategory = (id: KanjiCategoryId) =>
@@ -123,8 +83,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
       scrollable
       bottomOverlay={
         <StartBar
-          title={canStart ? 'EMPEZAR EL GRIND' : 'NO HAY KANJI CON ESE FILTRO'}
-          summary={`${pool.length} kanji en el mazo · ${counts.dominado} ya dominados`}
+          title={canStart ? 'EMPEZAR EL GRIND' : 'ELEGÍ AL MENOS UNA CATEGORÍA'}
           disabled={!canStart}
           onPress={start}
         />
@@ -134,14 +93,12 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
 
       <SectionStep n={1}>Qué querés entrenar</SectionStep>
 
-      <ModeGrid wide>
+      <ModeGrid>
         {FOCUS_OPTIONS.map((option) => (
           <ModeTile
             key={option.focus}
-            wide
             glyph={option.glyph}
             title={option.label}
-            description={option.description}
             selected={focus === option.focus}
             onPress={() => setFocus(option.focus)}
           />
@@ -149,31 +106,21 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
       </ModeGrid>
 
       <View style={styles.step}>
-        <SectionStep n={2}>Con qué kanji</SectionStep>
-      </View>
-
-      <View style={styles.presets}>
-        {(Object.keys(PRESET_LABELS) as Preset[]).map((option) => (
-          <SelectChip
-            key={option}
-            label={PRESET_LABELS[option]}
-            selected={preset === option}
-            onPress={() => setPreset(option)}
-          />
-        ))}
-      </View>
-
-      <View style={styles.presets}>
-        <SelectChip
-          label="Todas las categorías"
-          selected={selectedCategories.length === allCategoryIds.length}
-          onPress={() => setSelectedCategories(allCategoryIds)}
-        />
-        <SelectChip
-          label="Limpiar"
-          selected={false}
-          onPress={() => setSelectedCategories([])}
-        />
+        <SectionStep
+          n={2}
+          right={
+            <CheckAll
+              state={selectionState(selectedCategories.length, allCategoryIds.length)}
+              onToggle={() =>
+                setSelectedCategories(
+                  selectedCategories.length === allCategoryIds.length ? [] : allCategoryIds,
+                )
+              }
+            />
+          }
+        >
+          Con qué kanji
+        </SectionStep>
       </View>
 
       <View style={styles.chips}>
@@ -186,10 +133,6 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
           />
         ))}
       </View>
-
-      <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.hint}>
-        {focusMeta.description}.
-      </AppText>
     </ScreenBackground>
   );
 }
@@ -198,19 +141,9 @@ const styles = StyleSheet.create({
   step: {
     marginTop: theme.spacing.lg,
   },
-  presets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
-  },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  hint: {
-    marginTop: theme.spacing.md,
-    lineHeight: 18,
   },
 });
