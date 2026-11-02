@@ -67,14 +67,14 @@ const MODES: ModeMeta[] = [
     glyph: '描',
     title: 'Dibujo',
     cta: 'COMENZAR DIBUJO',
-    note: 'Dibujás el carácter en el pizarrón siguiendo el orden de trazos.',
+    note: 'Dibujás el carácter con su orden de trazos.',
   },
   {
     mode: 'board',
     glyph: '盤',
     title: 'Tablero',
     cta: 'COMENZAR TABLERO',
-    note: 'Ves el mazo entero y escribís el romaji de cada carta. Terminás cuando querés.',
+    note: 'Escribís el romaji de todo el mazo, carta por carta.',
   },
   {
     mode: 'phrases',
@@ -82,7 +82,7 @@ const MODES: ModeMeta[] = [
     title: 'Frases',
     cta: 'COMENZAR FRASES',
     ctaInverted: 'COMENZAR FRASES INVERSAS',
-    note: 'Leés una frase entera y escribís su transcripción. No usa los grupos.',
+    note: 'Transcribís una frase entera. No usa los grupos.',
     invertedNote: (script) => `Muestra la frase en romaji y la escribís en ${script}.`,
   },
 ];
@@ -224,7 +224,7 @@ export function HiraganaSelectionScreen({
         />
       }
     >
-      <ScreenHeader eyebrow="かな · Practicar" title={scriptLabel} />
+      <ScreenHeader glyph="かな" title={scriptLabel} />
 
       <View style={styles.scriptRow}>
         <Segmented options={SCRIPTS} value={script} onChange={setScript} />

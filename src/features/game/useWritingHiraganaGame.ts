@@ -38,18 +38,12 @@ export function useWritingHiraganaGame(
     correctText: '',
     selectedText: null,
   });
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
 
   useEffect(() => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
-
     const initialState = createInitialWritingGameState(pool, inverted);
     stateRef.current = initialState;
     setState(initialState);
@@ -61,40 +55,14 @@ export function useWritingHiraganaGame(
     });
   }, [inverted, pool, resetKey]);
 
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (state.answerState === 'idle') {
-      return;
-    }
-
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-    }
-
-    nextRoundTimeoutRef.current = setTimeout(() => {
-      setState((currentState) => {
-        const nextState = moveToNextWritingRound(currentState, pool, inverted);
-        stateRef.current = nextState;
-        return nextState;
-      });
-      nextRoundTimeoutRef.current = null;
-    }, state.answerState === 'correct' ? 220 : 340);
-
-    return () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-        nextRoundTimeoutRef.current = null;
-      }
-    };
-  }, [inverted, pool, state.answerState, state.round.roundKey]);
+  // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer lo que
+  // escribiste y la corrección.
+  const next = () => {
+    const nextState = moveToNextWritingRound(stateRef.current, pool, inverted);
+    stateRef.current = nextState;
+    setState(nextState);
+    setLastFeedback({ status: 'idle', promptText: '', correctText: '', selectedText: null });
+  };
 
   const setInputValue = (value: string) => {
     setState((currentState) => {
@@ -140,6 +108,7 @@ export function useWritingHiraganaGame(
     state,
     setInputValue,
     submit,
+    next,
     lastFeedback,
   };
 }

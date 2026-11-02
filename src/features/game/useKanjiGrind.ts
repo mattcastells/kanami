@@ -45,16 +45,11 @@ export function useKanjiGrind(
   );
   const [lastFeedback, setLastFeedback] = useState<GrindFeedback>(IDLE_FEEDBACK);
 
-  const nextRoundRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Índice ya resuelto: sin esto, dos toques muy seguidos registran la respuesta dos
   // veces en el progreso por kanji (el estado todavía no se re-renderizó).
   const resolvedIndexRef = useRef(-1);
 
   const restart = useCallback(() => {
-    if (nextRoundRef.current) {
-      clearTimeout(nextRoundRef.current);
-      nextRoundRef.current = null;
-    }
     resolvedIndexRef.current = -1;
     setState(createInitialGrindState(pool, progressRef.current, focus));
     setLastFeedback(IDLE_FEEDBACK);
@@ -65,18 +60,7 @@ export function useKanjiGrind(
     // `restart` depende de pool y focus; resetKey fuerza el reinicio explícito.
   }, [restart, resetKey]);
 
-  useEffect(
-    () => () => {
-      if (nextRoundRef.current) clearTimeout(nextRoundRef.current);
-    },
-    [],
-  );
-
   const advance = useCallback(() => {
-    if (nextRoundRef.current) {
-      clearTimeout(nextRoundRef.current);
-      nextRoundRef.current = null;
-    }
     setState((current) => moveToNextGrindRound(current));
     setLastFeedback(IDLE_FEEDBACK);
   }, []);
@@ -115,15 +99,8 @@ export function useKanjiGrind(
       );
     }
 
-    // Más tiempo cuando fallás: hay una corrección que leer.
-    nextRoundRef.current = setTimeout(
-      () => {
-        setState((current) => moveToNextGrindRound(current));
-        setLastFeedback(IDLE_FEEDBACK);
-        nextRoundRef.current = null;
-      },
-      isCorrect ? 320 : 900,
-    );
+    // No avanza solo: la ronda siguiente llega con SIGUIENTE (`advance`), así se puede
+    // leer la corrección.
   };
 
   return {

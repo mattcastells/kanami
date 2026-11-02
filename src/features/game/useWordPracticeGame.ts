@@ -39,18 +39,12 @@ export function useWordPracticeGame(
     correctText: '',
     selectedText: null,
   });
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
 
   useEffect(() => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
-
     const initialState = createInitialWordGameState(pool, mode, inverted);
     stateRef.current = initialState;
     setState(initialState);
@@ -62,49 +56,14 @@ export function useWordPracticeGame(
     });
   }, [inverted, mode, pool, resetKey]);
 
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (state.answerState === 'idle') {
-      return;
-    }
-
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-    }
-
-    const nextRoundDelay =
-      mode === 'syllables'
-        ? state.answerState === 'correct'
-          ? 1100
-          : 1450
-        : state.answerState === 'correct'
-          ? 300
-          : 420;
-
-    nextRoundTimeoutRef.current = setTimeout(() => {
-      setState((currentState) => {
-        const nextState = moveToNextWordRound(currentState, pool, mode, inverted);
-        stateRef.current = nextState;
-        return nextState;
-      });
-      nextRoundTimeoutRef.current = null;
-    }, nextRoundDelay);
-
-    return () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-        nextRoundTimeoutRef.current = null;
-      }
-    };
-  }, [inverted, mode, pool, state.answerState, state.round.roundKey]);
+  // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer lo que
+  // escribiste y la corrección.
+  const next = () => {
+    const nextState = moveToNextWordRound(stateRef.current, pool, mode, inverted);
+    stateRef.current = nextState;
+    setState(nextState);
+    setLastFeedback({ status: 'idle', promptText: '', correctText: '', selectedText: null });
+  };
 
   const setInputValue = (value: string) => {
     setState((currentState) => {
@@ -147,6 +106,7 @@ export function useWordPracticeGame(
     state,
     setInputValue,
     submit,
+    next,
     lastFeedback,
   };
 }

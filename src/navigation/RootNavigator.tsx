@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabGlyph: {
-    fontFamily: FONTS.display,
+    fontFamily: FONTS.glyph,
     fontSize: 15,
     lineHeight: 19,
     textAlign: 'center',

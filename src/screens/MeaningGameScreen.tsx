@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { AnswerNote, ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
-import { PillButton } from '../components/ui/PrimaryButton';
+import { Segmented } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
@@ -22,6 +22,12 @@ import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { FONTS, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
+
+// Las dos direcciones, a la vista y no detrás de un "Invertir" en la cabecera.
+const DIRECTIONS: { value: MeaningDirection; label: string }[] = [
+  { value: 'jp-to-es', label: MEANING_DIRECTION_TITLES['jp-to-es'] },
+  { value: 'es-to-jp', label: MEANING_DIRECTION_TITLES['es-to-jp'] },
+];
 
 // Las frases (おさきにしつれいします) no entran a 46px en un teléfono.
 function kanaPromptStyle(text: string) {
@@ -69,7 +75,7 @@ function MeaningGamePlay({
   const [direction, setDirection] = useState<MeaningDirection>(initialDirection);
 
   const resetKey = `meaning:${poolKey}:${direction}`;
-  const { state, answer, lastFeedback } = useMeaningGame(pool, direction, resetKey);
+  const { state, answer, next, lastFeedback } = useMeaningGame(pool, direction, resetKey);
   useTrackProgress('meaning', state.stats);
   useTrackWeakItem('meaning', state.answerState, {
     itemId: `${state.round.entryId}:${direction}`,
@@ -103,28 +109,16 @@ function MeaningGamePlay({
   // por fila y en pantallas chicas no entran todas.
   return (
     <ScreenBackground scrollable>
-      <GameHeader
-        eyebrow="意 · Significados"
-        title={MEANING_DIRECTION_TITLES[direction]}
-        score={stats}
-        action={
-          <PillButton
-            title="Invertir"
-            onPress={() => setDirection((current) => (current === 'jp-to-es' ? 'es-to-jp' : 'jp-to-es'))}
-          />
-        }
-      />
+      <GameHeader glyph="意" title="Significados" />
+
+      <View style={styles.direction}>
+        <Segmented options={DIRECTIONS} value={direction} onChange={setDirection} />
+      </View>
 
       <PromptCard
+        score={stats}
         // Si el prompt es en español, escuchar la palabra sería darte la respuesta.
         bottomRight={promptIsKana || answered ? <SpeakButton text={round.kana} /> : null}
-        below={
-          answered ? (
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.answerLine}>
-              {[round.kanji, round.kana, round.romaji].filter(Boolean).join(' · ')} — {round.es}
-            </AppText>
-          ) : null
-        }
       >
         {promptIsKana ? (
           <AppText style={[styles.kanaPrompt, kanaPromptStyle(round.promptText)]}>{round.promptText}</AppText>
@@ -148,8 +142,16 @@ function MeaningGamePlay({
         ))}
       </View>
 
+      {answered ? (
+        <AnswerNote>
+          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.answerLine}>
+            {[round.kanji, round.kana, round.romaji].filter(Boolean).join(' · ')} — {round.es}
+          </AppText>
+        </AnswerNote>
+      ) : null}
+
       <GameFooter feedback={lastFeedback}>
-        <WaitingHint visible={!answered} />
+        <ChoiceNext answered={answered} onNext={next} />
       </GameFooter>
     </ScreenBackground>
   );
@@ -175,8 +177,10 @@ const styles = StyleSheet.create({
   esPrompt: {
     textAlign: 'center',
   },
+  direction: {
+    marginBottom: theme.spacing.md,
+  },
   answerLine: {
-    marginTop: theme.spacing.sm,
     textAlign: 'center',
   },
   answersGrid: {

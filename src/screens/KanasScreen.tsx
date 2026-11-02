@@ -37,7 +37,7 @@ export function KanasScreen({ navigation }: RootStackScreenProps<'Kanas'>) {
 
   return (
     <ScreenBackground scrollable>
-      <ScreenHeader eyebrow="字 · Kanas" title="¿Qué escritura?" />
+      <ScreenHeader glyph="字" title="Kanas" />
       <View style={styles.list}>
         {options.map((option, index) => (
           <AnimatedRow key={option.title} index={index}>

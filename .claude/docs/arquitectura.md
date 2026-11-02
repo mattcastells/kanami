@@ -229,10 +229,13 @@ Rediseño **"版画 Hanga"** (2026-10-30). Fuente de verdad: `src/theme/theme.ts
 "Sistema visual" de `CLAUDE.md` + la skill `kanami-ui`. Referencia visual (PNG claro/oscuro y
 SPEC con medidas) en `handoff/`.
 
-- Paleta única (sin color por juego): `primary` ruri para la acción, `highlight` kihada para
-  lo elegido, `accent` shu solo decorativo. Texto chico de color en las variantes `*Ink`.
+- Una paleta activa a la vez (sin color por juego), elegible en Perfil entre las de
+  `PALETTES` (Hanga por default, Sumi, Matcha, Sakura, Aizome; claro y oscuro cada una):
+  `primary` para la acción, `highlight` para lo elegido, `accent` solo decorativo. Texto chico
+  de color en las variantes `*Ink`.
 - Todo lo tocable: contorno 2px de tinta + sombra dura (`InkPressable`, `surfaces.*`).
-- Fuentes: Dela Gothic One (títulos, glifos de tile/tab, números) · Zen Maru Gothic (UI) ·
+- Fuentes: Dela Gothic One (títulos y números, nunca kanji: `AppText` pasa los tramos
+  japoneses a Klee solo) · Zen Maru Gothic (UI) ·
   Klee One (`FONTS.glyph`: todo japonés que se lee, escribe o dibuja).
 
 **Regla dark-mode (se rompe fácil):** los colores se leen de `useAppTheme().theme.colors`.

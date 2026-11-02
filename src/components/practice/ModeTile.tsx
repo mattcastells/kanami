@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   glyph: {
-    fontFamily: FONTS.display,
+    fontFamily: FONTS.glyph,
     fontSize: 15,
     lineHeight: 19,
     textAlign: 'center',

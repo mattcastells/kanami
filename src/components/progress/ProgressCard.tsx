@@ -143,7 +143,7 @@ export function ProgressCard() {
         </>
       ) : (
         <AppText variant="bodySmall" color={colors.textSecondary}>
-          Todavía no hay progreso. Jugá una partida y volvé para verlo acá.
+          Todavía no jugaste ninguna partida.
         </AppText>
       )}
 

@@ -4,11 +4,6 @@ import { ReadingDrillPlay } from '../components/game/ReadingDrillPlay';
 import { createDateTimeSource } from '../features/game/dateTimeDrillSource';
 import { RootStackScreenProps } from '../types/navigation';
 
-const TITLES = {
-  'to-japanese': 'Fecha → Lectura',
-  'to-display': 'Lectura → Fecha',
-} as const;
-
 export function DateTimeGameScreen({ route }: RootStackScreenProps<'DateTimeGame'>) {
   const { direction, answerMode, kindIds } = route.params;
   const sourceKey = kindIds.join(',');
@@ -20,8 +15,8 @@ export function DateTimeGameScreen({ route }: RootStackScreenProps<'DateTimeGame
   return (
     <ReadingDrillPlay
       modeKey="times"
-      eyebrow="暦 · Fechas y hora"
-      title={TITLES[direction]}
+      glyph="暦"
+      title="Fechas y hora"
       source={source}
       sourceKey={sourceKey}
       direction={direction}

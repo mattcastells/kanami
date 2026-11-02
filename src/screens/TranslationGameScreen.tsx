@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerInput } from '../components/game/AnswerInput';
-import { GameFooter, PromptCard } from '../components/game/GamePlay';
+import { AnswerNote, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
 import { Segmented } from '../components/ui/InkBits';
@@ -64,7 +64,7 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
 
   return (
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
-      <GameHeader eyebrow="訳 · Traducción" title="Traducí la frase" score={state.stats} />
+      <GameHeader glyph="訳" title="Traducción" />
 
       <View style={styles.selectors}>
         <Segmented options={DIRECTIONS} value={direction} onChange={setDirection} />
@@ -74,18 +74,8 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
       <PromptCard
         size="compact"
         help={isJapanesePrompt ? '¿Qué significa?' : 'Traducí al japonés'}
+        score={state.stats}
         bottomRight={isJapanesePrompt ? <SpeakButton text={state.round.kana} /> : null}
-        below={
-          answered ? (
-            <AppText variant="bodySmall" color={colors.textSecondary} style={styles.reveal}>
-              <AppText variant="bodySmall" style={styles.glyphInline} color={colors.textSecondary}>
-                {state.round.kana}
-              </AppText>
-              {' · '}
-              {state.round.romaji}
-            </AppText>
-          ) : null
-        }
       >
         <AppText style={isJapanesePrompt ? styles.jpPrompt : styles.esPrompt}>{state.round.promptText}</AppText>
       </PromptCard>
@@ -161,6 +151,18 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
         />
       )}
 
+      {answered ? (
+        <AnswerNote>
+          <AppText variant="bodySmall" color={colors.textSecondary} style={styles.reveal}>
+            <AppText variant="bodySmall" style={styles.glyphInline} color={colors.textSecondary}>
+              {state.round.kana}
+            </AppText>
+            {' · '}
+            {state.round.romaji}
+          </AppText>
+        </AnswerNote>
+      ) : null}
+
       <GameFooter
         feedback={{
           status: state.answerState,
@@ -204,7 +206,6 @@ const styles = StyleSheet.create({
   },
   reveal: {
     textAlign: 'center',
-    marginTop: theme.spacing.xs,
   },
   glyphInline: {
     fontFamily: FONTS.glyph,

@@ -130,7 +130,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
         />
       }
     >
-      <ScreenHeader eyebrow="漢字 · Practicar" title="Kanji" />
+      <ScreenHeader glyph="漢字" title="Kanji" />
 
       <SectionStep n={1}>Qué querés entrenar</SectionStep>
 
@@ -188,8 +188,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
       </View>
 
       <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.hint}>
-        {focusMeta.description}. Cada sesión toma un lote chico y prioriza lo que peor te
-        sale; los kanji nuevos se presentan antes de preguntártelos.
+        {focusMeta.description}.
       </AppText>
     </ScreenBackground>
   );

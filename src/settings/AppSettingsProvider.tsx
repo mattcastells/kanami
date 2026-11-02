@@ -10,12 +10,14 @@ import {
 } from 'react';
 import { File, Paths } from 'expo-file-system';
 
-import { ThemePreference } from '../theme/theme';
+import { DEFAULT_PALETTE, isPaletteId, PaletteId, ThemePreference } from '../theme/theme';
 
 type AppSettings = {
   hapticsEnabled: boolean;
-  // 'system' sigue al teléfono. Es el default desde el rediseño "Japón moderno".
+  // Claro por default (desde 2026-11-01). 'system' sigue al teléfono; se elige en Perfil.
   themeMode: ThemePreference;
+  // Paleta de colores (Hanga, Sumi, Matcha, Sakura, Aizome). Cada una tiene claro y oscuro.
+  palette: PaletteId;
   // API key propia de Gemini (BYOK). Si está vacía, Kyary usa la embebida en el bundle.
   geminiApiKey: string;
   // Recordatorio diario (notificación local).
@@ -30,6 +32,7 @@ type AppSettingsContextValue = {
   settings: AppSettings;
   setHapticsEnabled: (enabled: boolean) => void;
   setThemeMode: (mode: ThemePreference) => void;
+  setPalette: (palette: PaletteId) => void;
   setGeminiApiKey: (key: string) => void;
   setReminderEnabled: (enabled: boolean) => void;
   setReminderHour: (hour: number) => void;
@@ -38,7 +41,8 @@ type AppSettingsContextValue = {
 
 const DEFAULT_SETTINGS: AppSettings = {
   hapticsEnabled: false,
-  themeMode: 'system',
+  themeMode: 'light',
+  palette: DEFAULT_PALETTE,
   geminiApiKey: '',
   reminderEnabled: false,
   reminderHour: 20,
@@ -110,6 +114,14 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     }));
   }, []);
 
+  const setPalette = useCallback((palette: PaletteId) => {
+    userTouchedRef.current = true;
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      palette,
+    }));
+  }, []);
+
   const setGeminiApiKey = useCallback((key: string) => {
     userTouchedRef.current = true;
     setSettings((currentSettings) => ({
@@ -147,6 +159,7 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
       settings,
       setHapticsEnabled,
       setThemeMode,
+      setPalette,
       setGeminiApiKey,
       setReminderEnabled,
       setReminderHour,
@@ -155,6 +168,7 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     [
       setGeminiApiKey,
       setHapticsEnabled,
+      setPalette,
       setReminderEnabled,
       setReminderHour,
       setThemeMode,
@@ -203,9 +217,10 @@ function normalizeSettings(value: unknown): AppSettings {
   return {
     hapticsEnabled: candidate.hapticsEnabled === true,
     themeMode:
-      record.themeMode === 'dark' || record.themeMode === 'light'
+      record.themeMode === 'dark' || record.themeMode === 'system'
         ? record.themeMode
-        : 'system',
+        : 'light',
+    palette: isPaletteId(record.palette) ? record.palette : DEFAULT_PALETTE,
     geminiApiKey:
       typeof record.geminiApiKey === 'string' ? record.geminiApiKey : '',
     reminderEnabled: record.reminderEnabled === true,

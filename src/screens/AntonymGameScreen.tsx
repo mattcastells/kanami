@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { AnswerNote, ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { HintToggle } from '../components/game/HintToggle';
 import { AppText } from '../components/ui/AppText';
@@ -13,7 +13,7 @@ import { useAntonymGame } from '../features/game/useAntonymGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, theme } from '../theme/theme';
+import { FONTS } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 function describe(word: AntonymWord) {
@@ -23,7 +23,7 @@ function describe(word: AntonymWord) {
 export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
   const { theme: activeTheme } = useAppTheme();
   const [hintEnabled, setHintEnabled] = useState(false);
-  const { state, answer, lastFeedback } = useAntonymGame();
+  const { state, answer, next, lastFeedback } = useAntonymGame();
   const { round, answerState, selectedOptionId, stats } = state;
   const answered = answerState !== 'idle';
 
@@ -48,24 +48,14 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
 
   return (
     <ScreenBackground scrollable>
-      <GameHeader eyebrow="反 · Antónimos" title="¿Cuál es el opuesto?" score={stats} />
+      <GameHeader glyph="反" title="Antónimos" />
 
       <PromptCard
-        topRight={<HintToggle enabled={hintEnabled} onToggle={() => setHintEnabled((current) => !current)} />}
+        help="¿Cuál es el opuesto?"
+        score={stats}
+        bottomLeft={<HintToggle enabled={hintEnabled} onToggle={() => setHintEnabled((current) => !current)} />}
         // Escuchar la consigna no da la respuesta: la respuesta es la OTRA palabra.
         bottomRight={<SpeakButton text={round.prompt.kana} />}
-        below={
-          answered ? (
-            <View style={styles.reveal}>
-              <AppText variant="overline" color={activeTheme.colors.textSecondary}>
-                EL OPUESTO
-              </AppText>
-              <AppText variant="option" style={styles.centered}>
-                {describe(round.answer)}
-              </AppText>
-            </View>
-          ) : null
-        }
       >
         {round.prompt.kanji ? (
           <AppText style={styles.kanji} color={activeTheme.colors.textSecondary}>
@@ -73,7 +63,7 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
           </AppText>
         ) : null}
         <AppText style={styles.prompt}>{round.prompt.kana}</AppText>
-        {hintEnabled || answered ? (
+        {hintEnabled ? (
           <AppText variant="bodySmall" color={activeTheme.colors.textSecondary}>
             {round.prompt.es}
           </AppText>
@@ -93,8 +83,19 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
         ))}
       </View>
 
+      {answered ? (
+        <AnswerNote>
+          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
+            {describe(round.prompt)}
+          </AppText>
+          <AppText variant="option" style={styles.centered}>
+            ↔ {describe(round.answer)}
+          </AppText>
+        </AnswerNote>
+      ) : null}
+
       <GameFooter feedback={lastFeedback}>
-        <WaitingHint visible={!answered} />
+        <ChoiceNext answered={answered} onNext={next} />
       </GameFooter>
     </ScreenBackground>
   );
@@ -111,11 +112,6 @@ const styles = StyleSheet.create({
     fontSize: 56,
     lineHeight: 68,
     textAlign: 'center',
-  },
-  reveal: {
-    marginTop: theme.spacing.sm,
-    alignItems: 'center',
-    gap: 2,
   },
   centered: {
     textAlign: 'center',

@@ -1,12 +1,13 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 import { speakJapanese } from '../../features/speech/speak';
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { FONTS, inkShadow, theme } from '../../theme/theme';
-import { AppText } from './AppText';
+import { inkShadow, theme } from '../../theme/theme';
 import { InkPressable } from './InkPressable';
 
-// Botón para escuchar la pronunciación (japonés) de un texto con TTS. Glifo 音.
+// Botón para escuchar la pronunciación (japonés) de un texto con TTS: ícono de parlante
+// sobre card. No va en kihada: es una acción, no algo prendido (kihada = elegido).
 //   round  → 38, sin sombra: esquina abajo-derecha del prompt (la posición la da `style`).
 //   square → 52, sombra 3: a la izquierda del botón SIGUIENTE.
 // Solo se muestra DESPUÉS de responder: el audio no puede dar la respuesta.
@@ -32,17 +33,12 @@ export function SpeakButton({
       accessibilityLabel="Escuchar pronunciación"
       style={[
         square ? styles.square : styles.round,
-        { backgroundColor: colors.highlight },
+        { backgroundColor: colors.card },
         square ? { boxShadow: inkShadow(colors.shadow, 3) } : null,
         style,
       ]}
     >
-      <AppText
-        style={{ fontFamily: FONTS.display, fontSize: square ? 16 : 14, lineHeight: square ? 20 : 18 }}
-        color={colors.onHighlight}
-      >
-        音
-      </AppText>
+      <MaterialCommunityIcons name="volume-high" size={square ? 22 : 18} color={colors.textPrimary} />
     </InkPressable>
   );
 }

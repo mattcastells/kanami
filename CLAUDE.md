@@ -270,7 +270,11 @@ Detalle completo en la skill **`kanami-kanji`**.
 Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"). Referencia visual:
 `handoff/referencia/*.png` (12 pantallas × claro/oscuro) y `handoff/SPEC-*.md` (medidas exactas).
 
-- **Paleta única** — no hay color por juego (`tints`/`TintName` se borraron; no los vuelvas a agregar).
+- **Una paleta activa, elegible en Perfil** (desde 2026-11-01): `PALETTES` en `theme.ts` —
+  版 Hanga (default), 墨 Sumi, 茶 Matcha, 桜 Sakura, 藍 Aizome —, cada una con claro y oscuro,
+  persistida en `settings.palette`. Todas cumplen los mismos roles y comparten los colores de
+  estado (○/× se leen igual). Sigue sin haber color por juego (`tints`/`TintName` se borraron;
+  no los vuelvas a agregar). Los nombres de abajo son los de Hanga:
   - `primary` 藍 ruri: la acción principal (una por pantalla).
   - `highlight` 黄蘗 kihada: lo elegido/activo (tile, chip, tab, celda actual). Nunca `primary` para "elegido".
   - `accent` 朱 shu: SOLO decoración (sol del hero, círculo del resumen y del Repaso, insignias de trazo). Texto de ese tono → `accentInk`.
@@ -278,15 +282,20 @@ Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"
   - Dark ("sumi-ai"): bg `#10121B`, card `#1A1D2A`, texto/contorno crema `#F5EBD7`/`#E9DFCB`, primary `#7C94FF` (lleva texto oscuro), highlight `#FFD54D`.
   - Texto de color < 18px siempre en la variante `*Ink` (`successInk`, `errorInk`, `accentInk`).
 - **Superficies**: todo lo tocable = contorno 2px `colors.line` + sombra dura sin blur (`surfaces.card` 3px, `surfaces.raised` 4px). Presionado/elegido = `surfaces.press` (se hunde 2px, sombra 1px). Usá `InkPressable`; no armes sombras a mano. Contenedores sin acción: `surfaces.outlined`. Lo no elegido: `surfaces.quiet` (borde `hair`).
-- **Tipografía**: `FONTS.display` Dela Gothic One (títulos, glifos de tile/tab, números grandes) · Zen Maru Gothic (UI; 900 para botones/eyebrows) · `FONTS.glyph` Klee One (TODO carácter japonés que se lee, escribe o dibuja: forma de libro de texto).
+- **Tipografía**: `FONTS.display` Dela Gothic One (títulos y números grandes) · Zen Maru Gothic (UI; 900 para botones/eyebrows) · `FONTS.glyph` Klee One (TODO carácter japonés, también los decorativos de tab/tile/card/tanzaku). **Ningún kanji en Dela ni en Zen Maru bold: empastan y no se leen.** Lo garantiza `AppText`, que pasa solo a Klee los tramos japoneses de cualquier texto (`JAPANESE_RUN`), y `AnswerInput`, que cambia a Klee si lo tipeado trae japonés. No escribas japonés con `Text` crudo.
 - **Corrección**: ○ / × (`GradeMark`), no íconos check/close.
 - **Formas**: `radii` — badge 8–10, controles/botones 12, tiles/opciones 14, cards 16, hero/prompt 18, pill.
 - **Medidas** de control en `SIZES` (botón 52, tile 54/92, opción 66, input 60, back 40…). No uses números sueltos.
-- `ScreenHeader`: eyebrow `<kanji> · SECCIÓN` en `accentInk` + título Dela (26 con back, 28 en raíz de pestaña).
+- `ScreenHeader`: UN renglón, `glyph` + `title` → "字 · Kanas" (kanji en `accentInk`, título Dela 26 con back, 28 en raíz de pestaña). Sin eyebrow chico arriba de un título grande (se sacó el 2026-11-01: decían dos veces lo mismo). Lo que antes iba en el título grande, si hace falta, va en `subtitle`.
+- `GameHeader` (partidas sin total): igual, `glyph` + `title` → "反 · Antónimos" en Dela 20. Nada más en esa fila: el título no se corta.
+- `PromptCard`: tiene SOLO la pregunta. Esquinas: consigna (`help`) arriba a la izquierda, puntaje ○/× (`score`) arriba a la derecha, 訳 (`bottomLeft`) abajo a la izquierda, audio (`bottomRight`) abajo a la derecha. Lo que se revela al responder (traducción, lectura, el opuesto) va en `AnswerNote`, DEBAJO de las opciones o del campo.
+- Cambiar de dirección (Significados, Imágenes, Traducción) es un `Segmented` debajo de la cabecera, no una pastilla "Invertir".
+- Opción correcta = verde, sin ○. La errada lleva ×.
+- **Textos cortos**: una línea donde alcance. Nada de párrafos explicando cómo funciona algo.
 - **Tab bar**: borde superior 2px `line`; activa = pastilla `highlight` con contorno. **Se oculta durante una partida.**
 - Primitives Hanga: `InkPressable`, `InkSwitch` (reemplaza `Switch`), `InkBits` (`GradeMark`, `ProgressTrack`, `SectionStep`, `Segmented`, `Marker`), `Seigaiha` (olas del hero), `Tanzaku` (etiqueta vertical 練習/合格).
 - **Regla dark-mode:** colores siempre de `useAppTheme().theme.colors`, nunca del `theme` estático.
-- **Tema**: `themeMode` `'system' | 'light' | 'dark'`, default `'system'`.
+- **Tema**: `themeMode` `'system' | 'light' | 'dark'`, default `'light'` (desde 2026-11-01).
 
 ## Contenido y práctica
 
@@ -301,7 +310,7 @@ Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"
 ### La pantalla raíz
 
 **練 Practicar (`PracticeScreen`)** es la home: arriba el hero (olas `Seigaiha`, sol
-bermellón, tanzaku 練習 y "Practicar"; el único bloque de color pleno) y abajo la grilla de
+bermellón, tanzaku 練習 y el título "Kanami", sin chip; el único bloque de color pleno) y abajo la grilla de
 juegos, 2 columnas parejas, una `GameCard` por modo, todas iguales (badge kihada + título).
 El Repaso **no** está acá: tiene su propia pestaña. **No hay racha, meta ni kanji del día.**
 Se arma **por filas de a dos**, no con `flexWrap`: `AnimatedRow` es un `View` suelto, así
@@ -323,7 +332,8 @@ en el que lo fallaste (`choice` / `input` / `draw`).
   sus errores no llegan al Repaso.
 - **Es la lista del usuario, no solo un log** (desde 2026-10-27). `ReviewList` muestra todo
   agrupado por juego: quitar un ítem o un grupo entero, y **fijar** (pastilla FIJAR/FIJADO). `ReviewAdd` agrega
-  a mano palabras de la cursada (por temática) y kanji (por categoría). Lo fijado no se
+  a mano palabras de la cursada (por temática) y kanji (por categoría), elegidas en un
+  `SearchSelect` (`components/ui`: select que se filtra escribiendo; no grillas de pastillas). Lo fijado no se
   retira con los dos aciertos ni lo poda `MAX_WEAK_ITEMS`; lo agregado a mano entra fijado
   con 0 fallos. Las semillas (`features/weak/reviewCatalog.ts`) usan el MISMO modeKey e
   itemId que Significados y Kanji Grind: agregar algo que ya venías fallando lo fija en vez
@@ -352,6 +362,12 @@ historial. `expo-speech-recognition` queda porque lo usa el modo voz de Kyary.
 **El audio no puede dar la respuesta.** Si lo que se lee en voz alta es justamente lo que
 se pregunta (una lectura, la palabra que falta, la palabra que hay que armar), el
 `SpeakButton` aparece **recién después de responder**. Vale para los modos y para el Repaso.
+
+**Nada avanza solo** (desde 2026-11-01). Después de responder, la ronda queda quieta con la
+corrección a la vista hasta que tocás SIGUIENTE: los hooks exponen `next` (`advance` en Kanji
+Grind) y no tienen timers de avance. En los modos de elegir el pie es `ChoiceNext`
+(`components/game/GamePlay`); en los de escribir, el mismo botón pasa de ENVIAR a SIGUIENTE.
+Excepciones: el Tablero (es continuo) y el Dibujo.
 
 ## Kyary (IA) — `src/services/kyary.ts` · ESCONDIDA
 

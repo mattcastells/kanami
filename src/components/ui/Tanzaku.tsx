@@ -26,7 +26,7 @@ export function Tanzaku({ text, size = 17, style }: Props) {
         <AppText
           key={`${character}-${index}`}
           allowFontScaling={false}
-          style={{ fontFamily: FONTS.display, fontSize: size, lineHeight: size * 1.25, color: colors.onHighlight, textAlign: 'center' }}
+          style={{ fontFamily: FONTS.glyph, fontSize: size, lineHeight: size * 1.25, color: colors.onHighlight, textAlign: 'center' }}
         >
           {character}
         </AppText>

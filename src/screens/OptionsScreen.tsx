@@ -17,6 +17,7 @@ import { ProgressCard } from '../components/progress/ProgressCard';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Segmented } from '../components/ui/InkBits';
 import { InkSwitch } from '../components/ui/InkSwitch';
+import { PalettePicker } from '../components/ui/PalettePicker';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
@@ -53,7 +54,7 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
 ];
 
 export function OptionsScreen() {
-  const { theme: activeTheme, mode, preference } = useAppTheme();
+  const { theme: activeTheme, mode, preference, palette } = useAppTheme();
   const { colors } = activeTheme;
   // Separador entre filas de la lista de ajustes (no va en la primera).
   const rowDivider = { borderTopWidth: 2, borderTopColor: colors.hair };
@@ -61,6 +62,7 @@ export function OptionsScreen() {
     settings: { hapticsEnabled, geminiApiKey, reminderEnabled, reminderHour },
     setHapticsEnabled,
     setThemeMode,
+    setPalette,
     setGeminiApiKey,
     setReminderEnabled,
     setReminderHour,
@@ -172,7 +174,7 @@ export function OptionsScreen() {
 
   return (
     <ScreenBackground showBack={false} scrollable>
-      <ScreenHeader eyebrow="私 · Ajustes" title="Perfil" />
+      <ScreenHeader glyph="私" title="Perfil" />
 
       <ProgressCard />
 
@@ -380,6 +382,12 @@ export function OptionsScreen() {
         </>
       ) : null}
 
+      <AppText variant="overline" color={colors.textSecondary} style={styles.sectionLabel}>
+        Paleta
+      </AppText>
+      <View style={styles.palettes}>
+        <PalettePicker value={palette} onChange={setPalette} />
+      </View>
     </ScreenBackground>
   );
 }
@@ -437,6 +445,9 @@ const styles = StyleSheet.create({
   themeNote: {
     marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.md,
+  },
+  palettes: {
+    marginBottom: theme.spacing.xl,
   },
   settings: {
     borderRadius: theme.radii.lg,

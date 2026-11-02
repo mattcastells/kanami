@@ -32,7 +32,7 @@ const DIRECTIONS: { id: MeaningDirection; glyph: string; note: string }[] = [
   {
     id: 'es-to-jp',
     glyph: '言',
-    note: 'Ves el significado en español y elegís la palabra en japonés.',
+    note: 'Ves el significado y elegís la palabra.',
   },
 ];
 
@@ -133,7 +133,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
         />
       }
     >
-      <ScreenHeader eyebrow="意 · Practicar" title="Significados" />
+      <ScreenHeader glyph="意" title="Significados" />
 
       <SectionStep n={1}>Qué querés hacer</SectionStep>
 

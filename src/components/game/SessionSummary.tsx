@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   verdict: {
-    fontFamily: FONTS.display,
+    fontFamily: FONTS.glyph,
     fontSize: 28,
     lineHeight: 36,
   },

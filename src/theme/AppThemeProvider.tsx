@@ -10,6 +10,7 @@ import { useAppSettings } from '../settings/AppSettingsProvider';
 import {
   AppTheme,
   createTheme,
+  PaletteId,
   ThemeMode,
   ThemePreference,
 } from './theme';
@@ -20,13 +21,14 @@ type AppThemeContextValue = {
   mode: ThemeMode;
   // Lo que eligió el usuario, para el selector de Perfil.
   preference: ThemePreference;
+  palette: PaletteId;
 };
 
 const AppThemeContext = createContext<AppThemeContextValue | null>(null);
 
 export function AppThemeProvider({ children }: PropsWithChildren) {
   const {
-    settings: { themeMode: preference },
+    settings: { themeMode: preference, palette },
   } = useAppSettings();
   // null en plataformas que no lo informan: ahí 'system' cae en claro.
   const systemScheme = useColorScheme();
@@ -34,11 +36,11 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
   const mode: ThemeMode =
     preference === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : preference;
 
-  const currentTheme = useMemo(() => createTheme(mode), [mode]);
+  const currentTheme = useMemo(() => createTheme(mode, palette), [mode, palette]);
 
   const value = useMemo(
-    () => ({ theme: currentTheme, mode, preference }),
-    [currentTheme, mode, preference],
+    () => ({ theme: currentTheme, mode, preference, palette }),
+    [currentTheme, mode, preference, palette],
   );
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 
 import { PhraseEntry } from '../../data/phrases';
@@ -29,21 +29,9 @@ export function useTranslationGame(
     createInitialTranslationState(pool, direction),
   );
 
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearPendingRound = () => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
-  };
-
   useEffect(() => {
-    clearPendingRound();
     setState(createInitialTranslationState(pool, direction));
   }, [direction, pool, resetKey]);
-
-  useEffect(() => clearPendingRound, []);
 
   // Los haptics van en un efecto keyed por el estado, no dentro del updater de
   // setState: el updater tiene que quedar puro (se ejecuta dos veces en StrictMode).
@@ -69,7 +57,6 @@ export function useTranslationGame(
     setState((current) => submitTranslation(current, mode, direction));
 
   const next = () => {
-    clearPendingRound();
     setState((current) => moveToNextTranslationRound(current, pool, direction));
   };
 

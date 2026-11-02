@@ -9,8 +9,11 @@ import { TextStyle, ViewStyle } from 'react-native';
 // Todo lo tocable lleva contorno de tinta (`line`, 2px) y sombra dura corrida
 // (`surfaces.card`). Al presionar se "hunde": `surfaces.press`.
 //
-// Paleta ÚNICA: ya no hay un color por juego (se borraron `tints` y `TintName`).
-// Texto de color chico (<18px) siempre en la variante `*Ink` (≥4.5:1).
+// No hay un color por juego (se borraron `tints` y `TintName`): hay UNA paleta activa
+// para toda la app, que el usuario elige en Perfil entre las de `PALETTES` (abajo). Todas
+// respetan los mismos roles (primary / highlight / accent) y comparten los colores de
+// estado (acierto, error, aviso). Texto de color chico (<18px) siempre en la variante
+// `*Ink` (≥4.5:1).
 
 export type ThemeMode = 'dark' | 'light';
 export type ThemePreference = ThemeMode | 'system';
@@ -100,6 +103,137 @@ const darkColors: typeof lightColors = {
 
 export type ThemeColors = typeof lightColors;
 
+// ── Paletas alternativas ────────────────────────────────────────────────────
+// Cada una define solo lo que la distingue; los colores de estado salen de Hanga (así
+// ○ y × se leen igual en todas) y los alias se derivan.
+type StatusKey =
+  | 'success' | 'successInk' | 'successSoft'
+  | 'error' | 'errorInk' | 'errorSoft'
+  | 'warning' | 'warningSoft';
+type DerivedKey =
+  | 'backgroundSecondary' | 'backgroundTertiary' | 'cardStrong' | 'lineStrong'
+  | 'brand' | 'brandRaised' | 'onBrand' | 'black' | 'white';
+type PaletteSeed = Omit<ThemeColors, StatusKey | DerivedKey>;
+
+function pickStatus(colors: ThemeColors): Pick<ThemeColors, StatusKey> {
+  const { success, successInk, successSoft, error, errorInk, errorSoft, warning, warningSoft } = colors;
+  return { success, successInk, successSoft, error, errorInk, errorSoft, warning, warningSoft };
+}
+
+function fromSeed(seed: PaletteSeed, mode: ThemeMode): ThemeColors {
+  return {
+    ...seed,
+    ...pickStatus(mode === 'dark' ? darkColors : lightColors),
+    backgroundSecondary: seed.card,
+    backgroundTertiary: seed.surface2,
+    cardStrong: seed.card,
+    lineStrong: seed.line,
+    brand: seed.waveA,
+    brandRaised: seed.waveB,
+    onBrand: seed.onWave,
+    black: '#000000',
+    white: '#FFFFFF',
+  };
+}
+
+// 墨 Sumi: papel y tinta, un solo color fuerte (朱). El botón principal es tinta.
+const sumiLight = fromSeed({
+  background: '#FAF8F3', card: '#FFFFFF', surface2: '#EFEBE3',
+  textPrimary: '#16130F', textSecondary: '#4F4840', textMuted: '#857C71',
+  line: '#16130F', hair: 'rgba(22, 19, 15, 0.16)',
+  primary: '#16130F', onPrimary: '#FFFFFF', primarySoft: '#E8E4DC',
+  accent: '#E2462B', accentInk: '#B32E16', onAccent: '#FFFFFF',
+  highlight: '#F5C9AE', onHighlight: '#16130F',
+  shadow: '#16130F', waveA: '#2A2622', waveB: '#3D3832', onWave: '#FFFFFF', tabBar: '#FFFFFF',
+}, 'light');
+const sumiDark = fromSeed({
+  background: '#141210', card: '#1E1B18', surface2: '#2A2622',
+  textPrimary: '#F2EDE4', textSecondary: '#C2BAAD', textMuted: '#8A8378',
+  line: '#E6DFD3', hair: 'rgba(242, 237, 228, 0.16)',
+  primary: '#F2EDE4', onPrimary: '#141210', primarySoft: '#2E2A25',
+  accent: '#FF6A45', accentInk: '#FF9478', onAccent: '#141210',
+  highlight: '#F0B48F', onHighlight: '#141210',
+  shadow: '#000000', waveA: '#1E1B18', waveB: '#2E2A25', onWave: '#FFFFFF', tabBar: '#191714',
+}, 'dark');
+
+// 抹茶 Matcha: verde té para la acción, 山吹 yamabuki para lo elegido, 紅 beni de adorno.
+const matchaLight = fromSeed({
+  background: '#F5F0E6', card: '#FFFCF5', surface2: '#E8E0CF',
+  textPrimary: '#1F1B16', textSecondary: '#574D40', textMuted: '#8A7E6E',
+  line: '#1F1B16', hair: 'rgba(31, 27, 22, 0.16)',
+  primary: '#4E7A3A', onPrimary: '#FFFFFF', primarySoft: '#DDEBD3',
+  accent: '#C8323C', accentInk: '#A3222C', onAccent: '#FFFFFF',
+  highlight: '#F2B134', onHighlight: '#1F1B16',
+  shadow: '#1F1B16', waveA: '#4E7A3A', waveB: '#6B9A52', onWave: '#FFFFFF', tabBar: '#FFFCF5',
+}, 'light');
+const matchaDark = fromSeed({
+  background: '#121510', card: '#1B2018', surface2: '#262D22',
+  textPrimary: '#EFEBDD', textSecondary: '#C2BDA8', textMuted: '#8A8676',
+  line: '#E3DECB', hair: 'rgba(239, 235, 221, 0.16)',
+  primary: '#9CCB7E', onPrimary: '#10200A', primarySoft: '#26361E',
+  accent: '#FF6B6B', accentInk: '#FF9A9A', onAccent: '#121510',
+  highlight: '#F5C150', onHighlight: '#121510',
+  shadow: '#000000', waveA: '#1E3018', waveB: '#2D4524', onWave: '#FFFFFF', tabBar: '#171B14',
+}, 'dark');
+
+// 桜 Sakura: 紺 kon (marino) para la acción, rosa sakura para lo elegido, 紅 de adorno.
+const sakuraLight = fromSeed({
+  background: '#FBF5F3', card: '#FFFFFF', surface2: '#F1E4E2',
+  textPrimary: '#1E2235', textSecondary: '#4D5168', textMuted: '#858899',
+  line: '#1E2235', hair: 'rgba(30, 34, 53, 0.16)',
+  primary: '#2B3A67', onPrimary: '#FFFFFF', primarySoft: '#DCE1F0',
+  accent: '#D7263D', accentInk: '#B01A30', onAccent: '#FFFFFF',
+  highlight: '#F6C3CF', onHighlight: '#1E2235',
+  shadow: '#1E2235', waveA: '#2B3A67', waveB: '#3D4F86', onWave: '#FFFFFF', tabBar: '#FFFFFF',
+}, 'light');
+const sakuraDark = fromSeed({
+  background: '#13141F', card: '#1D1F2E', surface2: '#292C40',
+  textPrimary: '#F5ECEE', textSecondary: '#C9BEC2', textMuted: '#8E8790',
+  line: '#EBDFE2', hair: 'rgba(245, 236, 238, 0.16)',
+  primary: '#9DB0F0', onPrimary: '#0E1430', primarySoft: '#262E50',
+  accent: '#FF5C70', accentInk: '#FF8C9A', onAccent: '#13141F',
+  highlight: '#F4AFC0', onHighlight: '#13141F',
+  shadow: '#000000', waveA: '#1E2647', waveB: '#2C3762', onWave: '#FFFFFF', tabBar: '#181A28',
+}, 'dark');
+
+// 藍 Aizome: todo en tonos de añil; el 柿 kaki apenas como detalle.
+const aizomeLight = fromSeed({
+  background: '#F2F4F7', card: '#FFFFFF', surface2: '#E2E7EF',
+  textPrimary: '#14213D', textSecondary: '#44506A', textMuted: '#7F889C',
+  line: '#14213D', hair: 'rgba(20, 33, 61, 0.16)',
+  primary: '#1D3F8F', onPrimary: '#FFFFFF', primarySoft: '#D6E0F5',
+  accent: '#E07A2E', accentInk: '#A9531A', onAccent: '#14213D',
+  highlight: '#BFD3F2', onHighlight: '#14213D',
+  shadow: '#14213D', waveA: '#1D3F8F', waveB: '#2F57B0', onWave: '#FFFFFF', tabBar: '#FFFFFF',
+}, 'light');
+const aizomeDark = fromSeed({
+  background: '#0E1424', card: '#172036', surface2: '#222D48',
+  textPrimary: '#E8EEF8', textSecondary: '#B5C0D4', textMuted: '#7E8AA2',
+  line: '#DCE4F2', hair: 'rgba(232, 238, 248, 0.16)',
+  primary: '#8FB0F2', onPrimary: '#0A1530', primarySoft: '#22305A',
+  accent: '#F59A55', accentInk: '#FFB27A', onAccent: '#0E1424',
+  highlight: '#9DBCF0', onHighlight: '#0E1424',
+  shadow: '#000000', waveA: '#16295A', waveB: '#213A78', onWave: '#FFFFFF', tabBar: '#121A2E',
+}, 'dark');
+
+export type PaletteId = 'hanga' | 'sumi' | 'matcha' | 'sakura' | 'aizome';
+export const DEFAULT_PALETTE: PaletteId = 'hanga';
+
+// El orden es el del selector de Perfil.
+export const PALETTES: Record<PaletteId, { name: string; kanji: string; light: ThemeColors; dark: ThemeColors }> = {
+  hanga: { name: 'Hanga', kanji: '版', light: lightColors, dark: darkColors },
+  sumi: { name: 'Sumi', kanji: '墨', light: sumiLight, dark: sumiDark },
+  matcha: { name: 'Matcha', kanji: '茶', light: matchaLight, dark: matchaDark },
+  sakura: { name: 'Sakura', kanji: '桜', light: sakuraLight, dark: sakuraDark },
+  aizome: { name: 'Aizome', kanji: '藍', light: aizomeLight, dark: aizomeDark },
+};
+
+export const PALETTE_IDS = Object.keys(PALETTES) as PaletteId[];
+
+export function isPaletteId(value: unknown): value is PaletteId {
+  return typeof value === 'string' && (PALETTE_IDS as string[]).includes(value);
+}
+
 // Sombra dura: offset sin blur. `size` = 2 (botón chico / back), 3 (card, botón), 4 (card grande), 5 (sol del resumen).
 export const inkShadow = (color: string, size: 1 | 2 | 3 | 4 | 5 = 3) => `${size}px ${size}px 0 ${color}`;
 
@@ -120,7 +254,7 @@ const makeSurfaces = (c: ThemeColors) => ({
 });
 
 export const FONTS = {
-  display: 'DelaGothicOne_400Regular', // títulos, glifos de tile/tab, números grandes
+  display: 'DelaGothicOne_400Regular', // títulos y números grandes. NUNCA kanji: AppText los pasa a glyph
   regular: 'ZenMaruGothic_400Regular',
   medium: 'ZenMaruGothic_500Medium',
   bold: 'ZenMaruGothic_700Bold',
@@ -151,8 +285,7 @@ export const SIZES = {
   switchWidth: 44,
   switchHeight: 26,
   switchKnob: 18,
-  boardCell: 50,
-  heroHeight: 156,
+  heroHeight: 112,
 } as const;
 
 const sharedTheme = {
@@ -188,8 +321,8 @@ export const theme = { ...sharedTheme, colors: lightColors, surfaces: makeSurfac
 export type AppTheme = typeof theme & { mode: ThemeMode };
 export type TextVariant = keyof typeof theme.typography;
 
-export function createTheme(mode: ThemeMode = 'light'): AppTheme {
-  const colors = mode === 'dark' ? darkColors : lightColors;
+export function createTheme(mode: ThemeMode = 'light', palette: PaletteId = DEFAULT_PALETTE): AppTheme {
+  const colors = PALETTES[palette][mode];
   return { ...sharedTheme, colors, surfaces: makeSurfaces(colors), mode };
 }
 

@@ -29,7 +29,7 @@ export type DrillSetOption<Id extends string> = {
 };
 
 type ReadingDrillSetupProps<Id extends string> = {
-  eyebrow: string;
+  glyph: string;
   title: string;
   directions: DrillDirectionOption[];
   sets: DrillSetOption<Id>[];
@@ -47,7 +47,7 @@ const ANSWER_MODES: { value: DrillAnswerMode; label: string }[] = [
 ];
 
 export function ReadingDrillSetup<Id extends string>({
-  eyebrow,
+  glyph,
   title,
   directions,
   sets,
@@ -77,7 +77,7 @@ export function ReadingDrillSetup<Id extends string>({
         />
       }
     >
-      <ScreenHeader eyebrow={eyebrow} title={title} />
+      <ScreenHeader glyph={glyph} title={title} />
 
       <SectionStep n={1}>Qué querés hacer</SectionStep>
       <ModeGrid wide>

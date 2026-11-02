@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     height: 44,
   },
   glyph: {
-    fontFamily: FONTS.display,
+    fontFamily: FONTS.glyph,
     fontSize: 18,
     lineHeight: 23,
   },

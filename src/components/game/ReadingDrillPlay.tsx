@@ -13,7 +13,7 @@ import { ScreenBackground } from '../ui/ScreenBackground';
 import { SpeakButton } from '../ui/SpeakButton';
 import { AnswerInput } from './AnswerInput';
 import { AnswerOptionButton } from './AnswerOptionButton';
-import { GameFooter, PromptCard, WaitingHint } from './GamePlay';
+import { AnswerNote, GameFooter, PromptCard, WaitingHint } from './GamePlay';
 import { GameHeader } from './GameHeader';
 
 // La partida de Números y de Fechas y hora: mismo ejercicio, otro contenido (lo pone el
@@ -21,7 +21,7 @@ import { GameHeader } from './GameHeader';
 
 type ReadingDrillPlayProps = {
   modeKey: string;
-  eyebrow: string;
+  glyph: string;
   title: string;
   source: DrillSource;
   sourceKey: string;
@@ -39,7 +39,7 @@ function promptStyle(text: string, glyph: boolean) {
 
 export function ReadingDrillPlay({
   modeKey,
-  eyebrow,
+  glyph,
   title,
   source,
   sourceKey,
@@ -124,42 +124,24 @@ export function ReadingDrillPlay({
   // El audio dice la lectura: si la lectura es lo que se pregunta, recién se puede
   // escuchar después de responder.
   const canSpeak = direction === 'to-display' || answered;
-  const helpText = answerIsReading ? (isInput ? 'Escribí la lectura' : '¿Cómo se lee?') : null;
+  const helpText = answerIsReading
+    ? isInput
+      ? 'Escribí la lectura'
+      : '¿Cómo se lee?'
+    : isInput
+      ? `Escribí ${displayNoun}`
+      : `¿Cuál es ${displayNoun}?`;
 
   return (
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
-      <GameHeader eyebrow={eyebrow} title={title} score={stats} />
+      <GameHeader glyph={glyph} title={title} />
 
       <PromptCard
         size={isInput ? 'input' : 'choice'}
-        help={helpText ?? undefined}
+        help={helpText}
+        score={stats}
         // Escribiendo, después de responder el audio pasa al botón cuadrado de abajo.
         bottomRight={canSpeak && !(isInput && answered) ? <SpeakButton text={reading.kana} /> : null}
-        below={
-          answered ? (
-            <View style={styles.reveal}>
-              {/* En cifra → lectura la cifra ya está a la vista: no se repite. */}
-              {direction !== 'to-japanese' ? (
-                <AppText variant="option" style={styles.centered}>
-                  {item.display}
-                  {item.sub ? ` · ${item.sub}` : ''}
-                </AppText>
-              ) : null}
-              <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
-                <AppText variant="bodySmall" style={styles.glyphInline} color={activeTheme.colors.textSecondary}>
-                  {reading.kana}
-                </AppText>
-                {' · '}
-                {reading.romaji}
-              </AppText>
-              {item.readings.length > 1 ? (
-                <AppText variant="bodySmall" color={activeTheme.colors.textMuted} style={styles.centered}>
-                  También: {item.readings.slice(1).map((alt) => alt.kana).join(' · ')}
-                </AppText>
-              ) : null}
-            </View>
-          ) : null
-        }
       >
         {direction === 'to-display' ? (
           <AppText style={[styles.centered, promptStyle(reading.kana, true)]}>{reading.kana}</AppText>
@@ -205,6 +187,30 @@ export function ReadingDrillPlay({
         </View>
       )}
 
+      {answered ? (
+        <AnswerNote>
+          {/* En cifra → lectura la cifra ya está a la vista: no se repite. */}
+          {direction !== 'to-japanese' ? (
+            <AppText variant="option" style={styles.centered}>
+              {item.display}
+              {item.sub ? ` · ${item.sub}` : ''}
+            </AppText>
+          ) : null}
+          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
+            <AppText variant="bodySmall" style={styles.glyphInline} color={activeTheme.colors.textSecondary}>
+              {reading.kana}
+            </AppText>
+            {' · '}
+            {reading.romaji}
+          </AppText>
+          {item.readings.length > 1 ? (
+            <AppText variant="bodySmall" color={activeTheme.colors.textMuted} style={styles.centered}>
+              También: {item.readings.slice(1).map((alt) => alt.kana).join(' · ')}
+            </AppText>
+          ) : null}
+        </AnswerNote>
+      ) : null}
+
       <GameFooter
         feedback={{
           status: answerState,
@@ -238,11 +244,6 @@ const styles = StyleSheet.create({
   },
   glyphInline: {
     fontFamily: FONTS.glyph,
-  },
-  reveal: {
-    marginTop: theme.spacing.sm,
-    gap: 2,
-    alignItems: 'center',
   },
   answersGrid: {
     flexDirection: 'row',

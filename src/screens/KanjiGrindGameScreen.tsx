@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { SessionSummary } from '../components/game/SessionSummary';
 import { KanjiStatusChip } from '../components/kanji/KanjiStatusChip';
@@ -90,9 +90,9 @@ export function KanjiGrindGameScreen({
     return (
       <ScreenBackground scrollable={false}>
         <ScreenHeader
-          eyebrow="漢字 · Kanji Grind"
-          title="Sin kanji para practicar"
-          subtitle="Probá con otro filtro."
+          glyph="漢字"
+          title="Kanji"
+          subtitle="Sin kanji para practicar. Probá con otro filtro."
         />
       </ScreenBackground>
     );
@@ -103,7 +103,7 @@ export function KanjiGrindGameScreen({
   if (!hydrated) {
     return (
       <ScreenBackground scrollable={false}>
-        <ScreenHeader eyebrow="漢字 · Kanji Grind" title="Preparando la sesión…" />
+        <ScreenHeader glyph="漢字" title="Kanji" subtitle="Preparando la sesión…" />
       </ScreenBackground>
     );
   }
@@ -152,9 +152,9 @@ export function KanjiGrindGameScreen({
   return (
     <ScreenBackground scrollable={false}>
       {/* Cuánto falta: sin esto la sesión se siente infinita y no invita a terminarla. */}
-      <GameHeader eyebrow={round.promptLabel} progress={{ current, total }} score={state.stats} />
+      <GameHeader eyebrow={round.promptLabel} progress={{ current, total }} />
 
-      <PromptCard>
+      <PromptCard score={state.stats}>
         {isKanjiPrompt ? (
           <AppText style={styles.promptKanji}>{round.promptText}</AppText>
         ) : (
@@ -181,7 +181,7 @@ export function KanjiGrindGameScreen({
       </View>
 
       <GameFooter feedback={lastFeedback}>
-        <WaitingHint visible={state.answerState === 'idle'} />
+        <ChoiceNext answered={state.answerState !== 'idle'} onNext={advance} />
       </GameFooter>
     </ScreenBackground>
   );
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   readingLabelText: {
-    fontFamily: FONTS.display,
+    fontFamily: FONTS.glyph,
     fontSize: 12,
     lineHeight: 15,
   },

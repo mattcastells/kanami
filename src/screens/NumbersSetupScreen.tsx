@@ -7,13 +7,13 @@ const DIRECTIONS: DrillDirectionOption[] = [
     id: 'to-japanese',
     glyph: '読',
     title: 'Decilo en japonés',
-    description: 'Ves 347 y das la lectura: さんびゃくよんじゅうなな.',
+    description: '47 → よんじゅうなな',
   },
   {
     id: 'to-display',
     glyph: '数',
     title: 'Leé el japonés',
-    description: 'Ves さんびゃくよんじゅうなな y das el número: 347.',
+    description: 'よんじゅうなな → 47',
   },
 ];
 
@@ -23,7 +23,7 @@ const DEFAULT_RANGES: NumberRangeId[] = ['units', 'tens', 'hundreds'];
 export function NumbersSetupScreen({ navigation }: RootStackScreenProps<'Numbers'>) {
   return (
     <ReadingDrillSetup
-      eyebrow="数 · Practicar"
+      glyph="数"
       title="Números"
       directions={DIRECTIONS}
       sets={NUMBER_RANGES}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 
 import { EmojiVocabEntry } from '../../data/vocabularyEmoji';
@@ -28,25 +28,11 @@ export function useEmojiGame(
     selectedText?: string | null;
     translationText?: string;
   }>({ status: 'idle', correctText: '', selectedText: null });
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
     setState(createInitialEmojiState(pool, mode));
     setLastFeedback({ status: 'idle', correctText: '', selectedText: null });
   }, [pool, mode, resetKey]);
-
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-      }
-    },
-    [],
-  );
 
   const answer = (optionId: string) => {
     let nextAnswerState: EmojiSessionState['answerState'] = 'idle';
@@ -87,18 +73,13 @@ export function useEmojiGame(
       }
     }
 
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-    }
-
-    nextRoundTimeoutRef.current = setTimeout(
-      () => {
-        setState((currentState) => moveToNextEmojiRound(currentState, pool, mode));
-        nextRoundTimeoutRef.current = null;
-      },
-      nextAnswerState === 'correct' ? 260 : 520,
-    );
   };
 
-  return { state, answer, lastFeedback };
+  // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer la corrección.
+  const next = () => {
+    setState((currentState) => moveToNextEmojiRound(currentState, pool, mode));
+    setLastFeedback({ status: 'idle', correctText: '', selectedText: null });
+  };
+
+  return { state, answer, next, lastFeedback };
 }

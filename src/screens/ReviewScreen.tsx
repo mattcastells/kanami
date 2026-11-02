@@ -152,7 +152,7 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
 
     return (
       <ScreenBackground scrollable showBack={false}>
-        <ScreenHeader eyebrow="復習 · Repaso" title="Lo que te cuesta" />
+        <ScreenHeader glyph="復習" title="Repaso" />
 
         <GlassCard style={styles.countCard} contentStyle={styles.countContent}>
           <View style={[styles.countCircle, { backgroundColor: colors.accent, borderColor: colors.line }]}>
@@ -161,23 +161,15 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
             </AppText>
           </View>
           {weakTotal === 0 ? (
-            <View style={styles.countText}>
-              <AppText variant="body" color={colors.textSecondary}>
-                Tu lista está vacía. Lo que falles en cualquier juego se anota acá solo y
-                vuelve como ejercicio hasta que te salga dos veces seguidas. También
-                podés armarla a mano con palabras o kanji.
-              </AppText>
-              <AppText variant="bodySmall" color={colors.textSecondary}>
-                Mientras tanto, el repaso te arma una ronda con kana y vocabulario que
-                todavía no practicaste.
-              </AppText>
-            </View>
+            <AppText variant="body" color={colors.textSecondary} style={styles.countText}>
+              Lo que falles se anota acá. Mientras, repasás kana y vocabulario.
+            </AppText>
           ) : (
             <AppText variant="body" color={colors.textSecondary} style={styles.countText}>
               <AppText variant="bodyStrong">
                 {weakTotal === 1 ? 'cosa' : 'cosas'} en tu lista.
               </AppText>{' '}
-              Cada una vuelve en el formato en el que la erraste; lo más fallado, primero.
+              Lo más fallado, primero.
             </AppText>
           )}
         </GlassCard>
@@ -254,7 +246,6 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
           : getModeLabel(exercise.modeKey)
       }
       progress={{ current: index + 1, total: queue.length }}
-      score={{ correct: correctCount, incorrect: answeredCount - correctCount }}
       onClose={() => setPhase('intro')}
     />
   );
@@ -306,13 +297,7 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
         // Recién después de responder: en muchos ejercicios lo que se lee en voz alta es
         // justamente la respuesta (una lectura, la palabra que faltaba).
         bottomRight={exercise.speakText && answered ? <SpeakButton text={exercise.speakText} /> : null}
-        below={
-          answered ? (
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.centered}>
-              {exercise.answer}
-            </AppText>
-          ) : null
-        }
+        score={{ correct: correctCount, incorrect: answeredCount - correctCount }}
       >
         <AppText style={[styles.prompt, promptSize(exercise.prompt)]}>{exercise.prompt}</AppText>
       </PromptCard>
@@ -448,9 +433,6 @@ const styles = StyleSheet.create({
   },
   listLink: {
     marginTop: 6,
-  },
-  centered: {
-    textAlign: 'center',
   },
   prompt: {
     fontFamily: FONTS.glyph,

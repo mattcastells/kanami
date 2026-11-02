@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 
 import { useAppSettings } from '../../settings/AppSettingsProvider';
@@ -32,14 +32,8 @@ export function useHiraganaGame(
     correctText: '',
     selectedText: null,
   });
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
-
     setState(createInitialGameState(pool));
     setLastFeedback({
       status: 'idle',
@@ -48,15 +42,6 @@ export function useHiraganaGame(
       selectedText: null,
     });
   }, [pool, resetKey]);
-
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-      }
-    },
-    [],
-  );
 
   const answer = (optionId: string) => {
     let nextAnswerState: GameSessionState['answerState'] = 'idle';
@@ -104,23 +89,12 @@ export function useHiraganaGame(
       }
     }
 
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-    }
-
-    nextRoundTimeoutRef.current = setTimeout(() => {
-      setState((currentState) => moveToNextRound(currentState, pool));
-      nextRoundTimeoutRef.current = null;
-    }, nextAnswerState === 'correct' ? 180 : 260);
   };
 
+  // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer la corrección.
   const next = () => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
-
     setState((currentState) => moveToNextRound(currentState, pool));
+    setLastFeedback({ status: 'idle', promptText: '', correctText: '', selectedText: null });
   };
 
   return {

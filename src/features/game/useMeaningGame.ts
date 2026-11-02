@@ -31,33 +31,19 @@ export function useMeaningGame(
     createInitialMeaningState(pool, direction),
   );
   // Espejo del estado para leerlo fuera de un updater: así `answer` decide y dispara
-  // haptics/timer sin meter efectos dentro de setState.
+  // haptics sin meter efectos dentro de setState.
   const stateRef = useRef(state);
   const [lastFeedback, setLastFeedback] = useState<MeaningFeedback>(IDLE_FEEDBACK);
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const commit = (next: MeaningSessionState) => {
-    stateRef.current = next;
-    setState(next);
+  const commit = (nextState: MeaningSessionState) => {
+    stateRef.current = nextState;
+    setState(nextState);
   };
 
   useEffect(() => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
     commit(createInitialMeaningState(pool, direction));
     setLastFeedback(IDLE_FEEDBACK);
   }, [pool, direction, resetKey]);
-
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-      }
-    },
-    [],
-  );
 
   const answer = (optionId: string) => {
     const current = stateRef.current;
@@ -81,19 +67,13 @@ export function useMeaningGame(
       );
     }
 
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-    }
-
-    // En el fallo se queda un poco más: hay que leer cuál era.
-    nextRoundTimeoutRef.current = setTimeout(
-      () => {
-        commit(moveToNextMeaningRound(stateRef.current, pool, direction));
-        nextRoundTimeoutRef.current = null;
-      },
-      updated.answerState === 'correct' ? 260 : 700,
-    );
   };
 
-  return { state, answer, lastFeedback };
+  // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer la corrección.
+  const next = () => {
+    commit(moveToNextMeaningRound(stateRef.current, pool, direction));
+    setLastFeedback(IDLE_FEEDBACK);
+  };
+
+  return { state, answer, next, lastFeedback };
 }

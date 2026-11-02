@@ -37,14 +37,14 @@ const VOCAB_GAMES: {
     glyph: '空',
     title: 'Completar',
     cta: 'COMENZAR COMPLETAR',
-    note: 'Se oculta una sílaba de la palabra y elegís cuál la completa.',
+    note: 'Falta una sílaba y elegís cuál.',
   },
   {
     mode: 'word-builder',
     glyph: '組',
     title: 'Constructor',
     cta: 'COMENZAR CONSTRUCTOR',
-    note: 'Armás la palabra ordenando las sílabas en el orden correcto.',
+    note: 'Ordenás las sílabas para armar la palabra.',
   },
 ];
 
@@ -146,7 +146,7 @@ export function VocabularyScreen({
         />
       }
     >
-      <ScreenHeader eyebrow="語 · Practicar" title="Vocabulario" />
+      <ScreenHeader glyph="語" title="Vocabulario" />
 
       <SectionStep n={1}>Qué querés hacer</SectionStep>
 

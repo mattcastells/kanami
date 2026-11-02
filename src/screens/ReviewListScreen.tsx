@@ -72,9 +72,9 @@ export function ReviewListScreen({ navigation }: RootStackScreenProps<'ReviewLis
   return (
     <ScreenBackground scrollable>
       <ScreenHeader
-        eyebrow="復習 · Repaso"
+        glyph="復習"
         title="Tu lista"
-        subtitle="Lo fallado sale solo después de dos aciertos seguidos. Lo fijado se queda hasta que lo quites."
+        subtitle="Sale con dos aciertos seguidos, salvo lo fijado."
         rightSlot={
           <PillButton title="+ Agregar" tone="highlight" onPress={() => navigation.navigate('ReviewAdd')} />
         }
@@ -82,8 +82,7 @@ export function ReviewListScreen({ navigation }: RootStackScreenProps<'ReviewLis
 
       {groups.length === 0 ? (
         <AppText variant="body" color={activeTheme.colors.textSecondary} style={styles.empty}>
-          Tu lista está vacía. Lo que falles en cualquier juego se anota acá solo, y también
-          podés agregar palabras o kanji a mano.
+          Vacía. Lo que falles se anota solo.
         </AppText>
       ) : null}
 

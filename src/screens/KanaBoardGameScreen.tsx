@@ -19,16 +19,17 @@ import { useKanaBoardGame } from '../features/game/useKanaBoardGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, inkShadow, SIZES, theme } from '../theme/theme';
+import { FONTS, inkShadow, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
-const CARD_GAP = 6;
-// Ancho mínimo de una carta: en un teléfono de 360 entran 6 columnas; en pantallas
-// anchas, las que quepan.
-const MIN_CARD_WIDTH = 46;
+const CARD_GAP = 8;
+// Ancho mínimo de una carta: en un teléfono de 360 entran 4 columnas (con 6 las cartas
+// quedaban chicas para leer y tocar); en pantallas anchas, las que quepan.
+const MIN_CARD_WIDTH = 72;
+const MIN_COLUMNS = 4;
 
 function columnsForWidth(width: number) {
-  return Math.max(6, Math.floor((width + CARD_GAP) / (MIN_CARD_WIDTH + CARD_GAP)));
+  return Math.max(MIN_COLUMNS, Math.floor((width + CARD_GAP) / (MIN_CARD_WIDTH + CARD_GAP)));
 }
 
 // Los combos (きゃ, ぎゃ, みゅ...) son DOS caracteres y ocupan casi el doble: con un
@@ -108,8 +109,8 @@ export function KanaBoardGameScreen({
     return (
       <ScreenBackground scrollable>
         <ScreenHeader
-          eyebrow="盤 · Tablero"
-          title="Resultado"
+          glyph="盤"
+          title="Tablero"
           subtitle={
             summary.completed
               ? 'Completaste el tablero entero'
@@ -259,7 +260,6 @@ export function KanaBoardGameScreen({
       }
     >
       <ScreenHeader
-        eyebrow="盤 · Tablero"
         title={scriptLabel}
         compact
         subtitle={state.round > 1 ? `Vuelta ${state.round} · repasando lo que fallaste` : undefined}
@@ -277,8 +277,7 @@ export function KanaBoardGameScreen({
       </View>
 
       <AppText variant="bodySmall" color={colors.textSecondary} style={styles.hint}>
-        Escribí el romaji de la carta marcada y mandá con Enter. Tocá cualquier otra para
-        saltar a esa. Las que falles vuelven al final.
+        Escribí el romaji de la carta marcada. Tocá otra para saltar.
       </AppText>
 
       <View style={styles.board} onLayout={handleBoardLayout}>
@@ -326,7 +325,8 @@ function BoardCard({
           ? { border: colors.warning, background: colors.warningSoft, text: colors.textPrimary }
           : { border: colors.hair, background: colors.card, text: colors.textPrimary };
 
-  const fontSize = card.kana.length > 1 ? 15 : 20;
+  const fontSize = kanaFontSize(card.kana, width);
+  const romajiSize = Math.max(9, Math.round(width * 0.16));
 
   return (
     <Pressable
@@ -336,6 +336,7 @@ function BoardCard({
         styles.card,
         {
           width,
+          height: width,
           borderColor: look.border,
           borderWidth: isActive ? 3 : 2,
           backgroundColor: look.background,
@@ -352,7 +353,11 @@ function BoardCard({
         {card.kana}
       </AppText>
       {resolved ? (
-        <AppText numberOfLines={1} style={styles.cardRomaji} color={look.text}>
+        <AppText
+          numberOfLines={1}
+          style={[styles.cardRomaji, { fontSize: romajiSize, lineHeight: Math.round(romajiSize * 1.25) }]}
+          color={look.text}
+        >
           {card.romaji}
         </AppText>
       ) : null}
@@ -390,16 +395,13 @@ const styles = StyleSheet.create({
     gap: CARD_GAP,
   },
   card: {
-    height: SIZES.boardCell,
-    borderRadius: 9,
+    borderRadius: theme.radii.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
   cardRomaji: {
     fontFamily: FONTS.black,
-    fontSize: 9,
-    lineHeight: 11,
   },
   dock: {
     borderTopWidth: 2,

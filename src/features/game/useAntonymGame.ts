@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 
 import { useAppSettings } from '../../settings/AppSettingsProvider';
@@ -22,25 +22,15 @@ export function useAntonymGame() {
     settings: { hapticsEnabled },
   } = useAppSettings();
   const [state, setState] = useState<AntonymSessionState>(createInitialAntonymState);
-  // Espejo del estado para decidir fuera de un updater: los efectos (haptics, timer) no
+  // Espejo del estado para decidir fuera de un updater: los efectos (haptics) no
   // pueden ir dentro de setState.
   const stateRef = useRef(state);
   const [lastFeedback, setLastFeedback] = useState<AntonymFeedback>(IDLE_FEEDBACK);
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const commit = (next: AntonymSessionState) => {
-    stateRef.current = next;
-    setState(next);
+  const commit = (nextState: AntonymSessionState) => {
+    stateRef.current = nextState;
+    setState(nextState);
   };
-
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) {
-        clearTimeout(nextRoundTimeoutRef.current);
-      }
-    },
-    [],
-  );
 
   const answer = (optionId: string) => {
     const current = stateRef.current;
@@ -64,21 +54,14 @@ export function useAntonymGame() {
       );
     }
 
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-    }
-
-    // Más tiempo que en Significados: después de responder se muestran las dos palabras
-    // con su traducción, y eso hay que leerlo.
-    nextRoundTimeoutRef.current = setTimeout(
-      () => {
-        commit(moveToNextAntonymRound(stateRef.current));
-        setLastFeedback(IDLE_FEEDBACK);
-        nextRoundTimeoutRef.current = null;
-      },
-      updated.answerState === 'correct' ? 700 : 1500,
-    );
   };
 
-  return { state, answer, lastFeedback };
+  // No avanza solo: después de responder se muestran las dos palabras con su traducción,
+  // y eso hay que poder leerlo. Pasa con SIGUIENTE.
+  const next = () => {
+    commit(moveToNextAntonymRound(stateRef.current));
+    setLastFeedback(IDLE_FEEDBACK);
+  };
+
+  return { state, answer, next, lastFeedback };
 }

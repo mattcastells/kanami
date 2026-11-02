@@ -14,9 +14,8 @@ import {
   updateDrillInput,
 } from './readingDrillEngine';
 
-// Elegir avanza solo (como Horarios); escribir espera a que toques SIGUIENTE, porque
-// después de tipear hay que poder leer la corrección con calma.
-const CHOICE_ADVANCE_MS = { correct: 500, incorrect: 1400 } as const;
+// Nada avanza solo: elegir y escribir esperan a que toques SIGUIENTE, para poder leer la
+// corrección con calma.
 
 export function useReadingDrill(
   source: DrillSource,
@@ -32,26 +31,14 @@ export function useReadingDrill(
   );
   const stateRef = useRef(state);
   stateRef.current = state;
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearPending = () => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
-  };
 
   useEffect(() => {
-    clearPending();
     const initial = createInitialDrillState(source, direction, answerMode);
     stateRef.current = initial;
     setState(initial);
   }, [source, direction, answerMode, resetKey]);
 
-  useEffect(() => clearPending, []);
-
   const next = () => {
-    clearPending();
     const current = stateRef.current;
     if (current.answerState === 'idle') return;
     const nextState = moveToNextDrillRound(current, source, direction, answerMode);
@@ -59,8 +46,8 @@ export function useReadingDrill(
     setState(nextState);
   };
 
-  // El efecto del resultado (haptics + auto-avance) se dispara afuera del updater: los
-  // updaters de setState tienen que ser puros.
+  // El efecto del resultado (haptics) se dispara afuera del updater: los updaters de
+  // setState tienen que ser puros.
   const settle = (current: DrillSessionState, updated: DrillSessionState) => {
     if (updated === current) return;
     stateRef.current = updated;
@@ -71,16 +58,6 @@ export function useReadingDrill(
         updated.answerState === 'correct'
           ? Haptics.NotificationFeedbackType.Success
           : Haptics.NotificationFeedbackType.Error,
-      );
-    }
-
-    if (updated.round.answerMode === 'choice') {
-      clearPending();
-      nextRoundTimeoutRef.current = setTimeout(
-        next,
-        updated.answerState === 'correct'
-          ? CHOICE_ADVANCE_MS.correct
-          : CHOICE_ADVANCE_MS.incorrect,
       );
     }
   };

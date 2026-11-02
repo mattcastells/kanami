@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { theme } from '../../theme/theme';
+import { FONTS, theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { AppText } from './AppText';
 import { PillButton } from './PrimaryButton';
@@ -10,8 +10,8 @@ import { BackButton, useScreenBack } from './ScreenBackground';
 type ScreenHeaderProps = {
   title: string;
   subtitle?: string;
-  // "<kanji> · SECCIÓN" (かな · PRACTICAR). Se muestra en mayúsculas.
-  eyebrow?: string;
+  // Kanji de la sección (字, 復習…): va delante del título, en accentInk ("字 · Kanas").
+  glyph?: string;
   // Pisa al back automático (el de ScreenBackground).
   onBack?: () => void;
   actionLabel?: string;
@@ -22,13 +22,14 @@ type ScreenHeaderProps = {
   compact?: boolean;
 };
 
-// Dos layouts:
-// - Con back (pantallas de stack): [back] [eyebrow + título] [acción], alineados abajo.
-// - Raíz de pestaña (sin back): eyebrow + título grande (headlineRoot).
+// Un solo renglón de título: "<kanji> · Sección" (desde 2026-11-01 ya no hay eyebrow chico
+// arriba de un título grande: decían dos veces lo mismo).
+// - Con back (pantallas de stack): [back] [título] [acción].
+// - Raíz de pestaña (sin back): título grande (headlineRoot).
 export function ScreenHeader({
   title,
   subtitle,
-  eyebrow,
+  glyph,
   onBack,
   actionLabel,
   onActionPress,
@@ -52,12 +53,12 @@ export function ScreenHeader({
       <View style={styles.row}>
         {handleBack ? <BackButton onPress={handleBack} /> : null}
         <View style={styles.titleBlock}>
-          {eyebrow ? (
-            <AppText variant="overline" color={colors.accentInk}>
-              {eyebrow}
-            </AppText>
-          ) : null}
-          <AppText variant={compact ? 'title' : handleBack ? 'headline' : 'headlineRoot'}>{title}</AppText>
+          <AppText variant={compact ? 'title' : handleBack ? 'headline' : 'headlineRoot'}>
+            {glyph ? (
+              <Text style={[styles.glyph, { color: colors.accentInk }]}>{`${glyph} · `}</Text>
+            ) : null}
+            {title}
+          </AppText>
         </View>
         {right ? <View style={styles.right}>{right}</View> : null}
       </View>
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: theme.spacing.sm,
   },
   titleBlock: {
@@ -85,6 +86,9 @@ const styles = StyleSheet.create({
   },
   right: {
     alignSelf: 'center',
+  },
+  glyph: {
+    fontFamily: FONTS.glyph,
   },
   subtitle: {
     marginTop: theme.spacing.xs,

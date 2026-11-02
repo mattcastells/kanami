@@ -1,29 +1,28 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { SelectChip } from '../components/practice/SelectChip';
 import {
   ReviewGroupHeader,
   ReviewItemList,
   ReviewItemRow,
   RoundMarkButton,
 } from '../components/review/ReviewItemRow';
-import { AppText } from '../components/ui/AppText';
 import { Segmented } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
+import { SearchSelect } from '../components/ui/SearchSelect';
 import { classVocabCategories, classVocabEntries } from '../data/classVocabulary';
 import { KANJI, KANJI_CATEGORIES } from '../data/kanji';
 import { getMainReading } from '../features/kanji/kanjiCatalog';
 import { useWeak } from '../features/weak/WeakProvider';
 import { kanjiSeed, kanjiWeakKey, vocabSeed, vocabWeakKey } from '../features/weak/reviewCatalog';
 import { WeakSeed } from '../features/weak/weakStore';
-import { useAppTheme } from '../theme/AppThemeProvider';
 import { theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 // Agregar a mano a la lista de repaso: palabras de la cursada por temática y kanji por
-// categoría. + agrega (fijado), − quita. Lo que ya está en la lista —porque lo agregaste
+// categoría, elegidas en un select que se filtra escribiendo (eran 21 pastillas). + agrega
+// (fijado), − quita. Lo que ya está en la lista —porque lo agregaste
 // o porque lo venías fallando— aparece con −.
 
 type Source = 'vocab' | 'kanji';
@@ -80,7 +79,6 @@ const KANJI_GROUPS: CatalogGroup[] = KANJI_CATEGORIES.map((category) => ({
 })).filter((group) => group.items.length > 0);
 
 export function ReviewAddScreen(_: RootStackScreenProps<'ReviewAdd'>) {
-  const { theme: activeTheme } = useAppTheme();
   const { data, addItems, removeItems } = useWeak();
   const [source, setSource] = useState<Source>('vocab');
   const [groupBySource, setGroupBySource] = useState<Record<Source, string>>({
@@ -127,29 +125,27 @@ export function ReviewAddScreen(_: RootStackScreenProps<'ReviewAdd'>) {
   return (
     <ScreenBackground scrollable>
       <ScreenHeader
-        eyebrow="復習 · Repaso"
-        title="Agregar a tu lista"
-        subtitle={`Tocá + en lo que quieras repasar. ${addedCount} ${addedCount === 1 ? 'está' : 'están'} en tu lista.`}
+        glyph="復習"
+        title="Agregar"
+        subtitle={`${addedCount} en tu lista. Lo que agregás queda fijado.`}
       />
 
       <View style={styles.sources}>
         <Segmented options={SOURCES} value={source} onChange={setSource} />
       </View>
 
-      <View style={styles.chips}>
-        {groups.map((item) => (
-          <SelectChip
-            key={item.id}
-            label={item.label}
-            muted
-            selected={item.id === group?.id}
-            onPress={() => setGroupBySource((current) => ({ ...current, [source]: item.id }))}
-          />
-        ))}
+      <View style={styles.select}>
+        <SearchSelect
+          key={source}
+          options={groups.map((item) => ({ value: item.id, label: item.label, count: item.items.length }))}
+          value={group?.id ?? ''}
+          onChange={(id) => setGroupBySource((current) => ({ ...current, [source]: id }))}
+          placeholder={source === 'vocab' ? 'Buscá una temática' : 'Buscá una categoría'}
+        />
       </View>
 
       {group ? (
-        <>
+        <View style={styles.list}>
           <ReviewGroupHeader
             title={group.label}
             count={group.items.length}
@@ -176,13 +172,8 @@ export function ReviewAddScreen(_: RootStackScreenProps<'ReviewAdd'>) {
               );
             })}
           </ReviewItemList>
-        </>
+        </View>
       ) : null}
-
-      <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.footnote}>
-        Lo que agregás entra fijado: no se va solo cuando lo acertás. Quitalo acá o desde tu
-        lista cuando ya no lo necesites.
-      </AppText>
     </ScreenBackground>
   );
 }
@@ -191,14 +182,10 @@ const styles = StyleSheet.create({
   sources: {
     marginBottom: theme.spacing.md,
   },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  select: {
     marginBottom: theme.spacing.lg,
   },
-  footnote: {
-    marginTop: theme.spacing.md,
+  list: {
     marginBottom: theme.spacing.xl,
   },
 });

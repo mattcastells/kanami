@@ -5,7 +5,7 @@ import { FONTS, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 import { InkPressable } from '../ui/InkPressable';
 
-// Muestra/oculta la traducción bajo el prompt. Va en la esquina opuesta al SpeakButton
+// Muestra/oculta la traducción bajo el prompt. Va abajo a la izquierda, frente al SpeakButton
 // dentro de la tarjeta de la pregunta, con la misma forma (redondo 38, contorno, glifo
 // en Dela) para que se lean como pareja. Prendido = kihada, como todo lo elegido.
 export function HintToggle({
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   glyph: {
-    fontFamily: FONTS.display,
+    fontFamily: FONTS.glyph,
     fontSize: 14,
     lineHeight: 18,
   },

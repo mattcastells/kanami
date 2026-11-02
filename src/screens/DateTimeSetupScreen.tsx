@@ -7,13 +7,13 @@ const DIRECTIONS: DrillDirectionOption[] = [
     id: 'to-japanese',
     glyph: '読',
     title: 'Decila en japonés',
-    description: 'Ves 10月3日 o 4:30 y das la lectura: じゅうがつみっか, よじはん.',
+    description: '10月3日 → じゅうがつみっか',
   },
   {
     id: 'to-display',
     glyph: '暦',
     title: 'Leé el japonés',
-    description: 'Ves じゅうがつみっか y das la fecha: 10/3.',
+    description: 'じゅうがつみっか → 10/3',
   },
 ];
 
@@ -22,7 +22,7 @@ const ALL_KINDS = DATE_TIME_KINDS.map((kind) => kind.id);
 export function DateTimeSetupScreen({ navigation }: RootStackScreenProps<'DateTime'>) {
   return (
     <ReadingDrillSetup
-      eyebrow="暦 · Practicar"
+      glyph="暦"
       title="Fechas y hora"
       directions={DIRECTIONS}
       sets={DATE_TIME_KINDS}

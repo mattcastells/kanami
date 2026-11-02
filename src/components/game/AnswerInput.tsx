@@ -4,6 +4,7 @@ import { StyleProp, StyleSheet, TextInput, TextInputProps, View, ViewStyle } fro
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { FONTS, SIZES, theme } from '../../theme/theme';
 import { GradeMark } from '../ui/InkBits';
+import { hasJapanese } from '../ui/japanese';
 
 type AnswerInputProps = Omit<TextInputProps, 'style'> & {
   ref?: Ref<TextInput>;
@@ -11,7 +12,7 @@ type AnswerInputProps = Omit<TextInputProps, 'style'> & {
   status?: 'idle' | 'correct' | 'incorrect';
   style?: StyleProp<ViewStyle>;
   centered?: boolean;
-  // Se escribe en kana: el texto va en Klee.
+  // Se escribe en kana: el texto va en Klee. Igual pasa solo si lo tipeado trae japonés.
   glyph?: boolean;
 };
 
@@ -63,7 +64,7 @@ export function AnswerInput({
         style={[
           styles.input,
           centered ? styles.centered : null,
-          glyph ? styles.glyph : null,
+          glyph || hasJapanese(props.value ?? '') ? styles.glyph : null,
           { color: graded ? (ok ? colors.successInk : colors.errorInk) : colors.textPrimary },
         ]}
       />

@@ -36,7 +36,7 @@ export function KanjiDrawScreen({ route }: RootStackScreenProps<'KanjiDraw'>) {
   if (pool.length === 0) {
     return (
       <ScreenBackground scrollable={false}>
-        <ScreenHeader eyebrow="漢字 · Trazos" title="Sin kanji para dibujar" />
+        <ScreenHeader glyph="漢字" title="Trazos" subtitle="Sin kanji para dibujar." />
       </ScreenBackground>
     );
   }

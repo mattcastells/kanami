@@ -5,6 +5,7 @@ import { useAppTheme } from '../../theme/AppThemeProvider';
 import { FONTS, theme } from '../../theme/theme';
 import { AppText } from '../ui/AppText';
 import { GlassCard } from '../ui/GlassCard';
+import { PrimaryButton } from '../ui/PrimaryButton';
 import { FeedbackBanner } from './FeedbackBanner';
 
 // Piezas del esqueleto de partida que comparten todos los modos:
@@ -14,17 +15,19 @@ type PromptCardProps = {
   children: ReactNode;
   // choice: 220 de alto (opción múltiple) · input: 200 (escribir) · compact: lo que mida.
   size?: 'choice' | 'input' | 'compact';
-  // Consigna corta arriba a la izquierda ("¿Cómo se lee?").
+  // Esquinas: consigna corta arriba a la izquierda ("¿Cómo se lee?"), puntaje (○ 3 × 1)
+  // arriba a la derecha, traducción (訳) abajo a la izquierda y audio abajo a la derecha.
   help?: string;
-  // Esquinas: traducción (訳) arriba a la derecha, audio (音) abajo a la derecha.
-  topRight?: ReactNode;
+  score?: { correct: number; incorrect: number };
+  bottomLeft?: ReactNode;
   bottomRight?: ReactNode;
-  // Lo que va debajo del prompt dentro de la card (la respuesta revelada, la traducción).
-  below?: ReactNode;
 };
 
-export function PromptCard({ children, size = 'choice', help, topRight, bottomRight, below }: PromptCardProps) {
+// La tarjeta tiene solo la pregunta. Lo que se revela al responder (la traducción, la
+// lectura, el opuesto) va en `AnswerNote`, debajo de las opciones o del campo.
+export function PromptCard({ children, size = 'choice', help, score, bottomLeft, bottomRight }: PromptCardProps) {
   const { theme: activeTheme } = useAppTheme();
+  const { colors } = activeTheme;
 
   return (
     <GlassCard
@@ -33,19 +36,32 @@ export function PromptCard({ children, size = 'choice', help, topRight, bottomRi
     >
       <View style={[styles.board, size === 'compact' ? styles.boardCompact : null]}>
         {help ? (
-          <AppText style={styles.help} color={activeTheme.colors.textSecondary}>
+          <AppText style={styles.help} color={colors.textSecondary}>
             {help}
           </AppText>
         ) : null}
-        {topRight ? <View style={styles.cornerTopRight}>{topRight}</View> : null}
+        {score ? (
+          <View style={styles.score}>
+            <AppText style={styles.scoreText} color={colors.successInk}>
+              ○ {score.correct}
+            </AppText>
+            <AppText style={styles.scoreText} color={colors.errorInk}>
+              × {score.incorrect}
+            </AppText>
+          </View>
+        ) : null}
         {children}
-        {bottomRight && !below ? <View style={styles.cornerBottomRight}>{bottomRight}</View> : null}
+        {bottomLeft ? <View style={styles.cornerBottomLeft}>{bottomLeft}</View> : null}
+        {bottomRight ? <View style={styles.cornerBottomRight}>{bottomRight}</View> : null}
       </View>
-      {below}
-      {/* Con contenido abajo, el audio va en la esquina de la card y no del prompt. */}
-      {bottomRight && below ? <View style={styles.cardCornerBottomRight}>{bottomRight}</View> : null}
     </GlassCard>
   );
+}
+
+// Lo que se revela al responder, debajo de las opciones o del campo (no dentro de la
+// tarjeta: ahí queda solo la pregunta). Centrado, en una o dos líneas.
+export function AnswerNote({ children }: { children: ReactNode }) {
+  return <View style={styles.note}>{children}</View>;
 }
 
 type GameFooterProps = {
@@ -82,8 +98,18 @@ export function GameFooter({ feedback, detail, children }: GameFooterProps) {
   );
 }
 
-// En lugar del botón mientras no respondiste (los modos de opción múltiple avanzan solos
-// o esperan que elijas). Ocupa el alto de un botón para que la pantalla no salte.
+// Pie de los modos de elegir: mientras no respondiste, "ELEGÍ UNA OPCIÓN"; después,
+// SIGUIENTE. Nada avanza solo (desde 2026-11-01): no dejaba leer la corrección.
+export function ChoiceNext({ answered, onNext }: { answered: boolean; onNext: () => void }) {
+  return answered ? (
+    <PrimaryButton title="SIGUIENTE" variant="primary" onPress={onNext} />
+  ) : (
+    <WaitingHint visible />
+  );
+}
+
+// En lugar del botón mientras no respondiste. Ocupa el alto de un botón para que la
+// pantalla no salte.
 export function WaitingHint({ visible }: { visible: boolean }) {
   const { theme: activeTheme } = useAppTheme();
 
@@ -130,10 +156,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
-  cornerTopRight: {
+  score: {
     position: 'absolute',
     top: 0,
     right: 0,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  scoreText: {
+    fontFamily: FONTS.black,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+  cornerBottomLeft: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
     zIndex: 2,
   },
   cornerBottomRight: {
@@ -142,11 +180,10 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 2,
   },
-  cardCornerBottomRight: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    zIndex: 2,
+  note: {
+    alignItems: 'center',
+    gap: 2,
+    marginTop: theme.spacing.sm,
   },
   spacer: {
     flexGrow: 1,

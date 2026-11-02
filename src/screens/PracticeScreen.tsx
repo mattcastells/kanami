@@ -57,7 +57,7 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
   return (
     <ScreenBackground scrollable showBack={false}>
       <AnimatedRow index={0}>
-        <PracticeHero gameCount={cards.length} />
+        <PracticeHero />
       </AnimatedRow>
 
       {/* Grilla pareja de 2 columnas. Todas las cards miden igual: ningún juego vale más
@@ -81,7 +81,7 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
 
 // Cabecera: grabado de olas (seigaiha) con el sol bermellón y el tanzaku 練習. El único
 // bloque de color pleno de la pantalla.
-function PracticeHero({ gameCount }: { gameCount: number }) {
+function PracticeHero() {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
   const [width, setWidth] = useState(0);
@@ -100,11 +100,8 @@ function PracticeHero({ gameCount }: { gameCount: number }) {
         <View style={[styles.sun, { backgroundColor: colors.accent, borderColor: colors.line }]} />
         <Tanzaku text="練習" size={17} style={styles.tanzaku} />
         <View style={styles.heroText}>
-          <View style={[styles.heroChip, { backgroundColor: colors.card, borderColor: colors.line }]}>
-            <AppText style={styles.heroChipText}>KANAMI · {gameCount} JUEGOS</AppText>
-          </View>
           <AppText variant="display" color={colors.onWave} style={[styles.heroTitle, { textShadowColor: colors.shadow }]}>
-            Practicar
+            Kanami
           </AppText>
         </View>
       </View>
@@ -144,23 +141,15 @@ const styles = StyleSheet.create({
   heroText: {
     position: 'absolute',
     left: 16,
-    bottom: 14,
+    // Arriba, a la altura del tanzaku: abajo quedaba suelto en medio de las olas.
+    top: 14,
     gap: 6,
     alignItems: 'flex-start',
   },
-  heroChip: {
-    borderWidth: 2,
-    borderRadius: theme.radii.pill,
-    paddingVertical: 3,
-    paddingHorizontal: 10,
-  },
-  heroChipText: {
-    fontFamily: FONTS.black,
-    fontSize: 10,
-    lineHeight: 13,
-    letterSpacing: 1.5,
-  },
   heroTitle: {
+    // Un poco menos que `display` (38): a ese tamaño el logo pisaba el sol.
+    fontSize: 30,
+    lineHeight: 34,
     textShadowOffset: { width: 3, height: 3 },
     // En web, radio 0 no pinta la sombra: casi 0 da el mismo borde duro.
     textShadowRadius: 0.01,

@@ -23,7 +23,8 @@ type AnswerOptionButtonProps = {
 };
 
 // Opción de respuesta. idle = card con sombra; selected = kihada hundida (antes de
-// confirmar); correcta/incorrecta = teñida, borde 3 del tono y ○/× en la esquina;
+// confirmar); correcta = teñida de verde con borde 3 (sin ○: alcanza con el color);
+// incorrecta = teñida de rojo, borde 3 y × en la esquina;
 // muted = apagada para que la vista vaya a las dos que importan.
 export function AnswerOptionButton({
   label,
@@ -39,7 +40,7 @@ export function AnswerOptionButton({
   const { colors } = activeTheme;
 
   // Correcta: pulso 1 → 1.02 → 1 (180ms). Incorrecta: sacudida ±4px (240ms).
-  // El resultado también va por color y por ○/×, nunca solo por la animación.
+  // El resultado también va por color (y × en la errada), nunca solo por la animación.
   const pulse = useRef(new Animated.Value(0)).current;
   const shake = useRef(new Animated.Value(0)).current;
 
@@ -60,8 +61,6 @@ export function AnswerOptionButton({
     }
   }, [pulse, shake, visualState]);
 
-  const graded = visualState === 'correct' || visualState === 'incorrect';
-  const ok = visualState === 'correct';
 
   const surface: ViewStyle =
     visualState === 'correct'
@@ -106,9 +105,9 @@ export function AnswerOptionButton({
           surface,
         ]}
       >
-        {graded ? (
+        {visualState === 'incorrect' ? (
           <View style={styles.mark}>
-            <GradeMark ok={ok} variant="inline" />
+            <GradeMark ok={false} variant="inline" />
           </View>
         ) : null}
         <View style={labelWrapStyle}>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 
 import { WordPracticeEntry } from '../../data/wordVocabulary';
@@ -9,6 +9,8 @@ import {
   moveToNextFillBlankRound,
   submitFillBlankAnswer,
 } from './fillBlankEngine';
+
+const IDLE_FEEDBACK = { status: 'idle' as const, promptText: '', correctText: '', selectedText: null };
 
 export function useFillBlankGame(pool: WordPracticeEntry[], resetKey: string) {
   const {
@@ -23,25 +25,12 @@ export function useFillBlankGame(pool: WordPracticeEntry[], resetKey: string) {
     promptText?: string;
     correctText: string;
     selectedText?: string | null;
-  }>({ status: 'idle', promptText: '', correctText: '', selectedText: null });
-
-  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  }>(IDLE_FEEDBACK);
 
   useEffect(() => {
-    if (nextRoundTimeoutRef.current) {
-      clearTimeout(nextRoundTimeoutRef.current);
-      nextRoundTimeoutRef.current = null;
-    }
     setState(createInitialFillBlankState(pool));
-    setLastFeedback({ status: 'idle', promptText: '', correctText: '', selectedText: null });
+    setLastFeedback(IDLE_FEEDBACK);
   }, [pool, resetKey]);
-
-  useEffect(
-    () => () => {
-      if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
-    },
-    [],
-  );
 
   const answer = (optionId: string) => {
     let nextAnswerState: FillBlankSessionState['answerState'] = 'idle';
@@ -74,13 +63,13 @@ export function useFillBlankGame(pool: WordPracticeEntry[], resetKey: string) {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     }
-
-    if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
-    nextRoundTimeoutRef.current = setTimeout(() => {
-      setState((current) => moveToNextFillBlankRound(current, pool));
-      nextRoundTimeoutRef.current = null;
-    }, nextAnswerState === 'correct' ? 200 : 300);
   };
 
-  return { state, answer, lastFeedback };
+  // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer la corrección.
+  const next = () => {
+    setState((current) => moveToNextFillBlankRound(current, pool));
+    setLastFeedback(IDLE_FEEDBACK);
+  };
+
+  return { state, answer, next, lastFeedback };
 }
