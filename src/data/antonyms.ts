@@ -31,6 +31,14 @@ export const ANTONYM_PAIRS: { kind: AntonymKind; pair: [string, string] }[] = [
   { kind: 'adjetivos', pair: ['adj-shizuka', 'adj-nigiyaka'] },
   { kind: 'adjetivos', pair: ['adj-shizuka', 'adj-urusai'] },
   { kind: 'adjetivos', pair: ['adj-benri', 'adj-fuben'] },
+  // Gustos y habilidades (clase 29). Los cruces じょうず／にがて y とくい／へた van a
+  // propósito: sin ellos, とくい podría salir como opción "incorrecta" del opuesto de へた.
+  // だいすき y だいきらい quedan afuera: serían opuestos a medias de すき y きらい.
+  { kind: 'adjetivos', pair: ['adj-suki', 'adj-kirai'] },
+  { kind: 'adjetivos', pair: ['adj-jouzu', 'adj-heta'] },
+  { kind: 'adjetivos', pair: ['adj-tokui', 'adj-nigate'] },
+  { kind: 'adjetivos', pair: ['adj-jouzu', 'adj-nigate'] },
+  { kind: 'adjetivos', pair: ['adj-tokui', 'adj-heta'] },
   // Verbos
   { kind: 'verbos', pair: ['ver-iku', 'ver-kuru'] },
   { kind: 'verbos', pair: ['ver-okiru', 'ver-neru'] },

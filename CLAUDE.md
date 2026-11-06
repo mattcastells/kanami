@@ -45,7 +45,7 @@ No hay linter ni test runner en el repo. El único gate automático es `tsc`.
 App.tsx                 Fonts (Dela Gothic One, Zen Maru Gothic, Klee One) + providers + NavigationContainer
 index.ts                registerRootComponent
 content/                transcripciones de las clases (markdown, NO se bundlea)
-  clases/kurasu-NN.md   cada clase real (1-6, 8-21, 23-27; la 7 no existió, de la 22 no hay
+  clases/kurasu-NN.md   cada clase real (1-6, 8-21, 23-29; la 7 no existió, de la 22 no hay
                         material). La app ya no muestra apuntes: estos archivos quedan como
                         fuente de `kanji:generate` (procedencia de cada kanji) y de referencia
                         para cargar vocabulario nuevo en classVocabulary.ts.
@@ -174,7 +174,7 @@ de scroll — no asumas un alto fijo, cambia con la fuente del sistema y el safe
 
 - `wordVocabulary.ts` — vocabulario **genérico** para drillear kana (~200). Es el único que
   alimenta el mazo de repaso espaciado: `buildSrsDeck()` lo importa **directo**.
-- `classVocabulary.ts` — vocabulario **de la cursada** (~570): lo visto en las clases 1–27 más
+- `classVocabulary.ts` — vocabulario **de la cursada** (~600): lo visto en las clases 1–29 más
   la sección Vocabulario de Notion. Trae kanji, romaji, nota y `classes` (trazabilidad).
   Es **la base de "lo que sé"**: Significados (`meaningGameEngine`) lee de acá directo, y
   Antónimos arma sus pares con ids de acá (`data/antonyms.ts`), así que cada clase que suma

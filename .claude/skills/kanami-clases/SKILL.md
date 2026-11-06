@@ -60,6 +60,10 @@ Copiá el contenido de la página de Notion, sin los emojis de los encabezados.
 4. **Antónimos** → `src/data/antonyms.ts`: si la clase trae pares de opuestos (たかい／ひくい,
    あげます／もらいます…), sumalos **por id** de `classVocabulary`, con su `kind`. Una palabra
    puede tener más de un opuesto; el engine nunca pone otro opuesto válido como distractor.
+   Por eso, si dos palabras casi sinónimas comparten opuestos (じょうず／とくい frente a
+   へた／にがて), cargá también los cruces: lo que no esté como par puede salir como opción
+   "incorrecta" siendo correcta. Y al revés: una palabra que solo es opuesta a medias
+   (だいすき para きらい) mejor no la cargues, así no aparece como distractor.
 5. **Modo Imágenes** → `src/data/vocabularyEmoji.ts`: mapeo emoji para las palabras nuevas
    que sean fotografiables. Sin esto, comida/bebida/objetos nuevos no entran a ese juego.
    La clave es la traducción normalizada (sin tildes, minúsculas): si la palabra nueva tiene
