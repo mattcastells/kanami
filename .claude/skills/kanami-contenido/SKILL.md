@@ -36,17 +36,17 @@ vive en Notion.
 ## Mapa de propagación — LEER ANTES DE SUMAR CONTENIDO
 
 Sumar una palabra a un dataset **no** la hace aparecer en todas las actividades. Esta tabla es
-la fuente de verdad de qué se propaga solo y qué hay que tocar a mano. Verificada el 2026-08-26.
+la fuente de verdad de qué se propaga solo y qué hay que tocar a mano. Verificada el 2026-11-06.
 
 | Si tocás… | Llega SOLO a | Hay que tocar a mano |
 |---|---|---|
 | `content/clases/*.md` | procedencia de kanji (no se muestra en la app) | correr `kanji:generate` |
-| `classVocabulary.ts` | Significados · y vía la facade `kana.ts`, los 7 modos de palabra: lectura, escritura, sílabas, constructor, completar, dictado, pronunciación | **`vocabularyEmoji.ts`** (sin mapeo emoji la palabra no entra al modo Imágenes) · **`antonyms.ts`** si trae opuestos · `kanji:generate` si la grafía tiene kanji |
+| `classVocabulary.ts` | Significados · y vía la facade `kana.ts`, los 5 modos de palabra de Kanas: lectura, escritura, sílabas, completar, constructor | **`vocabularyEmoji.ts`** (sin mapeo emoji la palabra no entra al modo Imágenes) · **`antonyms.ts`** si trae opuestos · `kanji:generate` si la grafía tiene kanji |
 | `antonyms.ts` | Antónimos | — (los ids tienen que existir en `classVocabulary`) |
 | `wordVocabulary.ts` | los 7 modos de palabra · mazo SRS del Repaso · modo Imágenes | — |
 | `kanji.ts` | Kanji Grind · Trazos · Repaso | correr `kanji:generate` **y** `kanji:strokes` |
 | `phrases.ts` | Frases · Traducción | — |
-| `vocabularyEmoji.ts` | modo Imágenes | — |
+| `vocabularyEmoji.ts` | modo Imágenes | — (ojo: el pool descarta un emoji repetido, así que un emoji que ya usa otra palabra **no** suma la nueva: elegí uno libre o dejala afuera) |
 | `numbers.ts` / `dateTime.ts` | Números / Fechas y hora (vía su `DrillSource`) | — |
 
 Lo que **no** se propaga por decisión, no por olvido:
@@ -73,8 +73,8 @@ Lo que **no** se propaga por decisión, no por olvido:
 
 ## Agregar vocabulario — `wordVocabulary.ts`
 
-Es el dataset más delicado porque alimenta 5 modos (palabra guiada, completar, constructor,
-dictado, pronunciación) **y** el mazo de repaso espaciado.
+Es el dataset más delicado porque alimenta los 5 modos de palabra (lectura, escritura,
+sílabas, completar, constructor), el modo Imágenes **y** el mazo de repaso espaciado.
 
 ```ts
 type WordPracticeEntry = {

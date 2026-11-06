@@ -226,6 +226,11 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   verano: '🏖️',
   invierno: '⛄',
   temperatura: '🌡️',
+  // Clase 27. まち y とり se llevan la foto del mazo genérico ("ciudad", "pájaro").
+  // さくら y たべもの quedan afuera a propósito: 🌸 ya es de はなみ y 🍱 de ひるごはん, y el
+  // pool descarta el emoji repetido.
+  tokio: '🗼',
+  kioto: '⛩️',
 };
 
 export type EmojiVocabEntry = {

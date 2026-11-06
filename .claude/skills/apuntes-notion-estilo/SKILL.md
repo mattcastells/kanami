@@ -14,7 +14,8 @@ de la letra. Si dudás, abrí **Kurasu 15** — es el ejemplar canónico más li
 ```
 🎴 日本語 | Nihongo              38c6c47f-5f8d-8074-87f2-da7729ddd869
 ├── Clases                      38c6c47f-5f8d-802c-95f0-d9585dd63bdd   ← las clases van acá
-│   ├── Kurasu 1 … Kurasu 15
+│   ├── Kurasu 1 … Kurasu N
+│   └── Resumen del curso | まとめ  3fa6c47f-5f8d-8133-a546-ebb4b008928d  ← se actualiza con cada clase
 ├── Hiragana · Katakana · Gramatica · Preguntas · Vocabulario
 ├── Números · Horario · Pronombres personales
 ```

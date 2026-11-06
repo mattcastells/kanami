@@ -62,13 +62,21 @@ Copiá el contenido de la página de Notion, sin los emojis de los encabezados.
    puede tener más de un opuesto; el engine nunca pone otro opuesto válido como distractor.
 5. **Modo Imágenes** → `src/data/vocabularyEmoji.ts`: mapeo emoji para las palabras nuevas
    que sean fotografiables. Sin esto, comida/bebida/objetos nuevos no entran a ese juego.
+   La clave es la traducción normalizada (sin tildes, minúsculas): si la palabra nueva tiene
+   la misma traducción que una del mazo genérico ("ciudad", "pájaro"), ya tiene foto.
+   ⚠️ **El pool descarta un emoji repetido**: si el que elegiste ya es de otra palabra (🌸 es
+   de はなみ, 🍱 de ひるごはん), la nueva no entra. Elegí uno libre o dejala afuera — no le
+   saques la foto a la palabra vieja.
 6. **Kanji** → si la clase introduce un kanji que no está en `src/data/kanji.ts`, agregalo
    como `n5-extra` (skill `kanami-kanji`), y después `npm run kanji:strokes`.
 7. **`npm run kanji:generate` siempre**, aunque no hayas sumado kanji: recalcula la
    procedencia con el markdown y el vocabulario nuevos. El conteo de "vistos en clase"
    tiene que subir si la clase trae kanji.
 8. **Frases** → `src/data/phrases.ts` si la clase deja frases reutilizables. **Al final del
-   array**, nunca en el medio (el id es el índice).
+   array**, nunca en el medio (el id es el índice). Kana sin espacios, romaji con un espacio
+   por palabra (partículas は/へ/を como `wa`/`e`/`wo`): Traducción arma las piezas
+   alineando las dos cadenas (`segmentPhrase`) y, si no cierran, la frase se juega solo
+   escribiendo. Una traducción con apóstrofo (McDonald's) va entre comillas dobles.
 9. `npx tsc --noEmit`
 
 Los pasos 3-8 son los que se olvidan. La tabla de qué actividad consume qué dataset está en
@@ -76,6 +84,15 @@ la skill **`kanami-contenido`** (§ Mapa de propagación) — esa es la fuente d
 
 Si la clase solo repasa cosas ya dadas, puede que no haya nada que sumar. Pero
 **verificalo**, no lo asumas.
+
+## Cerrar la clase (git)
+
+- Rama `feat/clase-NN` **desde la línea que publica las releases**, no a ciegas desde `main`.
+  Fijate dónde está el último tag: `git branch -a --contains $(git describe --tags --abbrev=0)`.
+  (Desde v1.13.0 las releases salen de `feat/hanga`, que todavía no está mergeada a `main`:
+  una clase armada sobre `main` volvería a publicar la app sin el rediseño.)
+- PR contra esa misma rama y merge con rebase (historial lineal). Sin `gh`: tools `mcp__github__*`.
+- **El tag/release va solo si el usuario lo pide en ese momento** (skill `kanami-release`).
 
 ## Los kanji de la clase
 
@@ -101,7 +118,11 @@ markdown y la grafía (`kanji`) de `classVocabulary.ts`. La consume Kanji Grind 
    refleje la clase nueva.
 2. `npx tsc --noEmit`
 3. Contá lo que entró en vez de mirarlo a ojo (harness de `kanami-validar`, nivel 2.5):
-   palabras con `NN` en `classes`, y `ANTONYM_PAIR_COUNT` de `antonymGameEngine` si sumaste
-   pares (cuenta solo los pares cuyas dos palabras existen).
+   palabras con `NN` en `classes`, ids duplicados (tiene que dar 0), que cada palabra nueva
+   arme una ronda con `createMeaningRoundFor`, que las frases nuevas den piezas con
+   `segmentPhrase` (no `null`), que los emojis nuevos aparezcan en
+   `getEmojiVocabulary('mixed')`, y `ANTONYM_PAIR_COUNT` de `antonymGameEngine` si sumaste
+   pares (cuenta solo los pares cuyas dos palabras existen). Un `run.ts` en `.tmp-check/`
+   compilado con `npx tsc ... --module commonjs --rootDir .` alcanza; borralo al terminar.
 4. `npm run web` → **Significados** con la temática nueva, **Antónimos** si sumaste pares,
    **Kanji Grind** con el preset "Los de mis clases". En light y en dark.

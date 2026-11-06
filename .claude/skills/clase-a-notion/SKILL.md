@@ -134,7 +134,29 @@ Obligatorio, no opcional:
    - las tablas renderizaron como `<table>` y no como texto
    - los `\|` de los ejemplos se ven como separador y no rompieron la cita
 2. `notion-fetch` del índice de **Clases**: la página nueva tiene que aparecer en la lista.
+   Queda al final, debajo de "Resumen del curso": la API no reordena hijos. Es esperable.
 3. Reportá la URL al usuario.
+
+Ojo con las tablas: escribilas con `<table header-row="true">`, pero el fetch las devuelve
+como tablas markdown (`| … |`) y la negrita/itálica como `<b>`/`<i>`. Para `update_content`
+el `old_str` tiene que copiar **ese** formato devuelto, no el que escribiste.
+
+## Paso 6b — Actualizar el Resumen del curso
+
+**Resumen del curso \| まとめ** (`3fa6c47f-5f8d-8133-a546-ebb4b008928d`, hija de Clases) junta
+todo el curso una sola vez, por tema, con la clase entre paréntesis (`K27`). Cada clase nueva
+lo toca — con `update_content` y cambios chicos, nunca `replace_content` (pesa ~60 KB):
+
+1. La línea de arriba: `📅 Actualizado el <hoy> · Kurasu 1 a N`.
+2. **📐 Gramática**: la sección del tema (sumá `KN` a su título) o una subsección nueva con
+   la estructura y las trampas, sin repetir los ejemplos largos.
+3. **📚 Vocabulario**: cada palabra nueva en su tema (Personas, Lugares, Comida y bebida,
+   Otras palabras…), una sola vez. Los verbos, adjetivos y palabras de tiempo van en Gramática.
+4. **✏️ Para repasar**: la tarea corregida y los ejercicios de clase, ya resueltos, bajo el
+   tema que practican, con lo practicado en **negrita**.
+
+El fetch completo no entra en la respuesta: guardalo y buscá las secciones con `grep`/Python
+sobre el archivo (el texto viene dentro de un JSON: `json.load(...)['text']`).
 
 ## Paso 7 — ¿Y la app?
 
