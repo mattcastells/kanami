@@ -137,6 +137,21 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['よくないです', 'yokunai desu', 'No está bien'],
   ['とてもあついです', 'totemo atsui desu', 'Hace mucho calor'],
   ['あまりさむくないです', 'amari samukunai desu', 'No hace tanto frío'],
+  // Clase 27. Al final por lo mismo: el id es el índice.
+  ['にほんのでんしゃはどうですか', 'nihon no densha wa dou desu ka', '¿Qué tal los trenes de Japón?'],
+  ['べんりですそしてきれいです', 'benri desu soshite kirei desu', 'Son prácticos y además limpios'],
+  ['たかいですがおいしいです', 'takai desu ga oishii desu', 'Es cara, pero es rica'],
+  ['おもしろいですがむずかしいです', 'omoshiroi desu ga muzukashii desu', 'Es interesante, pero es difícil'],
+  ['にほんはどんなくにですか', 'nihon wa donna kuni desu ka', '¿Qué clase de país es Japón?'],
+  ['にほんはおおきいくにです', 'nihon wa ookii kuni desu', 'Japón es un país grande'],
+  ['ふじさんはたかいやまです', 'fujisan wa takai yama desu', 'El monte Fuji es una montaña alta'],
+  ['すしはおいしいたべものです', 'sushi wa oishii tabemono desu', 'El sushi es una comida rica'],
+  ['とうきょうはにぎやかなまちです', 'toukyou wa nigiyaka na machi desu', 'Tokio es una ciudad animada'],
+  ['きょうとはしずかなまちです', 'kyouto wa shizuka na machi desu', 'Kioto es una ciudad tranquila'],
+  ['さくらはきれいなはなです', 'sakura wa kirei na hana desu', 'El cerezo es una flor linda'],
+  ['うちでおもしろいほんをよみました', 'uchi de omoshiroi hon wo yomimashita', 'En casa leí un libro interesante'],
+  ['あおがすきです', 'ao ga suki desu', 'Me gusta el azul'],
+  ['あおのくるまをかいました', 'ao no kuruma wo kaimashita', 'Compré un auto de color azul'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -202,6 +217,12 @@ const katakanaPhraseData: [string, string, string][] = [
   ['このパーティーはたのしいです', 'kono paatii wa tanoshii desu', 'Esta fiesta es divertida'],
   ['ブラッドピットさんはハンサムです', 'buraddo pitto san wa hansamu desu', 'Brad Pitt es buen mozo'],
   ['このラーメンはあまりたかくないです', 'kono raamen wa amari takakunai desu', 'Este ramen no es tan caro'],
+  // Clase 27. Van al final por lo mismo que las de hiragana.
+  ['マクドナルドはやすいレストランです', 'makudonarudo wa yasui resutoran desu', "McDonald's es un restaurante barato"],
+  ['ブラッドピットさんはハンサムなひとです', 'buraddo pitto san wa hansamu na hito desu', 'Brad Pitt es un hombre buen mozo'],
+  ['がっこうへあおいバスできました', 'gakkou e aoi basu de kimashita', 'Vine a la escuela en el colectivo azul'],
+  ['そのスマホはふるいです', 'sono sumaho wa furui desu', 'Ese celular es viejo'],
+  ['アルゼンチンりょうりはおいしいです', 'aruzenchin ryouri wa oishii desu', 'La comida argentina es rica'],
 ];
 
 function createPhraseEntry(
