@@ -231,6 +231,14 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   // pool descarta el emoji repetido.
   tokio: '🗼',
   kioto: '⛩️',
+  // Clase 29. ねこ, うさぎ y さる se llevan la foto del mazo genérico (gato, conejo, mono).
+  elefante: '🐘',
+  panda: '🐼',
+  koala: '🐨',
+  ardilla: '🐿️',
+  'perezoso (animal)': '🦥',
+  buho: '🦉',
+  beisbol: '⚾',
 };
 
 export type EmojiVocabEntry = {

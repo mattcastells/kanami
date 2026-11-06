@@ -152,6 +152,26 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['うちでおもしろいほんをよみました', 'uchi de omoshiroi hon wo yomimashita', 'En casa leí un libro interesante'],
   ['あおがすきです', 'ao ga suki desu', 'Me gusta el azul'],
   ['あおのくるまをかいました', 'ao no kuruma wo kaimashita', 'Compré un auto de color azul'],
+  // Clases 28 y 29. Al final por lo mismo: el id es el índice.
+  ['にほんのせいかつはどうですか', 'nihon no seikatsu wa dou desu ka', '¿Qué tal la vida en Japón?'],
+  ['いそがしいですがおもしろいです', 'isogashii desu ga omoshiroi desu', 'Es agitado, pero es interesante'],
+  ['いいえけっこうです', 'iie kekkou desu', 'No, gracias'],
+  ['そろそろしつれいします', 'sorosoro shitsurei shimasu', 'Ya me voy yendo'],
+  ['またいらっしゃってください', 'mata irasshatte kudasai', 'Vuelva cuando quiera'],
+  ['どんなところですか', 'donna tokoro desu ka', '¿Qué clase de lugar es?'],
+  ['きれいなところですよ', 'kirei na tokoro desu yo', 'Es un lugar lindo'],
+  ['やさいがすきですか', 'yasai ga suki desu ka', '¿Te gustan las verduras?'],
+  ['やさいがすきじゃありません', 'yasai ga suki ja arimasen', 'No me gustan las verduras'],
+  ['なにがすきですか', 'nani ga suki desu ka', '¿Qué te gusta?'],
+  ['どんなえいががすきですか', 'donna eiga ga suki desu ka', '¿Qué películas te gustan?'],
+  ['あかいくるまがすきです', 'akai kuruma ga suki desu', 'Me gustan los autos rojos'],
+  ['どうぶつがだいすきです', 'doubutsu ga daisuki desu', 'Me encantan los animales'],
+  ['えがじょうずです', 'e ga jouzu desu', 'Dibuja muy bien'],
+  ['わたしはりょうりがへたです', 'watashi wa ryouri ga heta desu', 'Cocino mal'],
+  ['まちのせいかつはたいへんです', 'machi no seikatsu wa taihen desu', 'La vida en la ciudad es dura'],
+  ['やまのせいかつはあまりべんりじゃありません', 'yama no seikatsu wa amari benri ja arimasen', 'La vida en la montaña no es muy práctica'],
+  ['かわのさかなはおいしいですよ', 'kawa no sakana wa oishii desu yo', 'El pescado del río es rico'],
+  ['こんどわたしのうちへきませんか', 'kondo watashi no uchi e kimasen ka', '¿Venís a mi casa la próxima?'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -223,6 +243,13 @@ const katakanaPhraseData: [string, string, string][] = [
   ['がっこうへあおいバスできました', 'gakkou e aoi basu de kimashita', 'Vine a la escuela en el colectivo azul'],
   ['そのスマホはふるいです', 'sono sumaho wa furui desu', 'Ese celular es viejo'],
   ['アルゼンチンりょうりはおいしいです', 'aruzenchin ryouri wa oishii desu', 'La comida argentina es rica'],
+  // Clases 28 y 29. Van al final por lo mismo que las de hiragana.
+  ['コーヒーもういっぱいいかがですか', 'koohii mou ippai ikaga desu ka', '¿Otro café?'],
+  ['スポーツがすきですか', 'supootsu ga suki desu ka', '¿Te gustan los deportes?'],
+  ['ホラーえいががすきです', 'horaa eiga ga suki desu', 'Me gustan las películas de terror'],
+  ['たなかさんはサッカーがじょうずです', 'tanaka san wa sakkaa ga jouzu desu', 'Tanaka juega muy bien al fútbol'],
+  ['わたしはサッカーがとくいです', 'watashi wa sakkaa ga tokui desu', 'El fútbol es lo mío'],
+  ['わたしはサッカーがへたです', 'watashi wa sakkaa ga heta desu', 'Juego mal al fútbol'],
 ];
 
 function createPhraseEntry(

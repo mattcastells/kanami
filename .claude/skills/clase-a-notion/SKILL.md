@@ -61,7 +61,11 @@ Si el material es PDF o imágenes, leelo con la herramienta Read directamente.
 2. Leé **la clase inmediatamente anterior** completa. Es obligatorio: necesitás saber qué ya
    se explicó para no repetirlo y para poder encadenar ("ya vimos X, ahora…").
 3. Si el tema toca algo de una clase previa (partículas, verbos, tiempo), leé también esa.
-4. Confirmá el número de clase con la slide 1, no con el nombre del archivo.
+4. Confirmá el número de clase con la slide 1, no con el nombre del archivo… salvo que la
+   portada esté copiada de la clase anterior (pasó con la 29: decía "クラス 28 · 10月24日").
+   Si portada y archivo no coinciden, mirá el contenido: una clase suele arrancar repitiendo
+   el final de la anterior. Sin fecha propia, deducila del ritmo semanal (sábados) y marcala
+   con ⚠️ en la página, en vez de copiar la de la portada.
 
 ## Paso 3 — Analizar el contenido
 
