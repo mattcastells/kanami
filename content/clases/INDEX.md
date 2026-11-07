@@ -1,6 +1,6 @@
 # Índice temático — contenido de las clases (Notion → app)
 
-24 clases reales (Kurasu 1–6, 8–21, 23–26; no existió la 7, ni una "13" separada: la página "Clase 14" contiene KURASU 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
+24 clases reales (Kurasu 1–6, 8–21, 23–26; no existió la 7; la 13 vivía en Notion bajo "Gramatica" como "Clase 14" y desde el 2026-11-06 está en Clases como Kurasu 13; de la 22 no hay material — la 23 corrige la tarea de la 21). Fuente: Notion 日本語 | Nihongo > Clases. Archivos: content/clases/kurasu-NN.md
 
 ## Organización POR TEMAS (histórico: era la sección "Estudiar", que se quitó de la app el 2026-10-27)
 

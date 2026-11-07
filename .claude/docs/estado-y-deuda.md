@@ -256,10 +256,9 @@ fechas de clase, así que solo importa para Notion y para el markdown. → Si ap
 real, completala en los dos lados.
 (Por la cadencia semanal debería ser el 2026-05-16, pero **no está confirmado**.)
 
-**D14 · Kurasu 13 está mal ubicado en Notion.** Vive bajo `Gramatica` con el título "Clase 14"
-y su cuerpo empieza con `# にほんご の KURASU 13`; por eso no figura en el índice de Clases.
-En la app está bien (`content/clases/kurasu-13.md`). → Arreglarlo en Notion requiere mover la
-página, y eso se pregunta antes.
+~~**D14 · Kurasu 13 está mal ubicado en Notion.**~~ **RESUELTO (2026-11-06):** la página pasó
+de `Gramatica` a Clases, entre la 12 y la 14, con el título "Kurasu 13 — …" y sin el `#` del
+cuerpo.
 
 **D4 · `shuffle`/`pickRandom` duplicados 20 veces.**
 Implementaciones idénticas (Fisher-Yates) en 11 engines + `srsStore`. Firmas levemente distintas
