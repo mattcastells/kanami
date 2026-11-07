@@ -84,7 +84,7 @@ Adjetivos demostrativos: siempre seguidos de un sustantivo.
 | あの | ano | Lejos de ambos |
 
 > この ひと は だれ ですか？ — ¿Quién es esta persona?
-> その ひと は アルゼンチンじん で、サッカーせんしゅう です。 — Esa persona es argentina y jugadora de fútbol.
+> その ひと は アルゼンチンじん で、サッカーせんしゅ です。 — Esa persona es argentina y jugadora de fútbol.
 
 ## Formal vs. Informal
 | Informal | Formal | Significado |

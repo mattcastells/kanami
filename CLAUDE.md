@@ -418,6 +418,8 @@ Específicas de este repo. Empezá por `kanami-arquitectura` si no sabés dónde
 - **`kanami-revisar`** — revisión de diff con los anti-patrones reales del repo.
 - **`kanami-release`** — tags, versionCode, CI, updater.
 - **`clase-a-notion`** / **`apuntes-notion-estilo`** — workflow de apuntes de clase en Notion.
+- **`repaso-total-notion`** — la página "Repaso total" de Notion (todo el curso por tema, con
+  links a las clases). Se pasa al cerrar cada clase y solo cambia si la clase trajo algo nuevo.
 
 Documentación de apoyo: `.claude/docs/arquitectura.md` y `.claude/docs/estado-y-deuda.md`.
 

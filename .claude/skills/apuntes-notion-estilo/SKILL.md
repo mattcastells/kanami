@@ -5,9 +5,9 @@ description: Especificación exacta del estilo de los apuntes de japonés en Not
 
 # Estilo de los apuntes Kurasu
 
-Especificación derivada de leer las clases reales el **2026-08-08**: Kurasu 1, 12, 14, 15
-y la página "Clase 14" (que en realidad contiene Kurasu 13). Reproducí este formato al pie
-de la letra. Si dudás, abrí **Kurasu 15** — es el ejemplar canónico más limpio.
+Especificación derivada de leer las clases reales el **2026-08-08** (Kurasu 1, 12, 13, 14, 15),
+con los colores sumados el 2026-11-06. Reproducí este formato al pie de la letra. Si dudás,
+abrí **Kurasu 15**: es el ejemplar canónico más limpio.
 
 ## Ubicación
 
@@ -15,13 +15,23 @@ de la letra. Si dudás, abrí **Kurasu 15** — es el ejemplar canónico más li
 🎴 日本語 | Nihongo              38c6c47f-5f8d-8074-87f2-da7729ddd869
 ├── Clases                      38c6c47f-5f8d-802c-95f0-d9585dd63bdd   ← las clases van acá
 │   ├── Kurasu 1 … Kurasu N
-│   └── Resumen del curso | まとめ  3fa6c47f-5f8d-8133-a546-ebb4b008928d  ← se actualiza con cada clase
+│   ├── Repaso total | そうふくしゅう  4106c47f-5f8d-811c-8bf6-d253b1c51145  ← el resumen vigente: skill repaso-total-notion
+│   └── Resumen del curso | まとめ  3fa6c47f-5f8d-8133-a546-ebb4b008928d  ← versión vieja, congelada en K29, última
 ├── Hiragana · Katakana · Gramatica · Preguntas · Vocabulario
 ├── Números · Horario · Pronombres personales
 ```
 
 Las páginas temáticas (Gramatica, Vocabulario, ...) son **referencia transversal**, no clases.
 Una clase nueva va siempre como subpágina de **Clases**.
+
+**Orden del índice.** Notion agrega cada página nueva al final de Clases. `notion-move-pages`
+dentro del mismo padre no reordena: responde "already in the target location". Lo que sí
+funciona (probado el 2026-11-06 con la clase 13) es editar el índice: `notion-update-page` →
+`update_content` sobre Clases. En la misma llamada se saca el bloque `<page url="…">Título</page>`
+de donde está y se lo pone donde va, copiando el bloque tal cual del fetch. La página no se
+borra; si la herramienta creyera que sí, devuelve un error en vez de borrar. El orden es
+Kurasu 1 … N, **Repaso total** y, al final de todo, el **Resumen viejo**. Una clase nueva se
+inserta justo antes del Repaso.
 
 ## Anatomía de una página de clase
 
@@ -51,6 +61,12 @@ Primera línea del cuerpo, párrafo suelto, formato japonés:
 
 ```
 📅 2026年7月4日
+```
+
+Justo debajo, la **leyenda de colores**, siempre igual (ver "Colores" más abajo):
+
+```
+🎨 <span color="red">partículas</span> · <span color="blue">verbos</span> · <span color="purple">adjetivos</span> · <span color="green">personas</span> · <span color="orange">こそあど y preguntas</span> · <span color="pink">conectores</span>
 ```
 
 ### 4. Párrafo de introducción
@@ -110,6 +126,52 @@ Japonés en **negrita** → romaji en *itálica* → español en texto plano.
 Para varias líneas en un mismo bloque de cita se usa `<br>`, nunca saltos de línea reales
 (un `>` por línea crea bloques separados).
 
+### Colores en el japonés de los ejemplos (desde 2026-11-06)
+
+Lo pidió el usuario para que no sea todo blanco. **Seis colores, siempre los mismos:**
+
+| Qué | Color | Ejemplos |
+|---|---|---|
+| Partículas (también la か de pregunta, ね y よ) | `red` | は・を・に・で・が・と・も・の・か |
+| Verbos (ます, て, diccionario, ください) | `blue` | たべます・しません・あいましょう・みせて |
+| Sustantivo + します sin partícula: todo azul | `blue` | べんきょう します・しつれい します |
+| Adjetivos (con el な que los une al sustantivo) | `purple` | たかい・さむくない・にぎやか な・けっこう |
+| Personas: pronombres, gente, familia, ocupaciones, 〜じん, nombres | `green` | わたし・ひと・ともだち・がくせい・にほんじん・たなかさん・ブラッド・ピット |
+| こそあど y palabras que preguntan (なんで entero) | `orange` | これ・この・ここ・こちら・そう・どんな・なに・なんで・いつ・なにも |
+| Conectores | `pink` | が de "pero" (が、)・でも・そして・それから・つまり |
+
+**Sin color**: sustantivos (salvo los de persona), です/でした, じゃ ありません (también
+pegado), palabras de tiempo, frases hechas (ございます, ございました, すみません), ふじさん, y
+el **rótulo de quien habla** en un diálogo (A：, マリア：). Un nombre dentro de la oración sí va
+verde.
+
+- **Solo** en el japonés de las citas de ejemplo (formato B) y de las estructuras (formato C):
+  los huecos también (`\[persona\]` verde, `\[verbo\]` azul, `\[adjetivo\]` violeta). **No** se
+  colorean el romaji, el español, las tablas, los `⚠️`/`💡`, los títulos ni el texto corrido.
+- El contraste con lo que va sin color es lo que hace resaltar el resto. No sumes más colores
+  sin que el usuario lo pida.
+- El が de "pero" es rosa y el de すき es rojo: lo pidió el usuario para distinguirlos.
+- Sintaxis: `<span color="red">は</span>` dentro de la negrita. Al guardar, Notion la parte en
+  `<b>…</b><b><span color="red">は</span></b><b>…</b>`: para `update_content`, copiá **ese**
+  formato del fetch.
+- **Herramientas** (en esta carpeta, con node):
+  1. [`extract-examples.js`](extract-examples.js) `<fetch> <lineas.txt>` saca las líneas que
+     van con color. Son las de las citas `> …` y de los bloques `<quote>`: las clases viejas
+     usan `<quote>`.
+  2. [`colorize.js`](colorize.js) `<lineas.txt> <ops.json>` devuelve las operaciones de
+     `update_content`, con `replace_all_matches` porque hay ejemplos repetidos en una misma
+     página. También recolorea líneas que ya tenían color, por si cambia la paleta. Con
+     `--diff` muestra palabra por palabra qué color se pierde y cuál se gana: así se unificaron
+     las 29 clases el 2026-11-06.
+
+  Las reglas viven en el script: separa las partículas pegadas (なんじから, これは, ですね,
+  でしたか, ひとりで), entiende los nombres con ・ y corta en ：（）／「」. **Revisá lo que
+  imprime antes de aplicarlo.** Las listas de adjetivos, personas, nombres y verbos son
+  cerradas: ampliálas cuando el curso sume palabras o formas (〜たい, 〜ない…). Lo que el
+  script no puede leer (texto sin espacios raro, una raíz suelta como はたらき) se retoca a mano.
+- Desde el 2026-11-06 **todas** las clases (1 a 29), el Repaso total y cada clase nueva van
+  coloreadas, con su leyenda 🎨 debajo de la fecha. El Resumen viejo quedó sin color.
+
 ### C. Estructuras gramaticales — cita multilínea
 
 ```
@@ -147,18 +209,19 @@ Es la última sección y no lleva `---` después.
 
 ## Qué NO hace este corpus
 
-- **No hay sección de ejercicios.** Ninguna de las 14 clases tiene una. La práctica vive en
+- **No hay sección de ejercicios.** Ninguna clase tiene una. La práctica vive en
   la app Kanami, no en Notion. No agregues una sección de ejercicios salvo pedido explícito.
 - No hay propiedades de base de datos: las clases son páginas normales, no filas.
 - No hay tags, ni estado, ni checkboxes.
 - No hay encabezados `#` de nivel 1 dentro del cuerpo (el título de la página cumple ese rol).
-  Excepción: la página "Clase 14"/Kurasu 13, que sí lo tiene — es la desprolija, no la copies.
 
 ## Inconsistencias conocidas del workspace (no las arregles sin permiso)
 
-- **Kurasu 13 está mal ubicado y mal titulado**: vive en `Gramatica` con el título "Clase 14",
-  y su cuerpo empieza con `# にほんご の KURASU 13`. Por eso no aparece en el índice de Clases.
-- **Kurasu 7 no existe** como página.
-- El índice de **Clases** tiene texto suelto arriba (`Numeros`, `Horarios`, `Dias de la semana`…)
-  que parecen notas de temas pendientes, y la subpágina de **Kurasu 5** está listada fuera de
-  orden, arriba del resto.
+- **Kurasu 7 no existe** como página, y de la 22 no hay material.
+- El **Resumen viejo** va al final de todo del índice (lo movió el usuario el 2026-11-06). No lo
+  borres: pidió conservarlo por ahora.
+- **Kurasu 10** tiene la fecha incompleta ("📅 2026年"). Completala solo si aparece la real.
+- Resuelto el 2026-11-06: la **Kurasu 13** (`38c6c47f-5f8d-808e-8fce-dae7f8ca5f9f`) vivía en
+  Gramatica con el título "Clase 14" y un `#` en el cuerpo. Ahora está en Clases, entre la 12
+  y la 14, con título e ícono normales. También desapareció el texto suelto de arriba del
+  índice, y la 5 está en orden.
