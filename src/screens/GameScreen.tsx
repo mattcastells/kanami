@@ -15,8 +15,9 @@ import {
   AnswerOptionButton,
   AnswerOptionVisualState,
 } from '../components/game/AnswerOptionButton';
+import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { DrawingPractice } from '../components/game/DrawingPractice';
-import { AnswerNote, ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
+import { ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { HintToggle } from '../components/game/HintToggle';
 import { SessionSummary } from '../components/game/SessionSummary';
@@ -30,19 +31,12 @@ import { useAppSettings } from '../settings/AppSettingsProvider';
 import { getKanaCharactersForGroupIds, getKanaScriptLabel, getKanaWordEntries } from '../data/kana';
 import { useFillBlankGame } from '../features/game/useFillBlankGame';
 import { useWordBuilderGame } from '../features/game/useWordBuilderGame';
-import { getPhrases, PhraseEntry } from '../data/phrases';
 import { WordPracticeEntry } from '../data/wordVocabulary';
 import { filterDrawableCharacters } from '../features/game/drawingGameEngine';
-import { GameSessionState, GameStats } from '../features/game/gameEngine';
-import {
-  getPhraseAnswerKind,
-  getPhrasePromptKind,
-  sanitizePhraseInput,
-} from '../features/game/phraseGameEngine';
+import { GameSessionState, GameStats, isSessionOver } from '../features/game/gameEngine';
 import { useHiraganaGame } from '../features/game/useHiraganaGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
-import { usePhraseGame } from '../features/game/usePhraseGame';
 import { useWritingHiraganaGame } from '../features/game/useWritingHiraganaGame';
 import { useWordPracticeGame } from '../features/game/useWordPracticeGame';
 import {
@@ -58,9 +52,8 @@ import { useAppTheme } from '../theme/AppThemeProvider';
 import { FONTS, theme } from '../theme/theme';
 import { HiraganaCharacter } from '../types/hiragana';
 import { RootStackScreenProps } from '../types/navigation';
-
-// Los modos de vocabulario mezclan los dos silabarios: su eyebrow dice "Vocabulario".
-const VOCAB_SECTION = 'Vocabulario';
+import { useSessionLength } from '../features/game/useSessionLength';
+import { DrillAnswerMode } from '../features/game/readingDrillEngine';
 
 export function GameScreen({
   route,
@@ -70,16 +63,11 @@ export function GameScreen({
   const [sessionNonce, setSessionNonce] = useState(0);
   const repeatSession = () => setSessionNonce((current) => current + 1);
   const goBack = () => navigation.goBack();
-  const isVocabMode =
-    route.params.mode === 'syllables' ||
-    route.params.mode === 'fill-blank' ||
-    route.params.mode === 'word-builder';
-  // El largo de sesión (resumen al terminar) aplica a los modos de vocabulario.
-  const sessionLength = isVocabMode ? route.params.sessionLength : undefined;
+  // Rondas por partida: el ajuste único (se elige en la selección o en Perfil).
+  const sessionLength = useSessionLength();
   const usesTextInput =
     route.params.mode === 'writing' ||
-    route.params.mode === 'syllables' ||
-    route.params.mode === 'phrases';
+    route.params.mode === 'syllables';
   const scriptLabel = getKanaScriptLabel(route.params.script);
   const scriptLabelLowercase = scriptLabel.toLowerCase();
   const kanaPool = useMemo(
@@ -104,13 +92,6 @@ export function GameScreen({
       route.params.selectedWordCategoryIds,
     ],
   );
-  const phrasePool = useMemo(
-    () =>
-      route.params.mode === 'phrases'
-        ? getPhrases(route.params.script)
-        : [],
-    [route.params.mode, route.params.script],
-  );
   const resetKey = `${route.params.script}:${route.params.mode}:${route.params.inverted ? 'inverted' : 'default'}:${route.params.selectedGroupIds.join('|')}:${route.params.selectedWordCategoryIds.join('|')}:${sessionNonce}`;
   const drawablePool = useMemo(
     () =>
@@ -129,9 +110,7 @@ export function GameScreen({
       ? wordPool.length > 0
       : route.params.mode === 'drawing'
         ? drawablePool.length > 0
-        : route.params.mode === 'phrases'
-          ? phrasePool.length > 0
-          : kanaPool.length > 0;
+        : kanaPool.length > 0;
 
   if (!hasContent) {
     return (
@@ -171,31 +150,27 @@ export function GameScreen({
           pool={drawablePool}
           resetKey={resetKey}
           title={`Dibujo · ${scriptLabel}`}
+          session={{ length: sessionLength, onRepeat: repeatSession, onBack: goBack }}
         />
       ) : route.params.mode === 'writing' ? (
         <WritingGameView
           pool={kanaPool}
           resetKey={resetKey}
           inverted={route.params.inverted}
-          section={scriptLabel}
           scriptLabelLowercase={scriptLabelLowercase}
+          sessionLength={sessionLength}
+          onRepeat={repeatSession}
+          onBack={goBack}
         />
       ) : route.params.mode === 'syllables' ? (
         <WordSyllablesGameView
           pool={wordPool}
           resetKey={resetKey}
           scriptLabelLowercase={scriptLabelLowercase}
+          answerMode={route.params.answerMode ?? 'choice'}
           sessionLength={sessionLength}
           onRepeat={repeatSession}
           onBack={goBack}
-        />
-      ) : route.params.mode === 'phrases' ? (
-        <PhraseGameView
-          pool={phrasePool}
-          resetKey={resetKey}
-          inverted={route.params.inverted}
-          section={scriptLabel}
-          scriptLabelLowercase={scriptLabelLowercase}
         />
       ) : route.params.mode === 'fill-blank' ? (
         <FillBlankGameView
@@ -218,7 +193,9 @@ export function GameScreen({
           pool={kanaPool}
           resetKey={resetKey}
           inverted={route.params.inverted}
-          section={scriptLabel}
+          sessionLength={sessionLength}
+          onRepeat={repeatSession}
+          onBack={goBack}
         />
       )}
     </ScreenBackground>
@@ -229,13 +206,14 @@ function ReadingGameView({
   pool,
   resetKey,
   inverted,
-  section,
+  sessionLength,
+  onRepeat,
+  onBack,
 }: {
   pool: HiraganaCharacter[];
   resetKey: string;
   inverted: boolean;
-  section: string;
-}) {
+} & SessionProps) {
   const { state, answer, next, lastFeedback } = useHiraganaGame(pool, resetKey, inverted);
   useTrackProgress('reading', state.stats);
   useTrackWeakItem('reading', state.answerState, {
@@ -302,17 +280,27 @@ function ReadingGameView({
     ],
   };
 
+  if (isSessionOver(state.stats, state.answerState, sessionLength)) {
+    return (
+      <SessionSummary
+        modeLabel={inverted ? 'Lectura inversa' : 'Lectura'}
+        correct={state.stats.correct}
+        incorrect={state.stats.incorrect}
+        onRepeat={onRepeat}
+        onBack={onBack}
+      />
+    );
+  }
+
   return (
     <View style={styles.screen}>
-      <GameTopBlock title={inverted ? 'Lectura inversa' : 'Lectura'} section={section} stats={state.stats} />
+      <GameTopBlock glyph="読" title={inverted ? 'Lectura inversa' : 'Lectura'} stats={state.stats} sessionLength={sessionLength} />
 
       <PromptCard
         size="choice"
         score={state.stats}
         help={inverted ? undefined : '¿Cómo se lee?'}
-        bottomRight={
-          state.answerState !== 'idle' ? <SpeakButton text={state.round.prompt.kana} /> : null
-        }
+        speakText={state.answerState !== 'idle' ? state.round.prompt.kana : undefined}
       >
         <Animated.View style={[styles.promptAnimatedWrap, kanaTextAnimatedStyle]}>
           <PromptGlyph style={inverted ? styles.readingRomajiPrompt : styles.readingKanaPrompt}>
@@ -321,7 +309,7 @@ function ReadingGameView({
         </Animated.View>
       </PromptCard>
 
-      <View style={styles.answersGrid}>
+      <AnswerOptionGrid labels={state.round.options.map((option) => (inverted ? option.kana : option.romaji))}>
         {state.round.options.map((option) => (
           <AnswerOptionButton
             key={option.id}
@@ -332,9 +320,9 @@ function ReadingGameView({
             labelWrapStyle={optionTextAnimatedStyle}
           />
         ))}
-      </View>
+      </AnswerOptionGrid>
 
-      <GameFooter feedback={lastFeedback}>
+      <GameFooter feedback={lastFeedback} chosen>
         <ChoiceNext answered={state.answerState !== 'idle'} onNext={next} />
       </GameFooter>
     </View>
@@ -345,15 +333,16 @@ function WritingGameView({
   pool,
   resetKey,
   inverted,
-  section,
   scriptLabelLowercase,
+  sessionLength,
+  onRepeat,
+  onBack,
 }: {
   pool: HiraganaCharacter[];
   resetKey: string;
   inverted: boolean;
-  section: string;
   scriptLabelLowercase: string;
-}) {
+} & SessionProps) {
   const { theme: activeTheme } = useAppTheme();
   const { state, setInputValue, submit, next, lastFeedback } = useWritingHiraganaGame(
     pool,
@@ -415,19 +404,27 @@ function WritingGameView({
     state.answerState === 'idle' &&
     sanitizeWritingInput(state.inputValue, answerKind).length > 0;
 
+  if (isSessionOver(state.stats, state.answerState, sessionLength)) {
+    return (
+      <SessionSummary
+        modeLabel={inverted ? 'Escritura inversa' : 'Escritura'}
+        correct={state.stats.correct}
+        incorrect={state.stats.incorrect}
+        onRepeat={onRepeat}
+        onBack={onBack}
+      />
+    );
+  }
+
   return (
     <View style={styles.screen}>
-      <GameTopBlock title={inverted ? 'Escritura inversa' : 'Escritura'} section={section} stats={state.stats} />
+      <GameTopBlock glyph="書" title={inverted ? 'Escritura inversa' : 'Escritura'} stats={state.stats} sessionLength={sessionLength} />
 
       <PromptCard
         size="input"
         score={state.stats}
         help={promptKind === 'kana' ? 'Escribí la lectura' : undefined}
-        bottomRight={
-          state.answerState !== 'idle' ? (
-            <SpeakButton text={state.round.prompts.map((prompt) => prompt.kana).join('')} />
-          ) : null
-        }
+        speakText={state.answerState !== 'idle' ? state.round.prompts.map((prompt) => prompt.kana).join('') : undefined}
       >
         <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
           <PromptGlyph
@@ -472,6 +469,7 @@ function WordSyllablesGameView({
   pool,
   resetKey,
   scriptLabelLowercase,
+  answerMode,
   sessionLength,
   onRepeat,
   onBack,
@@ -479,6 +477,9 @@ function WordSyllablesGameView({
   pool: WordPracticeEntry[];
   resetKey: string;
   scriptLabelLowercase: string;
+  // Elegir entre 4 (default) o escribir. Escribiendo, un kana de más ya era error: de ahí
+  // la opción de elegir (2026-11-10).
+  answerMode: DrillAnswerMode;
   sessionLength?: number;
   onRepeat: () => void;
   onBack: () => void;
@@ -494,9 +495,10 @@ function WordSyllablesGameView({
     'syllables',
   );
   useTrackProgress('syllables', state.stats);
+  const isChoice = answerMode === 'choice';
   useTrackWeakItem('syllables', state.answerState, {
     itemId: state.round.word.id,
-    format: 'input',
+    ...(isChoice ? { format: 'choice' as const, options: state.round.options } : { format: 'input' as const }),
     prompt: state.round.promptText,
     answer: state.round.answer,
     speakText: state.round.word.kana,
@@ -546,7 +548,7 @@ function WordSyllablesGameView({
     state.answerState === 'idle' &&
     sanitizeWordPracticeInput(state.inputValue, answerKind).length > 0;
 
-  if (sessionLength && state.stats.answered >= sessionLength) {
+  if (isSessionOver(state.stats, state.answerState, sessionLength)) {
     return (
       <SessionSummary
         modeLabel="Palabra guiada"
@@ -561,8 +563,8 @@ function WordSyllablesGameView({
   return (
     <View style={styles.screen}>
       <GameTopBlock
+        glyph="綴"
         title="Palabra guiada"
-        section={VOCAB_SECTION}
         stats={state.stats}
         sessionLength={sessionLength}
       />
@@ -573,9 +575,7 @@ function WordSyllablesGameView({
         bottomLeft={
           <HintToggle enabled={wordHintEnabled} onToggle={() => setWordHintEnabled(!wordHintEnabled)} />
         }
-        bottomRight={
-          state.answerState !== 'idle' ? <SpeakButton text={state.round.word.kana} /> : null
-        }
+        speakText={state.answerState !== 'idle' ? state.round.word.kana : undefined}
       >
         <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
           <PromptGlyph style={styles.syllablesPrompt}>{state.round.promptText}</PromptGlyph>
@@ -587,180 +587,57 @@ function WordSyllablesGameView({
         </Animated.View>
       </PromptCard>
 
-      <AnswerInput
-        ref={inputRef}
-        value={state.inputValue}
-        onChangeText={setInputValue}
-        onSubmitEditing={(event) => submit(event.nativeEvent.text)}
-        editable={state.answerState === 'idle'}
-        status={state.answerState}
-        blurOnSubmit={false}
-        returnKeyType="done"
-        maxLength={24}
-        placeholder={`Escribí la palabra en ${scriptLabelLowercase}`}
-        glyph
-      />
-
-      <GameFooter feedback={lastFeedback}>
-        <PrimaryButton
-          title={state.answerState !== 'idle' ? 'SIGUIENTE' : 'ENVIAR'}
-          variant="primary"
-          disabled={state.answerState === 'idle' && !canSubmit}
-          onPress={state.answerState !== 'idle' ? next : () => submit(state.inputValue)}
+      {isChoice ? (
+        <AnswerOptionGrid labels={state.round.options}>
+          {state.round.options.map((option) => (
+            <AnswerOptionButton
+              key={option}
+              label={option}
+              disabled={state.answerState !== 'idle'}
+              visualState={
+                state.answerState === 'idle'
+                  ? 'idle'
+                  : option === state.round.answer
+                    ? 'correct'
+                    : option === lastFeedback.selectedText
+                      ? 'incorrect'
+                      : 'muted'
+              }
+              onPress={() => submit(option)}
+            />
+          ))}
+        </AnswerOptionGrid>
+      ) : (
+        <AnswerInput
+          ref={inputRef}
+          value={state.inputValue}
+          onChangeText={setInputValue}
+          onSubmitEditing={(event) => submit(event.nativeEvent.text)}
+          editable={state.answerState === 'idle'}
+          status={state.answerState}
+          blurOnSubmit={false}
+          returnKeyType="done"
+          maxLength={24}
+          placeholder={`Escribí la palabra en ${scriptLabelLowercase}`}
+          glyph
         />
-      </GameFooter>
-    </View>
-  );
-}
+      )}
 
-function PhraseGameView({
-  pool,
-  resetKey,
-  inverted,
-  section,
-  scriptLabelLowercase,
-}: {
-  pool: PhraseEntry[];
-  resetKey: string;
-  inverted: boolean;
-  section: string;
-  scriptLabelLowercase: string;
-}) {
-  const { theme: activeTheme } = useAppTheme();
-  const { state, setInputValue, submit, next, lastFeedback } = usePhraseGame(
-    pool,
-    resetKey,
-    inverted,
-  );
-  useTrackProgress('phrases', state.stats);
-  useTrackWeakItem('phrases', state.answerState, {
-    itemId: `${state.round.phrase.id}:${inverted ? 'inv' : 'std'}`,
-    format: 'input',
-    prompt: state.round.promptText,
-    answer: state.round.displayAnswer || state.round.answer,
-    speakText: state.round.phrase.kana,
-  });
-  const promptTransition = useRef(new Animated.Value(1)).current;
-  const inputRef = useRef<TextInput>(null);
-  const promptKind = getPhrasePromptKind(inverted);
-  const answerKind = getPhraseAnswerKind(inverted);
-  const answered = state.answerState !== 'idle';
-
-  useEffect(() => {
-    promptTransition.setValue(0);
-
-    Animated.timing(promptTransition, {
-      toValue: 1,
-      duration: 130,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-
-    const focusTimeout = setTimeout(() => {
-      inputRef.current?.focus();
-    }, 90);
-
-    return () => {
-      clearTimeout(focusTimeout);
-    };
-  }, [promptTransition, state.round.roundKey]);
-
-  const promptAnimatedStyle = {
-    opacity: promptTransition,
-    transform: [
-      {
-        translateY: promptTransition.interpolate({
-          inputRange: [0, 1],
-          outputRange: [10, 0],
-        }),
-      },
-      {
-        scale: promptTransition.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0.975, 1],
-        }),
-      },
-    ],
-  };
-
-  const canSubmit =
-    state.answerState === 'idle' &&
-    sanitizePhraseInput(state.inputValue, answerKind).length > 0;
-
-  const showTranslation = answered && lastFeedback.translationText;
-
-  return (
-    <View style={styles.screen}>
-      <GameTopBlock title={inverted ? 'Frases inversas' : 'Frases'} section={section} stats={state.stats} />
-
-      {/* La consigna arriba del prompt, no solo en el placeholder: el placeholder se
-          tapa apenas empezás a escribir y no dice qué se pide. Es transcripción, no
-          traducción — sin decirlo, se escribe la traducción al español. */}
-      <PromptCard
-        size="input"
-        help={answerKind === 'kana' ? `Transcribí en ${scriptLabelLowercase}` : 'Transcribí en romaji'}
-        score={state.stats}
-      >
-        <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
-          <PromptGlyph style={promptKind === 'kana' ? styles.phraseKanaPrompt : styles.phraseRomajiPrompt}>
-            {state.round.promptText}
-          </PromptGlyph>
-        </Animated.View>
-      </PromptCard>
-
-      <AnswerInput
-        ref={inputRef}
-        value={state.inputValue}
-        onChangeText={setInputValue}
-        onSubmitEditing={(event) => submit(event.nativeEvent.text)}
-        editable={!answered}
-        status={state.answerState}
-        blurOnSubmit={false}
-        returnKeyType="done"
-        maxLength={answerKind === 'kana' ? 30 : 40}
-        placeholder={
-          answerKind === 'kana'
-            ? `Escribí la frase en ${scriptLabelLowercase}`
-            : 'Escribí la frase en romaji'
-        }
-        glyph={answerKind === 'kana'}
-      />
-
-      {showTranslation ? (
-        <AnswerNote>
-          <AppText variant="body" style={styles.phraseTranslationText}>
-            {lastFeedback.translationText}
-          </AppText>
-          {lastFeedback.correctText ? (
-            <AppText
-              variant="bodySmall"
-              color={activeTheme.colors.textSecondary}
-              style={styles.phraseTranslationReading}
-            >
-              {lastFeedback.correctText}
-            </AppText>
-          ) : null}
-        </AnswerNote>
-      ) : null}
-
-      <GameFooter feedback={lastFeedback}>
-        <View style={styles.actionRow}>
-          {/* El audio dice la frase: recién después de responder. */}
-          {answered ? <SpeakButton variant="square" text={state.round.phrase.kana} /> : null}
+      <GameFooter feedback={lastFeedback} chosen={isChoice}>
+        {isChoice ? (
+          <ChoiceNext answered={state.answerState !== 'idle'} onNext={next} />
+        ) : (
           <PrimaryButton
-            title={answered ? 'SIGUIENTE' : 'ENVIAR'}
+            title={state.answerState !== 'idle' ? 'SIGUIENTE' : 'ENVIAR'}
             variant="primary"
-            disabled={!answered && !canSubmit}
-            onPress={answered ? next : () => submit(state.inputValue)}
-            style={styles.actionMain}
+            disabled={state.answerState === 'idle' && !canSubmit}
+            onPress={state.answerState !== 'idle' ? next : () => submit(state.inputValue)}
           />
-        </View>
+        )}
       </GameFooter>
     </View>
   );
 }
-
-// ── Fill-in-the-blank Game ────────────────────────────────────────────────────
 
 function FillBlankGameView({
   pool,
@@ -845,7 +722,7 @@ function FillBlankGameView({
   const { syllables, blankIndex } = state.round;
   const translation = state.round.word.translations[0] ?? '';
 
-  if (sessionLength && state.stats.answered >= sessionLength) {
+  if (isSessionOver(state.stats, state.answerState, sessionLength)) {
     return (
       <SessionSummary
         modeLabel="Completar la palabra"
@@ -860,8 +737,8 @@ function FillBlankGameView({
   return (
     <View style={styles.screen}>
       <GameTopBlock
-        title="Completar la Palabra"
-        section={VOCAB_SECTION}
+        glyph="空"
+        title="Completar la palabra"
         stats={state.stats}
         sessionLength={sessionLength}
       />
@@ -869,9 +746,7 @@ function FillBlankGameView({
       <PromptCard
         size="choice"
         score={state.stats}
-        bottomRight={
-          state.answerState !== 'idle' ? <SpeakButton text={state.round.word.kana} /> : null
-        }
+        speakText={state.answerState !== 'idle' ? state.round.word.kana : undefined}
       >
         <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
           <View style={styles.fillBlankRow}>
@@ -898,7 +773,7 @@ function FillBlankGameView({
         </Animated.View>
       </PromptCard>
 
-      <View style={styles.answersGrid}>
+      <AnswerOptionGrid labels={state.round.options.map((option) => option.text)}>
         {state.round.options.map((option) => (
           <AnswerOptionButton
             key={option.id}
@@ -909,9 +784,9 @@ function FillBlankGameView({
             labelWrapStyle={optionTextAnimatedStyle}
           />
         ))}
-      </View>
+      </AnswerOptionGrid>
 
-      <GameFooter feedback={lastFeedback}>
+      <GameFooter feedback={lastFeedback} chosen>
         <ChoiceNext answered={state.answerState !== 'idle'} onNext={next} />
       </GameFooter>
     </View>
@@ -980,7 +855,7 @@ function WordBuilderGameView({
     ],
   };
 
-  if (sessionLength && state.stats.answered >= sessionLength) {
+  if (isSessionOver(state.stats, state.answerState, sessionLength)) {
     return (
       <SessionSummary
         modeLabel="Constructor"
@@ -995,8 +870,8 @@ function WordBuilderGameView({
   return (
     <View style={styles.screen}>
       <GameTopBlock
+        glyph="組"
         title="Constructor"
-        section={VOCAB_SECTION}
         stats={state.stats}
         sessionLength={sessionLength}
       />
@@ -1089,28 +964,32 @@ function WordBuilderGameView({
   );
 }
 
-// Cabecera de partida de los modos de GameScreen: "LECTURA · HIRAGANA" y, si la
-// sesión tiene largo, la barra con "7/20".
+// Cabecera de partida de los modos de GameScreen. Con largo fijo, solo la barra con
+// "7/20"; sin largo, "読 · Lectura". Sin eyebrow ("PALABRA GUIADA · VOCABULARIO"): el
+// modo ya lo elegiste al entrar y la consigna la dice la tarjeta (2026-11-10).
+// Lo que necesita una vista para cortar la sesión: el largo (undefined = sin límite) y qué
+// hacer desde el resumen.
+type SessionProps = {
+  sessionLength?: number;
+  onRepeat: () => void;
+  onBack: () => void;
+};
+
 function GameTopBlock({
+  glyph,
   title,
-  section,
   stats,
   sessionLength,
 }: {
+  glyph: string;
   title: string;
-  section: string;
   stats: GameStats;
   sessionLength?: number;
 }) {
-  return (
-    <GameHeader
-      eyebrow={`${title} · ${section}`}
-      progress={
-        sessionLength
-          ? { current: Math.min(stats.answered + 1, sessionLength), total: sessionLength }
-          : undefined
-      }
-    />
+  return sessionLength ? (
+    <GameHeader progress={{ current: Math.min(stats.answered + 1, sessionLength), total: sessionLength }} />
+  ) : (
+    <GameHeader glyph={glyph} title={title} />
   );
 }
 
@@ -1294,29 +1173,6 @@ const styles = StyleSheet.create({
     fontSize: 38,
     lineHeight: 46,
     letterSpacing: 0.8,
-  },
-  phraseKanaPrompt: {
-    fontFamily: FONTS.glyph,
-    fontSize: 36,
-    lineHeight: 46,
-    letterSpacing: 0.3,
-  },
-  phraseRomajiPrompt: {
-    fontSize: 26,
-    lineHeight: 34,
-    letterSpacing: 0.4,
-  },
-  phraseTranslationText: {
-    textAlign: 'center',
-  },
-  phraseTranslationReading: {
-    textAlign: 'center',
-  },
-  answersGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    width: '100%',
   },
   actionRow: {
     flexDirection: 'row',

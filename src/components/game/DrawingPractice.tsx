@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { DrawableChar } from '../../features/game/drawingGameEngine';
+import { isSessionOver } from '../../features/game/gameEngine';
 import { useDrawingGame } from '../../features/game/useDrawingGame';
 import { useTrackWeakItem } from '../../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../../theme/AppThemeProvider';
@@ -11,6 +12,7 @@ import { InkSwitch } from '../ui/InkSwitch';
 import { PrimaryButton } from '../ui/PrimaryButton';
 import { DrawingCanvas } from './DrawingCanvas';
 import { FeedbackBanner } from './FeedbackBanner';
+import { SessionSummary } from './SessionSummary';
 import { GameHeader } from './GameHeader';
 
 type DrawingPracticeProps = {
@@ -24,6 +26,9 @@ type DrawingPracticeProps = {
   // componente (es el dueño de la ronda), así que quien reciba esto NO debe volver
   // a reportar el ítem o se contaría dos veces.
   onRoundResolved?: (correct: boolean) => void;
+  // Partida de largo fijo: al completar `length` rondas muestra el resumen. Sin esto (o con
+  // length undefined) es infinita, como en el Repaso, que maneja su propia ronda.
+  session?: { length?: number; onRepeat: () => void; onBack: () => void };
 };
 
 export function DrawingPractice({
@@ -32,6 +37,7 @@ export function DrawingPractice({
   title,
   compact = false,
   onRoundResolved,
+  session,
 }: DrawingPracticeProps) {
   const { theme: activeTheme } = useAppTheme();
   const { state, commitStroke, undo, clear, submit, lastFeedback } = useDrawingGame(
@@ -90,9 +96,29 @@ export function DrawingPractice({
 
   const canAct = state.answerState === 'idle' && state.userStrokes.length > 0;
 
+  if (session && isSessionOver(state.stats, state.answerState, session.length)) {
+    return (
+      <SessionSummary
+        modeLabel="Dibujo"
+        correct={state.stats.correct}
+        incorrect={state.stats.incorrect}
+        onRepeat={session.onRepeat}
+        onBack={session.onBack}
+      />
+    );
+  }
+
   return (
     <View style={styles.screen}>
-      {compact ? null : <GameHeader />}
+      {compact ? null : (
+        <GameHeader
+          progress={
+            session?.length
+              ? { current: Math.min(state.stats.answered + 1, session.length), total: session.length }
+              : undefined
+          }
+        />
+      )}
 
       <Animated.View style={[styles.promptRow, promptStyle]}>
         <View style={styles.promptText}>

@@ -26,7 +26,7 @@ No hay base de datos ni backend. Cinco archivos JSON en `Paths.document`, escrit
 
 | Provider | Archivo | Store puro | Contiene |
 |---|---|---|---|
-| `AppSettingsProvider` | `app-settings.json` | inline | tema, haptics, API key Gemini, recordatorio |
+| `AppSettingsProvider` | `app-settings.json` | inline | tema, haptics, sonido al acertar, API key Gemini, recordatorio |
 | `ProgressProvider` | `progress.json` | `progressStore.ts` | stats por modo (sin racha ni meta) |
 | `SrsProvider` | `srs.json` | `srsStore.ts` | cajas Leitner por ítem |
 | `WeakProvider` | `weak-items.json` | `weakStore.ts` | los ejercicios que venís fallando + lo que agregaste a mano (`pinned`; campo aditivo, sin bump de versión) |

@@ -1,4 +1,3 @@
-import { classVocabEntries } from '../../data/classVocabulary';
 import { KANJI } from '../../data/kanji';
 import { createGrindRound } from '../game/kanjiGrindEngine';
 import { createMeaningRoundFor, MeaningEntry } from '../game/meaningGameEngine';
@@ -57,6 +56,3 @@ export function kanjiSeed(entry: KanjiEntry): WeakSeed | null {
   };
 }
 
-export function findVocabEntry(entryId: string): MeaningEntry | undefined {
-  return classVocabEntries.find((entry) => entry.id === entryId);
-}

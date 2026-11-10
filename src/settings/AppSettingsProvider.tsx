@@ -10,10 +10,20 @@ import {
 } from 'react';
 import { File, Paths } from 'expo-file-system';
 
+import {
+  AnswerSoundId,
+  DEFAULT_ANSWER_SOUND,
+  isAnswerSoundId,
+} from '../features/feedback/answerSounds';
 import { DEFAULT_PALETTE, isPaletteId, PaletteId, ThemePreference } from '../theme/theme';
 
 type AppSettings = {
   hapticsEnabled: boolean;
+  // Sonido al acertar (koto, shamisen, shakuhachi, campanita o 'off'). Se elige en Perfil.
+  answerSound: AnswerSoundId;
+  // Rondas por partida (10 / 20 / 30; 0 = sin límite). UN valor para todos los juegos: se
+  // elige en cada pantalla de selección (o en Perfil) y queda recordado.
+  sessionRounds: number;
   // Claro por default (desde 2026-11-01). 'system' sigue al teléfono; se elige en Perfil.
   themeMode: ThemePreference;
   // Paleta de colores (Hanga, Sumi, Matcha, Sakura, Aizome). Cada una tiene claro y oscuro.
@@ -31,6 +41,8 @@ type AppSettings = {
 type AppSettingsContextValue = {
   settings: AppSettings;
   setHapticsEnabled: (enabled: boolean) => void;
+  setAnswerSound: (sound: AnswerSoundId) => void;
+  setSessionRounds: (rounds: number) => void;
   setThemeMode: (mode: ThemePreference) => void;
   setPalette: (palette: PaletteId) => void;
   setGeminiApiKey: (key: string) => void;
@@ -39,8 +51,14 @@ type AppSettingsContextValue = {
   setWordHintEnabled: (enabled: boolean) => void;
 };
 
+// 0 = sin límite.
+export const SESSION_ROUND_OPTIONS = [10, 20, 30, 0];
+const DEFAULT_SESSION_ROUNDS = 10;
+
 const DEFAULT_SETTINGS: AppSettings = {
   hapticsEnabled: false,
+  answerSound: DEFAULT_ANSWER_SOUND,
+  sessionRounds: DEFAULT_SESSION_ROUNDS,
   themeMode: 'light',
   palette: DEFAULT_PALETTE,
   geminiApiKey: '',
@@ -106,6 +124,22 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     }));
   }, []);
 
+  const setAnswerSound = useCallback((sound: AnswerSoundId) => {
+    userTouchedRef.current = true;
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      answerSound: sound,
+    }));
+  }, []);
+
+  const setSessionRounds = useCallback((rounds: number) => {
+    userTouchedRef.current = true;
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      sessionRounds: rounds,
+    }));
+  }, []);
+
   const setThemeMode = useCallback((mode: ThemePreference) => {
     userTouchedRef.current = true;
     setSettings((currentSettings) => ({
@@ -158,6 +192,8 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
     () => ({
       settings,
       setHapticsEnabled,
+      setAnswerSound,
+      setSessionRounds,
       setThemeMode,
       setPalette,
       setGeminiApiKey,
@@ -171,6 +207,8 @@ export function AppSettingsProvider({ children }: PropsWithChildren) {
       setPalette,
       setReminderEnabled,
       setReminderHour,
+      setAnswerSound,
+      setSessionRounds,
       setThemeMode,
       setWordHintEnabled,
       settings,
@@ -216,6 +254,10 @@ function normalizeSettings(value: unknown): AppSettings {
 
   return {
     hapticsEnabled: candidate.hapticsEnabled === true,
+    answerSound: isAnswerSoundId(record.answerSound) ? record.answerSound : DEFAULT_ANSWER_SOUND,
+    sessionRounds: SESSION_ROUND_OPTIONS.includes(record.sessionRounds as number)
+      ? (record.sessionRounds as number)
+      : DEFAULT_SESSION_ROUNDS,
     themeMode:
       record.themeMode === 'dark' || record.themeMode === 'system'
         ? record.themeMode

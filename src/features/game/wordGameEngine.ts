@@ -1,6 +1,6 @@
 import { WordPracticeEntry } from '../../data/wordVocabulary';
 import { PracticeMode } from '../../types/game';
-import { AnswerState, GameStats } from './gameEngine';
+import { AnswerState, GameStats, shuffle } from './gameEngine';
 
 export type WordPracticeAnswerKind = 'translation' | 'kana';
 export type WordPracticePromptKind = 'translation' | 'kana' | 'syllables';
@@ -10,6 +10,8 @@ export type WordRound = {
   promptText: string;
   answer: string;
   acceptedAnswers: string[];
+  // Palabra guiada respondida eligiendo: la palabra y 3 más (en kana), ya barajadas.
+  options: string[];
   roundKey: string;
   feedbackText: string;
   feedbackPromptText?: string;
@@ -72,6 +74,25 @@ export function sanitizeWordPracticeInput(
   return trimmedValue.replace(/\s+/g, '');
 }
 
+const OPTION_COUNT = 4;
+const SIMILAR_POOL = 8;
+
+// Distractores de Palabra guiada: del MISMO silabario (una katakana entre tres hiragana
+// se elige sin leer) y de largo parecido, sin repetir la escritura de la correcta.
+function pickWordOptions(pool: WordPracticeEntry[], word: WordPracticeEntry): string[] {
+  const seen = new Set([word.kana]);
+  const candidates: string[] = [];
+  pool.forEach((entry) => {
+    if (entry.script !== word.script || seen.has(entry.kana)) return;
+    seen.add(entry.kana);
+    candidates.push(entry.kana);
+  });
+  const nearest = candidates
+    .sort((a, b) => Math.abs(a.length - word.kana.length) - Math.abs(b.length - word.kana.length))
+    .slice(0, SIMILAR_POOL);
+  return shuffle([word.kana, ...shuffle(nearest).slice(0, OPTION_COUNT - 1)]);
+}
+
 export function createWordRound(
   pool: WordPracticeEntry[],
   mode: Extract<PracticeMode, 'words' | 'syllables'>,
@@ -106,6 +127,7 @@ export function createWordRound(
         : word.translations.map((translation) =>
             sanitizeWordPracticeInput(translation, 'translation'),
           ),
+    options: mode === 'syllables' ? pickWordOptions(pool, word) : [],
     roundKey: word.id,
     feedbackText:
       mode === 'syllables' ? `${word.kana} - ${primaryTranslation}` : answer,

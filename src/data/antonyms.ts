@@ -48,6 +48,9 @@ export const ANTONYM_PAIRS: { kind: AntonymKind; pair: [string, string] }[] = [
   { kind: 'verbos', pair: ['ver-hajimaru', 'ver-owaru'] },
   // Sustantivos y expresiones de tiempo
   { kind: 'sustantivos', pair: ['tie-kinou', 'tie-ashita'] },
+  // Antes · Después del Repaso total (2026-11-10), como きのう／あした.
+  { kind: 'sustantivos', pair: ['tie-ototoi', 'tie-asatte'] },
+  { kind: 'sustantivos', pair: ['tie-sengetsu', 'tie-raigetsu'] },
   { kind: 'sustantivos', pair: ['tie-senshuu', 'tie-raishuu'] },
   { kind: 'sustantivos', pair: ['tie-kyonen', 'tie-rainen'] },
   { kind: 'sustantivos', pair: ['tie-gozen', 'tie-gogo'] },

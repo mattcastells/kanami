@@ -1,12 +1,15 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PLAYING_ROUTES } from '../../navigation/tabBar';
 import { inkShadow, SIZES, theme } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
 import { InkPressable } from './InkPressable';
+import { useImmersiveNavigationBar } from './useImmersiveNavigationBar';
+import { useKeyboardInset } from './useKeyboardInset';
 
 type ScreenBackgroundProps = {
   children: ReactNode;
@@ -17,6 +20,9 @@ type ScreenBackgroundProps = {
   // En false oculta el back (raíz de pestaña: el navigator más cercano es la tab bar y
   // "volver" te llevaría a otra pestaña).
   showBack?: boolean;
+  // La tab bar está oculta aunque la ruta no sea de partida (la ronda del Repaso es una
+  // fase de su pantalla, no una ruta). Las rutas de PLAYING_ROUTES ya se detectan solas.
+  tabBarHidden?: boolean;
 };
 
 // El back lo dibuja la cabecera (`ScreenHeader` / `GameHeader`), en su fila. Acá solo se
@@ -39,10 +45,14 @@ export function ScreenBackground({
   keyboardShouldPersistTaps = 'handled',
   bottomOverlay,
   showBack = true,
+  tabBarHidden = false,
 }: ScreenBackgroundProps) {
   const { theme: activeTheme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const route = useRoute();
+  const rootRef = useRef<View>(null);
+  const keyboardInset = useKeyboardInset(rootRef);
   const canGoBack = showBack && navigation.canGoBack();
   // El overlay se mide en vez de asumir un alto fijo: una barra con resumen mide
   // bastante más que una sin él, y un valor fijo tapaba la última fila.
@@ -51,10 +61,17 @@ export function ScreenBackground({
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
   const backContext = useMemo(() => ({ canGoBack, goBack }), [canGoBack, goBack]);
 
-  // El inset de arriba deja el contenido fuera de la barra de estado. El de abajo es de la
-  // tab bar (toda pantalla vive en una pestaña), así que acá no se suma. Raíz de pestaña
+  // El inset de arriba deja el contenido fuera de la barra de estado. Raíz de pestaña
   // (sin back): 12; pantalla de stack: 8.
   const topPadding = insets.top + (canGoBack ? 8 : 12);
+  // Abajo: con la tab bar a la vista, ella ya deja lugar para la barra del sistema. En una
+  // partida la tab bar se oculta y la app es edge-to-edge: sin este inset, la barra de
+  // gestos / 3 botones de Android quedaba ENCIMA de SIGUIENTE. Con el teclado abierto
+  // manda lo que tapa el teclado (que ya incluye esa barra).
+  const hidesTabBar = tabBarHidden || PLAYING_ROUTES.includes(route.name);
+  // Y en partida, además, se oculta la barra de Android (vuelve deslizando desde abajo).
+  useImmersiveNavigationBar(useIsFocused(), hidesTabBar);
+  const bottomInset = Math.max(keyboardInset, hidesTabBar ? insets.bottom : 0);
   const bottomOverlayPadding = bottomOverlay ? overlayHeight + theme.spacing.md : 0;
 
   const handleOverlayLayout = (event: LayoutChangeEvent) => {
@@ -73,9 +90,10 @@ export function ScreenBackground({
 
   return (
     <ScreenBackContext.Provider value={backContext}>
-      <View style={[styles.root, { backgroundColor: activeTheme.colors.background }]}>
+      <View ref={rootRef} style={[styles.root, { backgroundColor: activeTheme.colors.background }]}>
         {scrollable ? (
           <ScrollView
+            style={{ marginBottom: bottomInset }}
             bounces={false}
             alwaysBounceVertical={false}
             alwaysBounceHorizontal={false}
@@ -90,11 +108,15 @@ export function ScreenBackground({
             {children}
           </ScrollView>
         ) : (
-          <View style={contentStyle}>{children}</View>
+          <View style={[contentStyle, styles.fixedContent, { marginBottom: bottomInset }]}>{children}</View>
         )}
 
         {bottomOverlay ? (
-          <View pointerEvents="box-none" onLayout={handleOverlayLayout} style={styles.bottomOverlayWrap}>
+          <View
+            pointerEvents="box-none"
+            onLayout={handleOverlayLayout}
+            style={[styles.bottomOverlayWrap, { bottom: bottomInset }]}
+          >
             {bottomOverlay}
           </View>
         ) : null}
@@ -148,6 +170,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: SIZES.screenPaddingX,
     paddingBottom: theme.spacing.xl,
+  },
+  // Sin scroll, el contenido mide lo que la pantalla: con solo flexGrow no se achicaba, y
+  // un ScrollView interno (el tablero, el texto de Partículas) crecía con lo suyo y empujaba
+  // lo de abajo afuera de la pantalla.
+  fixedContent: {
+    flex: 1,
   },
   // Anclado abajo y no a pantalla completa: así el onLayout devuelve el alto real
   // del overlay y no el de la pantalla.

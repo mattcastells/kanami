@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import { HiraganaCharacter } from '../../types/hiragana';
 import { AnswerState } from './gameEngine';
 import {
@@ -12,6 +10,7 @@ import {
   selectKanaBoardCard,
   submitKanaBoardAnswer,
 } from './kanaBoardEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 type BoardFeedback = {
   status: AnswerState;
@@ -31,9 +30,7 @@ export function useKanaBoardGame(
   characters: HiraganaCharacter[],
   resetKey: string,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const [state, setState] = useState<KanaBoardState>(() =>
     createKanaBoardState(characters),
   );
@@ -123,13 +120,7 @@ export function useKanaBoardGame(
       selectedText: value.trim(),
     });
 
-    if (hapticsEnabled) {
-      if (updatedState.answerState === 'correct') {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-    }
+    playAnswerFeedback(updatedState.answerState === 'correct');
   };
 
   const selectCard = (cardId: string) => {

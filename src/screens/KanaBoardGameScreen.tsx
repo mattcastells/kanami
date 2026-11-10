@@ -1,7 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
-import { LayoutChangeEvent, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutChangeEvent, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { FeedbackBanner } from '../components/game/FeedbackBanner';
 import { AppText } from '../components/ui/AppText';
 import { GlassCard } from '../components/ui/GlassCard';
 import { ProgressTrack } from '../components/ui/InkBits';
@@ -62,7 +61,10 @@ export function KanaBoardGameScreen({
     useKanaBoardGame(characters, resetKey);
 
   const inputRef = useRef<TextInput>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollYRef = useRef(0);
   const [boardWidth, setBoardWidth] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
 
   useTrackProgress('kana-board', state.stats);
 
@@ -94,6 +96,18 @@ export function KanaBoardGameScreen({
     boardWidth > 0
       ? Math.floor((boardWidth - CARD_GAP * (columns - 1)) / columns)
       : 0;
+
+  // La carta marcada siempre a la vista: si salta a una fila fuera del scroll (la siguiente
+  // pendiente, o al achicarse el área cuando abre el teclado), el tablero la trae.
+  const activeIndex = state.cards.findIndex((card) => card.id === state.activeCardId);
+  useEffect(() => {
+    if (activeIndex < 0 || cardSize === 0 || viewportHeight === 0) return;
+    const top = Math.floor(activeIndex / columns) * (cardSize + CARD_GAP);
+    const visibleTop = scrollYRef.current;
+    if (top < visibleTop || top + cardSize > visibleTop + viewportHeight) {
+      scrollRef.current?.scrollTo({ y: Math.max(0, top - CARD_GAP), animated: true });
+    }
+  }, [activeIndex, cardSize, columns, viewportHeight]);
 
   const handleSelect = (cardId: string) => {
     selectCard(cardId);
@@ -201,65 +215,21 @@ export function KanaBoardGameScreen({
   }
 
   const { colors } = activeTheme;
+  const resultColor =
+    lastFeedback.status === 'correct'
+      ? colors.successInk
+      : lastFeedback.status === 'incorrect'
+        ? colors.errorInk
+        : colors.textMuted;
 
+  // Arriba: cabecera, barra, la carta marcada con el único input y el resultado. Abajo, el
+  // tablero en su propio scroll. Antes el input iba en un dock al pie: con el teclado
+  // abierto (que en Android ya no achica la pantalla) quedaba tapado, y sin teclado el
+  // dock tapaba las últimas filas. Arriba no lo tapa nada.
   return (
-    <ScreenBackground
-      scrollable
-      keyboardShouldPersistTaps="always"
-      bottomOverlay={
-        // Dock: la carta marcada, el único input y el botón. Va abajo, al alcance del
-        // pulgar y pegado al teclado; el resultado de la última carta queda arriba.
-        <View style={[styles.dock, { backgroundColor: colors.tabBar, borderTopColor: colors.line }]}>
-          <FeedbackBanner
-            status={lastFeedback.status}
-            promptText={lastFeedback.kana}
-            correctText={lastFeedback.correctText}
-            selectedText={lastFeedback.selectedText}
-          />
-          <View style={styles.dockRow}>
-            <View style={[styles.dockKana, { backgroundColor: colors.highlight, borderColor: colors.line }]}>
-              <AppText
-                numberOfLines={1}
-                style={[styles.dockKanaText, { fontSize: activeCard && activeCard.kana.length > 1 ? 18 : 24 }]}
-                color={colors.onHighlight}
-              >
-                {activeCard?.kana ?? '—'}
-              </AppText>
-            </View>
-            <TextInput
-              ref={inputRef}
-              value={inputValue}
-              onChangeText={setInputValue}
-              onSubmitEditing={(event) => submit(event.nativeEvent.text)}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-              blurOnSubmit={false}
-              returnKeyType="done"
-              maxLength={6}
-              placeholder="romaji"
-              placeholderTextColor={colors.textMuted}
-              selectionColor={colors.primary}
-              style={[
-                styles.dockInput,
-                { color: colors.textPrimary, borderColor: colors.primary, backgroundColor: colors.card },
-              ]}
-            />
-            <InkPressable
-              onPress={() => submit()}
-              disabled={inputValue.trim().length === 0}
-              accessibilityLabel="Listo"
-              style={[styles.dockButton, { backgroundColor: colors.primary, boxShadow: inkShadow(colors.shadow, 2) }]}
-            >
-              <AppText style={styles.dockArrow} color={colors.onPrimary}>
-                →
-              </AppText>
-            </InkPressable>
-          </View>
-        </View>
-      }
-    >
+    <ScreenBackground scrollable={false} keyboardShouldPersistTaps="always" contentContainerStyle={styles.playContent}>
       <ScreenHeader
+        glyph="盤"
         title={scriptLabel}
         compact
         subtitle={state.round > 1 ? `Vuelta ${state.round} · repasando lo que fallaste` : undefined}
@@ -276,23 +246,84 @@ export function KanaBoardGameScreen({
         </AppText>
       </View>
 
-      <AppText variant="bodySmall" color={colors.textSecondary} style={styles.hint}>
-        Escribí el romaji de la carta marcada. Tocá otra para saltar.
+      <View style={styles.dockRow}>
+        <View style={[styles.dockKana, { backgroundColor: colors.highlight, borderColor: colors.line }]}>
+          <AppText
+            numberOfLines={1}
+            style={[styles.dockKanaText, { fontSize: activeCard && activeCard.kana.length > 1 ? 18 : 24 }]}
+            color={colors.onHighlight}
+          >
+            {activeCard?.kana ?? '—'}
+          </AppText>
+        </View>
+        <TextInput
+          ref={inputRef}
+          value={inputValue}
+          onChangeText={setInputValue}
+          onSubmitEditing={(event) => submit(event.nativeEvent.text)}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoFocus
+          blurOnSubmit={false}
+          returnKeyType="done"
+          maxLength={6}
+          placeholder="romaji"
+          placeholderTextColor={colors.textMuted}
+          selectionColor={colors.primary}
+          style={[
+            styles.dockInput,
+            { color: colors.textPrimary, borderColor: colors.primary, backgroundColor: colors.card },
+          ]}
+        />
+        <InkPressable
+          onPress={() => submit()}
+          disabled={inputValue.trim().length === 0}
+          accessibilityLabel="Listo"
+          style={[styles.dockButton, { backgroundColor: colors.primary, boxShadow: inkShadow(colors.shadow, 2) }]}
+        >
+          <AppText style={styles.dockArrow} color={colors.onPrimary}>
+            →
+          </AppText>
+        </InkPressable>
+      </View>
+
+      {/* Una línea de alto fijo (no salta el tablero): el resultado de la última carta o,
+          antes de la primera, cómo se saltea. */}
+      <AppText variant="bodySmall" numberOfLines={1} color={resultColor} style={styles.result}>
+        {lastFeedback.status === 'idle'
+          ? 'Tocá otra carta para saltar.'
+          : lastFeedback.status === 'correct'
+            ? `○ ${lastFeedback.kana} = ${lastFeedback.correctText}`
+            : `× ${lastFeedback.kana} = ${lastFeedback.correctText} · escribiste ${lastFeedback.selectedText}`}
       </AppText>
 
-      <View style={styles.board} onLayout={handleBoardLayout}>
-        {cardSize > 0
-          ? state.cards.map((card) => (
-              <BoardCard
-                key={card.id}
-                card={card}
-                width={cardSize}
-                isActive={card.id === state.activeCardId}
-                onPress={() => handleSelect(card.id)}
-              />
-            ))
-          : null}
-      </View>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.boardScroll}
+        contentContainerStyle={styles.boardContent}
+        keyboardShouldPersistTaps="always"
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+        scrollEventThrottle={32}
+        onScroll={(event) => {
+          scrollYRef.current = event.nativeEvent.contentOffset.y;
+        }}
+        onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
+      >
+        <View style={styles.board} onLayout={handleBoardLayout}>
+          {cardSize > 0
+            ? state.cards.map((card) => (
+                <BoardCard
+                  key={card.id}
+                  card={card}
+                  width={cardSize}
+                  isActive={card.id === state.activeCardId}
+                  onPress={() => handleSelect(card.id)}
+                />
+              ))
+            : null}
+        </View>
+      </ScrollView>
     </ScreenBackground>
   );
 }
@@ -386,8 +417,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
-  hint: {
+  playContent: {
+    paddingBottom: 0,
+  },
+  result: {
+    marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.sm,
+  },
+  boardScroll: {
+    flex: 1,
+  },
+  boardContent: {
+    paddingBottom: theme.spacing.md,
   },
   board: {
     flexDirection: 'row',
@@ -402,12 +443,6 @@ const styles = StyleSheet.create({
   },
   cardRomaji: {
     fontFamily: FONTS.black,
-  },
-  dock: {
-    borderTopWidth: 2,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    gap: 8,
   },
   dockRow: {
     flexDirection: 'row',

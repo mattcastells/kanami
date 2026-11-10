@@ -15,6 +15,17 @@ export type GameStats = {
   answered: number;
 };
 
+// ¿Terminó la sesión de largo fijo? Recién cuando respondiste la última Y pasaste con
+// SIGUIENTE (la ronda volvió a 'idle'): si cortara al responder, la corrección de la
+// última no se llegaría a leer. Sin largo (undefined) no termina nunca.
+export function isSessionOver(
+  stats: GameStats,
+  answerState: AnswerState,
+  sessionLength: number | undefined,
+): boolean {
+  return sessionLength !== undefined && stats.answered >= sessionLength && answerState === 'idle';
+}
+
 export type GameSessionState = {
   round: GameRound;
   answerState: AnswerState;

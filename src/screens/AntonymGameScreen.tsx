@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
+import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { AnswerNote, ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { HintToggle } from '../components/game/HintToggle';
 import { AppText } from '../components/ui/AppText';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
-import { SpeakButton } from '../components/ui/SpeakButton';
 import { AntonymWord } from '../features/game/antonymGameEngine';
 import { useAntonymGame } from '../features/game/useAntonymGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
@@ -15,6 +15,9 @@ import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { FONTS } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
+import { isSessionOver } from '../features/game/gameEngine';
+import { sessionProgress, useGameSession } from '../features/game/useGameSession';
+import { SessionSummary } from '../components/game/SessionSummary';
 
 function describe(word: AntonymWord) {
   return `${[word.kanji, word.kana].filter(Boolean).join(' · ')} — ${word.es}`;
@@ -23,7 +26,8 @@ function describe(word: AntonymWord) {
 export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
   const { theme: activeTheme } = useAppTheme();
   const [hintEnabled, setHintEnabled] = useState(false);
-  const { state, answer, next, lastFeedback } = useAntonymGame();
+  const session = useGameSession();
+  const { state, answer, next, restart, lastFeedback } = useAntonymGame();
   const { round, answerState, selectedOptionId, stats } = state;
   const answered = answerState !== 'idle';
 
@@ -44,18 +48,31 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
     return 'muted' as const;
   };
 
-  const optionsFullWidth = round.options.some((option) => option.text.length > 5);
+
+  if (isSessionOver(stats, answerState, session.length)) {
+    return (
+      <ScreenBackground scrollable>
+        <SessionSummary
+          modeLabel="Antónimos"
+          correct={stats.correct}
+          incorrect={stats.incorrect}
+          onRepeat={restart}
+          onBack={session.back}
+        />
+      </ScreenBackground>
+    );
+  }
 
   return (
     <ScreenBackground scrollable>
-      <GameHeader glyph="反" title="Antónimos" />
+      <GameHeader glyph="反" title="Antónimos" progress={sessionProgress(stats, session.length)} />
 
       <PromptCard
         help="¿Cuál es el opuesto?"
         score={stats}
         bottomLeft={<HintToggle enabled={hintEnabled} onToggle={() => setHintEnabled((current) => !current)} />}
         // Escuchar la consigna no da la respuesta: la respuesta es la OTRA palabra.
-        bottomRight={<SpeakButton text={round.prompt.kana} />}
+        speakText={round.prompt.kana}
       >
         {round.prompt.kanji ? (
           <AppText style={styles.kanji} color={activeTheme.colors.textSecondary}>
@@ -70,7 +87,7 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
         ) : null}
       </PromptCard>
 
-      <View style={styles.answersGrid}>
+      <AnswerOptionGrid labels={round.options.map((option) => option.text)}>
         {round.options.map((option) => (
           <AnswerOptionButton
             key={option.id}
@@ -78,10 +95,9 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
             disabled={answered}
             visualState={getOptionState(option.id)}
             onPress={() => answer(option.id)}
-            fullWidth={optionsFullWidth}
           />
         ))}
-      </View>
+      </AnswerOptionGrid>
 
       {answered ? (
         <AnswerNote>
@@ -95,7 +111,7 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
         </AnswerNote>
       ) : null}
 
-      <GameFooter feedback={lastFeedback}>
+      <GameFooter feedback={lastFeedback} chosen>
         <ChoiceNext answered={answered} onNext={next} />
       </GameFooter>
     </ScreenBackground>
@@ -116,11 +132,5 @@ const styles = StyleSheet.create({
   },
   centered: {
     textAlign: 'center',
-  },
-  answersGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    width: '100%',
   },
 });

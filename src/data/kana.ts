@@ -16,7 +16,8 @@ import { KanaScript, WordPracticeCategoryId } from '../types/game';
 import { HiraganaGroupId } from '../types/hiragana';
 
 export function getKanaScriptLabel(script: KanaScript) {
-  if (script === 'mixed') return 'Hiragana + Katakana';
+  // "Kanas" y no "Hiragana + Katakana": no entraba en la cabecera de un teléfono.
+  if (script === 'mixed') return 'Kanas';
   return script === 'katakana' ? 'Katakana' : 'Hiragana';
 }
 
@@ -57,13 +58,6 @@ export function getKanaWordEntries(
   return [
     ...getWordPracticeEntries(script, categoryIds),
     ...getClassWordPracticeEntries(script, categoryIds),
-  ];
-}
-
-export function getKanaWordCategorySummaries(script: KanaScript) {
-  return [
-    ...getClassWordCategorySummaries(script),
-    ...getWordPracticeCategorySummaries(script),
   ];
 }
 

@@ -7,6 +7,7 @@ import { AppText } from '../ui/AppText';
 import { GradeMark } from '../ui/InkBits';
 import { InkPressable } from '../ui/InkPressable';
 import { hasJapanese } from '../ui/japanese';
+import { useSingleColumnOptions } from './AnswerOptionGrid';
 
 export type AnswerOptionVisualState = 'idle' | 'selected' | 'correct' | 'incorrect' | 'muted';
 
@@ -20,6 +21,8 @@ type AnswerOptionButtonProps = {
   fullWidth?: boolean;
   // Opción que es un kanji suelto: más alta y en Klee 40.
   kanji?: boolean;
+  // Renglones antes de cortar con "…". 1 por default; una frase entera necesita más.
+  lines?: number;
 };
 
 // Opción de respuesta. idle = card con sombra; selected = kihada hundida (antes de
@@ -35,7 +38,10 @@ export function AnswerOptionButton({
   labelStyle,
   fullWidth = false,
   kanji = false,
+  lines = 1,
 }: AnswerOptionButtonProps) {
+  // Dentro de AnswerOptionGrid: si alguna opción no entra en media columna, van todas a una.
+  const singleColumn = useSingleColumnOptions();
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
 
@@ -92,7 +98,7 @@ export function AnswerOptionButton({
   };
 
   return (
-    <Animated.View style={[styles.wrap, fullWidth ? styles.wrapFull : null, animatedStyle]}>
+    <Animated.View style={[styles.wrap, fullWidth || singleColumn ? styles.wrapFull : null, animatedStyle]}>
       <InkPressable
         onPress={onPress}
         disabled={disabled}
@@ -101,6 +107,9 @@ export function AnswerOptionButton({
         dimDisabled={false}
         style={[
           styles.container,
+          // A todo el ancho el texto puede llegar a la esquina de la ×: se le deja lugar a
+          // los dos lados para que siga centrado.
+          fullWidth || singleColumn ? styles.containerFull : null,
           { minHeight: kanji ? SIZES.optionKanji : SIZES.option },
           surface,
         ]}
@@ -120,7 +129,7 @@ export function AnswerOptionButton({
               kanji ? styles.kanjiLabel : null,
               labelStyle,
             ]}
-            numberOfLines={1}
+            numberOfLines={lines}
           >
             {label}
           </AppText>
@@ -147,6 +156,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // Evita que un texto largo (ej. lecturas de horarios) se derrame del botón.
     overflow: 'hidden',
+  },
+  containerFull: {
+    paddingHorizontal: 30,
   },
   mark: {
     position: 'absolute',

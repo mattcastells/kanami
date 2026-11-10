@@ -9,6 +9,7 @@ export type WeakRound = {
   format: WeakFormat;
   prompt: string;
   answer: string;
+  accepted?: string[];
   options?: string[];
   speakText?: string;
 };
@@ -51,6 +52,7 @@ export function useTrackWeakItem(
       format: current.format,
       prompt: current.prompt,
       answer: current.answer,
+      accepted: current.accepted,
       options: current.options,
       speakText: current.speakText,
     });

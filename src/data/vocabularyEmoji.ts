@@ -239,6 +239,15 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   'perezoso (animal)': '🦥',
   buho: '🦉',
   beisbol: '⚾',
+  // Auditoría contra Notion (2026-11-10). ぎゅう ("vaca") no suma: la foto ya es de うし.
+  nombre: '📛',
+  bebida: '🥤',
+  dulce: '🍬',
+  'el campo (no la ciudad)': '🌾',
+  osaka: '🏯',
+  okinawa: '🏝️',
+  'fiesta de las nenas (3 de marzo)': '🎎',
+  'banderines de carpa (dia del nino)': '🎏',
 };
 
 export type EmojiVocabEntry = {

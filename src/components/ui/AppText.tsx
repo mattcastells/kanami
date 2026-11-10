@@ -3,7 +3,7 @@ import { StyleProp, StyleSheet, Text, TextStyle } from 'react-native';
 
 import { FONTS, theme, TextVariant } from '../../theme/theme';
 import { useAppTheme } from '../../theme/AppThemeProvider';
-import { hasJapanese, JAPANESE_RUN } from './japanese';
+import { hasJapanese, JAPANESE_RUN, keepJapaneseWordsWhole } from './japanese';
 
 type AppTextProps = {
   children: ReactNode;
@@ -30,7 +30,7 @@ function withGlyphRuns(children: ReactNode): ReactNode {
     if (typeof child !== 'string' || !hasJapanese(child)) {
       return child;
     }
-    return child.split(JAPANESE_RUN).map((part, partIndex) =>
+    return keepJapaneseWordsWhole(child).split(JAPANESE_RUN).map((part, partIndex) =>
       partIndex % 2 === 1 ? (
         <Text key={`${index}-${partIndex}`} style={glyphRun}>
           {part}
@@ -40,6 +40,11 @@ function withGlyphRuns(children: ReactNode): ReactNode {
       ),
     );
   });
+}
+
+// Texto que ya va entero en Klee: solo hay que no partir las palabras.
+function wholeWords(children: ReactNode): ReactNode {
+  return Children.map(children, (child) => (typeof child === 'string' ? keepJapaneseWordsWhole(child) : child));
 }
 
 export function AppText({
@@ -65,7 +70,7 @@ export function AppText({
         style,
       ]}
     >
-      {GLYPH_FONTS.includes(fontFamily) ? children : withGlyphRuns(children)}
+      {GLYPH_FONTS.includes(fontFamily) ? wholeWords(children) : withGlyphRuns(children)}
     </Text>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
+import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { SessionSummary } from '../components/game/SessionSummary';
@@ -167,7 +168,7 @@ export function KanjiGrindGameScreen({
         ) : null}
       </PromptCard>
 
-      <View style={styles.optionsGrid}>
+      <AnswerOptionGrid labels={round.options.map((option) => option.text)}>
         {round.options.map((option) => (
           <AnswerOptionButton
             key={option.id}
@@ -178,9 +179,9 @@ export function KanjiGrindGameScreen({
             onPress={() => answer(option.id)}
           />
         ))}
-      </View>
+      </AnswerOptionGrid>
 
-      <GameFooter feedback={lastFeedback}>
+      <GameFooter feedback={lastFeedback} chosen>
         <ChoiceNext answered={state.answerState !== 'idle'} onNext={advance} />
       </GameFooter>
     </ScreenBackground>
@@ -418,11 +419,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderStyle: 'dashed',
     borderRadius: theme.radii.badge,
-  },
-  optionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
   },
   learnHeader: {
     flexDirection: 'row',

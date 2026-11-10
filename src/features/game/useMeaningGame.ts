@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import {
   createInitialMeaningState,
   MeaningDirection,
@@ -10,6 +8,7 @@ import {
   moveToNextMeaningRound,
   submitMeaningAnswer,
 } from './meaningGameEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 type MeaningFeedback = {
   status: MeaningSessionState['answerState'];
@@ -24,9 +23,7 @@ export function useMeaningGame(
   direction: MeaningDirection,
   resetKey: string,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const [state, setState] = useState<MeaningSessionState>(() =>
     createInitialMeaningState(pool, direction),
   );
@@ -59,13 +56,7 @@ export function useMeaningGame(
       round.options.find((option) => option.id === optionId)?.text ?? null;
     setLastFeedback({ status: updated.answerState, correctText, selectedText });
 
-    if (hapticsEnabled) {
-      void Haptics.notificationAsync(
-        updated.answerState === 'correct'
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Error,
-      );
-    }
+    playAnswerFeedback(updated.answerState === 'correct');
 
   };
 

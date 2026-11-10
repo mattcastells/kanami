@@ -9,15 +9,15 @@ import {
   View,
 } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import * as Application from 'expo-application';
 
-import appConfig from '../../app.json';
+import { RoundsPicker } from '../components/practice/RoundsPicker';
 import { SelectChip } from '../components/practice/SelectChip';
 import { ProgressCard } from '../components/progress/ProgressCard';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Segmented } from '../components/ui/InkBits';
 import { InkSwitch } from '../components/ui/InkSwitch';
 import { PalettePicker } from '../components/ui/PalettePicker';
+import { SoundPicker } from '../components/ui/SoundPicker';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
@@ -27,6 +27,7 @@ import {
   syncDailyReminder,
 } from '../features/notifications/reminders';
 import { downloadAndInstallRelease } from '../features/update/androidUpdater';
+import { getInstalledVersion } from '../features/update/installedVersion';
 import {
   compareVersions,
   fetchLatestRelease,
@@ -59,8 +60,9 @@ export function OptionsScreen() {
   // Separador entre filas de la lista de ajustes (no va en la primera).
   const rowDivider = { borderTopWidth: 2, borderTopColor: colors.hair };
   const {
-    settings: { hapticsEnabled, geminiApiKey, reminderEnabled, reminderHour },
+    settings: { hapticsEnabled, answerSound, geminiApiKey, reminderEnabled, reminderHour },
     setHapticsEnabled,
+    setAnswerSound,
     setThemeMode,
     setPalette,
     setGeminiApiKey,
@@ -102,10 +104,7 @@ export function OptionsScreen() {
   useEffect(() => {
     setKeyDraft(geminiApiKey);
   }, [geminiApiKey]);
-  const installedVersion = useMemo(
-    () => Application.nativeApplicationVersion ?? appConfig.expo.version,
-    [],
-  );
+  const installedVersion = useMemo(getInstalledVersion, []);
   const displayInstalledVersion = installedVersion.startsWith('v')
     ? installedVersion
     : `v${installedVersion}`;
@@ -382,10 +381,23 @@ export function OptionsScreen() {
         </>
       ) : null}
 
+      {/* El mismo ajuste que eligen las pantallas de selección; acá rige para los juegos
+          que no tienen una (Antónimos, Imágenes, Traducción). */}
+      <View style={styles.picker}>
+        <RoundsPicker />
+      </View>
+
+      <AppText variant="overline" color={colors.textSecondary} style={styles.sectionLabel}>
+        Sonido al acertar
+      </AppText>
+      <View style={styles.picker}>
+        <SoundPicker value={answerSound} onChange={setAnswerSound} />
+      </View>
+
       <AppText variant="overline" color={colors.textSecondary} style={styles.sectionLabel}>
         Paleta
       </AppText>
-      <View style={styles.palettes}>
+      <View style={styles.picker}>
         <PalettePicker value={palette} onChange={setPalette} />
       </View>
     </ScreenBackground>
@@ -446,7 +458,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.md,
   },
-  palettes: {
+  picker: {
     marginBottom: theme.spacing.xl,
   },
   settings: {

@@ -26,6 +26,9 @@ export type WeakItem = {
   format: WeakFormat;
   prompt: string;
   answer: string;
+  // Otras respuestas que el modo original también acepta (ej. en Números, la lectura en
+  // kana además del romaji). Sin esto el Repaso marcaba mal algo que el juego daba bien.
+  accepted: string[];
   // Solo para 'choice': los textos que se mostraron como opciones. Se guardan para poder
   // reconstruir el mismo ejercicio; el orden se baraja en cada repaso.
   options: string[];
@@ -61,6 +64,7 @@ export type WeakSeed = {
   format: WeakFormat;
   prompt: string;
   answer: string;
+  accepted?: string[];
   options?: string[];
   speakText?: string;
 };
@@ -90,6 +94,7 @@ export function recordMiss(
     format: seed.format,
     prompt: seed.prompt,
     answer: seed.answer,
+    accepted: seed.accepted ?? [],
     options: seed.options ?? [],
     speakText: seed.speakText ?? '',
     misses: (previous?.misses ?? 0) + 1,
@@ -141,6 +146,7 @@ export function addPinnedItems(data: WeakData, seeds: WeakSeed[]): WeakData {
           format: seed.format,
           prompt: seed.prompt,
           answer: seed.answer,
+          accepted: seed.accepted ?? [],
           options: seed.options ?? [],
           speakText: seed.speakText ?? '',
           misses: 0,
@@ -280,6 +286,9 @@ export function normalizeWeak(value: unknown): WeakData {
       format,
       prompt,
       answer,
+      accepted: Array.isArray(raw.accepted)
+        ? raw.accepted.filter((value): value is string => typeof value === 'string')
+        : [],
       options: Array.isArray(raw.options)
         ? raw.options.filter((option): option is string => typeof option === 'string')
         : [],

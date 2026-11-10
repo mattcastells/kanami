@@ -1,85 +1,75 @@
-import { useEffect, useState } from 'react';
-import * as Haptics from 'expo-haptics';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { EmojiVocabEntry } from '../../data/vocabularyEmoji';
-import { useAppSettings } from '../../settings/AppSettingsProvider';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 import {
   createInitialEmojiState,
   EmojiGameMode,
+  EmojiOption,
   EmojiSessionState,
   moveToNextEmojiRound,
   submitEmojiAnswer,
 } from './emojiGameEngine';
+
+// "📕 しょうせつ": el emoji solo no dice cómo se llama lo que elegiste.
+function describeOption(option: EmojiOption) {
+  return `${option.emoji} ${option.kana}`;
+}
 
 export function useEmojiGame(
   pool: EmojiVocabEntry[],
   mode: EmojiGameMode,
   resetKey: string,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const [state, setState] = useState<EmojiSessionState>(() =>
     createInitialEmojiState(pool, mode),
   );
-  const [lastFeedback, setLastFeedback] = useState<{
-    status: EmojiSessionState['answerState'];
-    correctText: string;
-    selectedText?: string | null;
-    translationText?: string;
-  }>({ status: 'idle', correctText: '', selectedText: null });
+  // Espejo del estado: dos toques seguidos llegan antes del re-render, y el segundo tiene
+  // que ver la ronda ya respondida (si no, sonaba dos veces y cambiaba la opción elegida).
+  const stateRef = useRef(state);
+
+  const commit = (nextState: EmojiSessionState) => {
+    stateRef.current = nextState;
+    setState(nextState);
+  };
 
   useEffect(() => {
-    setState(createInitialEmojiState(pool, mode));
-    setLastFeedback({ status: 'idle', correctText: '', selectedText: null });
+    commit(createInitialEmojiState(pool, mode));
   }, [pool, mode, resetKey]);
 
+  // Decide leyendo el ref, fuera de cualquier updater de setState.
   const answer = (optionId: string) => {
-    let nextAnswerState: EmojiSessionState['answerState'] = 'idle';
-    let correctText = '';
-    let selectedText: string | null = null;
-    let translationText: string | undefined;
-
-    setState((currentState) => {
-      const updatedState = submitEmojiAnswer(currentState, optionId);
-      const round = currentState.round;
-      const selectedOption = round.options.find(
-        (option) => option.id === optionId,
-      );
-
-      nextAnswerState = updatedState.answerState;
-      correctText = round.optionsAreEmoji ? round.emoji : round.kana;
-      selectedText = selectedOption ? selectedOption.text : null;
-      translationText = round.translation;
-      return updatedState;
-    });
-
-    if (nextAnswerState === 'idle') {
-      return;
-    }
-
-    setLastFeedback({
-      status: nextAnswerState,
-      correctText,
-      selectedText,
-      translationText,
-    });
-
-    if (hapticsEnabled) {
-      if (nextAnswerState === 'correct') {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-    }
-
+    const current = stateRef.current;
+    const updated = submitEmojiAnswer(current, optionId);
+    if (updated === current) return;
+    commit(updated);
+    playAnswerFeedback(updated.answerState === 'correct');
   };
 
   // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer la corrección.
   const next = () => {
-    setState((currentState) => moveToNextEmojiRound(currentState, pool, mode));
-    setLastFeedback({ status: 'idle', correctText: '', selectedText: null });
+    commit(moveToNextEmojiRound(stateRef.current, pool, mode));
   };
+
+  // El resultado se deriva del estado: lo correcto con su palabra y, si erraste, lo que
+  // elegiste con palabra y significado ("📄 しょるい · documento").
+  const lastFeedback = useMemo(() => {
+    const { round, answerState, selectedOptionId } = state;
+    if (answerState === 'idle') {
+      return { status: answerState, correctText: '', selectedText: null };
+    }
+    const correct = round.options.find((option) => option.id === round.correctOptionId);
+    const selected = round.options.find((option) => option.id === selectedOptionId);
+    return {
+      status: answerState,
+      correctText: correct ? describeOption(correct) : round.kana,
+      selectedText:
+        answerState === 'incorrect' && selected
+          ? `${describeOption(selected)} · ${selected.translation}`
+          : null,
+    };
+  }, [state]);
 
   return { state, answer, next, lastFeedback };
 }

@@ -8,7 +8,7 @@ import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { Seigaiha } from '../components/ui/Seigaiha';
 import { Tanzaku } from '../components/ui/Tanzaku';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { FONTS, inkShadow, SIZES, theme } from '../theme/theme';
+import { inkShadow, SIZES, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 
 // La pestaña 練 Practicar es SOLO juegos: una card por modo, todas del mismo tamaño.
@@ -37,8 +37,12 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
     { glyph: '語', title: 'Vocabulario', onPress: () => navigation.navigate('Vocabulary') },
     { glyph: '意', title: 'Significados', onPress: () => navigation.navigate('Meanings') },
     { glyph: '反', title: 'Antónimos', onPress: () => navigation.navigate('AntonymGame') },
+    { glyph: '問', title: 'Preguntas', onPress: () => navigation.navigate('Questions') },
+    { glyph: '文', title: 'Gramática', onPress: () => navigation.navigate('Grammar') },
+    { glyph: '助', title: 'Partículas', onPress: () => navigation.navigate('Particles') },
     { glyph: '数', title: 'Números', onPress: () => navigation.navigate('Numbers') },
     { glyph: '暦', title: 'Fechas y hora', onPress: () => navigation.navigate('DateTime') },
+    { glyph: '個', title: 'Contadores', onPress: () => navigation.navigate('Counters') },
     {
       glyph: '絵',
       title: 'Imágenes',
@@ -69,7 +73,13 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
           <AnimatedRow key={row.map((card) => card.title).join()} index={rowIndex + 1}>
             <View style={styles.row}>
               {row.map((card) => (
-                <GameCard key={card.title} glyph={card.glyph} title={card.title} onPress={card.onPress} />
+                <GameCard
+                  key={card.title}
+                  glyph={card.glyph}
+                  title={card.title}
+                  wide={row.length === 1}
+                  onPress={card.onPress}
+                />
               ))}
             </View>
           </AnimatedRow>

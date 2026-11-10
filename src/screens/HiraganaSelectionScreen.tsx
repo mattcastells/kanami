@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { CheckAll, CheckRow, CheckSection, selectionState } from '../components/practice/CheckRow';
+import { RoundsPicker } from '../components/practice/RoundsPicker';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
 import { StartBar } from '../components/practice/StartBar';
 import { AppText } from '../components/ui/AppText';
@@ -35,8 +36,6 @@ type ModeMeta = {
   mode: KanaSelectionMode;
   glyph: string;
   title: string;
-  cta: string;
-  ctaInverted?: string;
   // Tiene modo invertido (romaji → kana).
   invertible?: boolean;
 };
@@ -46,37 +45,23 @@ const MODES: ModeMeta[] = [
     mode: 'reading',
     glyph: '読',
     title: 'Lectura',
-    cta: 'COMENZAR LECTURA',
-    ctaInverted: 'COMENZAR LECTURA INVERSA',
     invertible: true,
   },
   {
     mode: 'writing',
     glyph: '書',
     title: 'Escritura',
-    cta: 'COMENZAR ESCRITURA',
-    ctaInverted: 'COMENZAR ESCRITURA INVERSA',
     invertible: true,
   },
   {
     mode: 'drawing',
     glyph: '描',
     title: 'Dibujo',
-    cta: 'COMENZAR DIBUJO',
   },
   {
     mode: 'board',
     glyph: '盤',
     title: 'Tablero',
-    cta: 'COMENZAR TABLERO',
-  },
-  {
-    mode: 'phrases',
-    glyph: '文',
-    title: 'Frases',
-    cta: 'COMENZAR FRASES',
-    ctaInverted: 'COMENZAR FRASES INVERSAS',
-    invertible: true,
   },
 ];
 
@@ -120,8 +105,7 @@ export function HiraganaSelectionScreen({
   const supportsInvertedMode = Boolean(
     modeMeta.invertible && !(selectedMode === 'writing' && isMixedScript),
   );
-  const usesGroups = selectedMode !== 'phrases';
-  const canStart = !usesGroups || selectedGroupIds.length > 0;
+  const canStart = selectedGroupIds.length > 0;
 
   // Cambiar de silabario cambia los grupos disponibles, así que la selección vuelve a
   // cero. También apaga el modo invertido: en mixto no siempre está permitido.
@@ -177,17 +161,14 @@ export function HiraganaSelectionScreen({
     });
   };
 
-  const invertedActive = supportsInvertedMode && invertedMode;
   return (
     <ScreenBackground
       scrollable
       bottomOverlay={
         <StartBar
-          title={
-            canStart
-              ? (invertedActive ? modeMeta.ctaInverted : modeMeta.cta) ?? modeMeta.cta
-              : 'ELEGÍ AL MENOS UN GRUPO'
-          }
+          // Siempre "COMENZAR": con el nombre del modo ("COMENZAR LECTURA INVERSA") no
+          // entraba en un teléfono angosto.
+          title={canStart ? 'COMENZAR' : 'ELEGÍ AL MENOS UN GRUPO'}
           disabled={!canStart}
           onPress={startPractice}
         />
@@ -199,7 +180,7 @@ export function HiraganaSelectionScreen({
         <Segmented options={SCRIPTS} value={script} onChange={setScript} />
       </View>
 
-      <SectionStep n={1}>Qué querés hacer</SectionStep>
+      <SectionStep n={1}>Juego</SectionStep>
 
       <ModeGrid>
         {MODES.map((item) => (
@@ -224,66 +205,70 @@ export function HiraganaSelectionScreen({
         <View style={styles.stepGap} />
       )}
 
-      {usesGroups ? (
-        <>
-          <SectionStep
-            n={2}
-            right={
-              <CheckAll
-                state={selectionState(selectedGroupIds.length, allGroupIds.length)}
-                onToggle={() =>
-                  setSelectedGroupIds(selectedGroupIds.length === allGroupIds.length ? [] : allGroupIds)
-                }
-              />
-            }
-          >
-            Con qué
-          </SectionStep>
-
-          <View style={styles.sections}>
-            {availableSections.map((section) => {
-              const groupIds = section.groups.map((group) => group.id);
-              const selectedCount = groupIds.filter((id) => selectedGroupIds.includes(id)).length;
-              const characters = getKanaCharactersForGroupIds(script, groupIds);
-              const preview =
-                characters.length > 1
-                  ? `${characters[0].kana}〜${characters[characters.length - 1].kana}`
-                  : undefined;
-
-              return (
-                <CheckSection
-                  key={section.id}
-                  title={section.title}
-                  count={characters.length}
-                  hint={preview}
-                  hintIsGlyph
-                  state={selectedCount === 0 ? 'off' : selectedCount === groupIds.length ? 'on' : 'partial'}
-                  onToggle={() => toggleSectionSelection(groupIds)}
-                  expanded={expandedSections[section.id]}
-                  onToggleExpanded={() =>
-                    setExpandedSections((current) => ({
-                      ...current,
-                      [section.id]: !current[section.id],
-                    }))
-                  }
-                >
-                  {section.groups.map((group) => (
-                    <CheckRow
-                      key={group.id}
-                      compact
-                      title={group.romajiPreview}
-                      hint={group.kanaPreview}
-                      hintIsGlyph
-                      state={selectedGroupIds.includes(group.id) ? 'on' : 'off'}
-                      onPress={() => toggleGroup(group.id)}
-                    />
-                  ))}
-                </CheckSection>
-              );
-            })}
-          </View>
-        </>
+      {/* El tablero es el mazo entero: no tiene rondas. */}
+      {selectedMode !== 'board' ? (
+        <View style={styles.roundsGap}>
+          <RoundsPicker step={2} />
+        </View>
       ) : null}
+
+      <SectionStep
+        // El tablero no tiene rondas: ahí Estilo es el paso 2.
+        n={selectedMode === 'board' ? 2 : 3}
+        right={
+          <CheckAll
+            state={selectionState(selectedGroupIds.length, allGroupIds.length)}
+            onToggle={() =>
+              setSelectedGroupIds(selectedGroupIds.length === allGroupIds.length ? [] : allGroupIds)
+            }
+          />
+        }
+      >
+        Estilo
+      </SectionStep>
+
+      <View style={styles.sections}>
+        {availableSections.map((section) => {
+          const groupIds = section.groups.map((group) => group.id);
+          const selectedCount = groupIds.filter((id) => selectedGroupIds.includes(id)).length;
+          const characters = getKanaCharactersForGroupIds(script, groupIds);
+          const preview =
+            characters.length > 1
+              ? `${characters[0].kana}〜${characters[characters.length - 1].kana}`
+              : undefined;
+
+          return (
+            <CheckSection
+              key={section.id}
+              title={section.title}
+              count={characters.length}
+              hint={preview}
+              hintIsGlyph
+              state={selectedCount === 0 ? 'off' : selectedCount === groupIds.length ? 'on' : 'partial'}
+              onToggle={() => toggleSectionSelection(groupIds)}
+              expanded={expandedSections[section.id]}
+              onToggleExpanded={() =>
+                setExpandedSections((current) => ({
+                  ...current,
+                  [section.id]: !current[section.id],
+                }))
+              }
+            >
+              {section.groups.map((group) => (
+                <CheckRow
+                  key={group.id}
+                  compact
+                  title={group.romajiPreview}
+                  hint={group.kanaPreview}
+                  hintIsGlyph
+                  state={selectedGroupIds.includes(group.id) ? 'on' : 'off'}
+                  onPress={() => toggleGroup(group.id)}
+                />
+              ))}
+            </CheckSection>
+          );
+        })}
+      </View>
     </ScreenBackground>
   );
 }
@@ -308,6 +293,9 @@ const styles = StyleSheet.create({
   },
   stepGap: {
     height: theme.spacing.lg,
+  },
+  roundsGap: {
+    marginBottom: theme.spacing.lg,
   },
   sections: {
     gap: 8,

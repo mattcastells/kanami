@@ -6,6 +6,11 @@ export type EmojiGameMode = 'word-to-emoji' | 'emoji-to-word';
 export type EmojiOption = {
   id: string;
   text: string;
+  // La entrada completa detrás de la opción: al errar se muestra QUÉ elegiste (palabra y
+  // significado), no solo el emoji.
+  emoji: string;
+  kana: string;
+  translation: string;
 };
 
 export type EmojiRound = {
@@ -66,6 +71,9 @@ export function createEmojiRound(
     (entry) => ({
       id: entry.id,
       text: optionsAreEmoji ? entry.emoji : entry.kana,
+      emoji: entry.emoji,
+      kana: entry.kana,
+      translation: entry.translation,
     }),
   );
 

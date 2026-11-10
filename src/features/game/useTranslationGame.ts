@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
 import { PhraseEntry } from '../../data/phrases';
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import {
   TranslationDirection,
   TranslationInputMode,
   TranslationSessionState,
+  chooseTranslation,
   createInitialTranslationState,
   moveToNextTranslationRound,
   placeTile,
@@ -14,6 +13,7 @@ import {
   submitTranslation,
   updateTranslationInput,
 } from './phraseTranslationEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 export function useTranslationGame(
   pool: PhraseEntry[],
@@ -21,9 +21,7 @@ export function useTranslationGame(
   mode: TranslationInputMode,
   resetKey: string,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
 
   const [state, setState] = useState<TranslationSessionState>(() =>
     createInitialTranslationState(pool, direction),
@@ -33,16 +31,12 @@ export function useTranslationGame(
     setState(createInitialTranslationState(pool, direction));
   }, [direction, pool, resetKey]);
 
-  // Los haptics van en un efecto keyed por el estado, no dentro del updater de
-  // setState: el updater tiene que quedar puro (se ejecuta dos veces en StrictMode).
+  // El feedback (haptics + sonido) va en un efecto keyed por el estado, no dentro del
+  // updater de setState: el updater tiene que quedar puro (se ejecuta dos veces en StrictMode).
   useEffect(() => {
-    if (state.answerState === 'idle' || !hapticsEnabled) return;
-    void Haptics.notificationAsync(
-      state.answerState === 'correct'
-        ? Haptics.NotificationFeedbackType.Success
-        : Haptics.NotificationFeedbackType.Error,
-    );
-  }, [hapticsEnabled, state.answerState, state.round.phraseId]);
+    if (state.answerState === 'idle') return;
+    playAnswerFeedback(state.answerState === 'correct');
+  }, [playAnswerFeedback, state.answerState, state.round.phraseId]);
 
   const place = (tileIndex: number) =>
     setState((current) => placeTile(current, tileIndex));
@@ -53,6 +47,9 @@ export function useTranslationGame(
   const setInputValue = (value: string) =>
     setState((current) => updateTranslationInput(current, value));
 
+  const choose = (option: string) =>
+    setState((current) => chooseTranslation(current, option));
+
   const submit = () =>
     setState((current) => submitTranslation(current, mode, direction));
 
@@ -60,5 +57,5 @@ export function useTranslationGame(
     setState((current) => moveToNextTranslationRound(current, pool, direction));
   };
 
-  return { state, place, removeAt, setInputValue, submit, next };
+  return { state, place, removeAt, setInputValue, choose, submit, next };
 }

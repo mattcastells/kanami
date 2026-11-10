@@ -3,6 +3,7 @@ import {
   ClassVocabCategoryId,
   classVocabEntries,
 } from '../../data/classVocabulary';
+import { findPhraseExample } from '../../data/phrases';
 import { AnswerState, GameStats, shuffle } from './gameEngine';
 
 // Significados: reconocer palabras que ya viste en clase. Sale SIEMPRE de
@@ -31,6 +32,9 @@ export type MeaningRound = {
   kanji?: string;
   romaji: string;
   es: string;
+  // Un uso corto para mostrar al responder: la nota de la palabra si tiene (curada a mano)
+  // o una frase del mazo que la contiene. undefined si no hay ninguna.
+  example?: string;
 };
 
 export type MeaningSessionState = {
@@ -140,7 +144,14 @@ function buildRound(
     kanji: entry.kanji,
     romaji: entry.romaji,
     es: entry.es,
+    example: exampleFor(entry),
   };
+}
+
+function exampleFor(entry: MeaningEntry): string | undefined {
+  if (entry.note) return entry.note;
+  const phrase = findPhraseExample(entry.kana);
+  return phrase ? `Ej.: ${phrase.kana} — ${phrase.translation}` : undefined;
 }
 
 // Una ronda de una palabra puntual, con distractores de toda la cursada. La usa el Repaso

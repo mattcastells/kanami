@@ -66,7 +66,9 @@ El workflow (`android-release.yml`) entonces:
   `FLAG_GRANT_READ_URI_PERMISSION`.
 - **Solo Android.** En web e iOS tira un error explícito.
 - Requiere el permiso `REQUEST_INSTALL_PACKAGES`, ya declarado en `app.json`.
-- Se dispara desde Perfil/Opciones.
+- Se dispara desde Perfil/Opciones y, desde v1.14.0, solo al abrir la app (`UpdatePrompt` +
+  `useStartupUpdateCheck`): si hay una Release más nueva, ofrece ACTUALIZAR / MÁS TARDE.
+  Las instalaciones anteriores a v1.14.0 no tienen el aviso: se actualizan una vez a mano.
 
 ## Antes de taggear
 

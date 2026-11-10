@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import {
   createInitialDrillState,
   DrillAnswerMode,
@@ -13,6 +11,7 @@ import {
   submitDrillInput,
   updateDrillInput,
 } from './readingDrillEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 // Nada avanza solo: elegir y escribir esperan a que toques SIGUIENTE, para poder leer la
 // corrección con calma.
@@ -23,9 +22,7 @@ export function useReadingDrill(
   answerMode: DrillAnswerMode,
   resetKey: string,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const [state, setState] = useState<DrillSessionState>(() =>
     createInitialDrillState(source, direction, answerMode),
   );
@@ -53,13 +50,7 @@ export function useReadingDrill(
     stateRef.current = updated;
     setState(updated);
 
-    if (hapticsEnabled) {
-      void Haptics.notificationAsync(
-        updated.answerState === 'correct'
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Error,
-      );
-    }
+    playAnswerFeedback(updated.answerState === 'correct');
   };
 
   const choose = (optionId: string) => {

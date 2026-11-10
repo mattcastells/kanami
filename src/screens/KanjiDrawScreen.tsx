@@ -5,12 +5,14 @@ import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { findKanjiEntry, getMainReading } from '../features/kanji/kanjiCatalog';
 import { filterDrawableCharacters } from '../features/game/drawingGameEngine';
+import { useGameSession } from '../features/game/useGameSession';
 import { RootStackScreenProps } from '../types/navigation';
 
 // Trazos de kanji. Recibe los caracteres ya resueltos (uno desde la ficha, varios desde
 // el catálogo): la pantalla no decide qué kanji existen, solo los dibuja.
 export function KanjiDrawScreen({ route }: RootStackScreenProps<'KanjiDraw'>) {
   const { chars } = route.params;
+  const session = useGameSession();
 
   const pool = useMemo(
     () =>
@@ -31,7 +33,7 @@ export function KanjiDrawScreen({ route }: RootStackScreenProps<'KanjiDraw'>) {
     [chars],
   );
 
-  const resetKey = `kanji-draw:${chars.join('')}`;
+  const resetKey = `kanji-draw:${chars.join('')}:${session.nonce}`;
 
   if (pool.length === 0) {
     return (
@@ -43,7 +45,12 @@ export function KanjiDrawScreen({ route }: RootStackScreenProps<'KanjiDraw'>) {
 
   return (
     <ScreenBackground scrollable={false}>
-      <DrawingPractice pool={pool} resetKey={resetKey} title="Trazos · Kanji" />
+      <DrawingPractice
+        pool={pool}
+        resetKey={resetKey}
+        title="Trazos · Kanji"
+        session={{ length: session.length, onRepeat: session.repeat, onBack: session.back }}
+      />
     </ScreenBackground>
   );
 }

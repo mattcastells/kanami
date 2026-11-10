@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
 import { WordPracticeEntry } from '../../data/wordVocabulary';
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import { PracticeMode } from '../../types/game';
 import { GameSessionState } from './gameEngine';
 import {
@@ -13,6 +11,7 @@ import {
   updateWordInput,
   WordGameSessionState,
 } from './wordGameEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 export function useWordPracticeGame(
   pool: WordPracticeEntry[],
@@ -20,9 +19,7 @@ export function useWordPracticeGame(
   mode: Extract<PracticeMode, 'words' | 'syllables'>,
   inverted = false,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const answerKind = getWordAnswerKind(mode, inverted);
   const [state, setState] = useState<WordGameSessionState>(() =>
     createInitialWordGameState(pool, mode, inverted),
@@ -93,13 +90,7 @@ export function useWordPracticeGame(
       selectedText,
     });
 
-    if (hapticsEnabled) {
-      if (nextAnswerState === 'correct') {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-    }
+    playAnswerFeedback(nextAnswerState === 'correct');
   };
 
   return {

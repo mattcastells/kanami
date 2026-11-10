@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { CheckAll, CheckRow, CheckSection, selectionState } from '../components/practice/CheckRow';
 import { ModeGrid, ModeTile } from '../components/practice/ModeTile';
+import { RoundsPicker } from '../components/practice/RoundsPicker';
 import { StartBar } from '../components/practice/StartBar';
 import { SectionStep } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
@@ -121,7 +122,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
     >
       <ScreenHeader glyph="意" title="Significados" />
 
-      <SectionStep n={1}>Qué querés hacer</SectionStep>
+      <SectionStep n={1}>Juego</SectionStep>
 
       <ModeGrid>
         {DIRECTIONS.map((item) => (
@@ -135,9 +136,13 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
         ))}
       </ModeGrid>
 
+      <View style={styles.rounds}>
+        <RoundsPicker step={2} />
+      </View>
+
       <View style={styles.step}>
         <SectionStep
-          n={2}
+          n={3}
           right={
             <CheckAll
               state={selectionState(selectedCategoryIds.length, ALL_CATEGORY_IDS.length)}
@@ -149,7 +154,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
             />
           }
         >
-          Con qué
+          Temática
         </SectionStep>
       </View>
 
@@ -207,6 +212,9 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
 }
 
 const styles = StyleSheet.create({
+  rounds: {
+    marginTop: theme.spacing.md,
+  },
   step: {
     marginTop: theme.spacing.lg,
   },

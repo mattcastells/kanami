@@ -116,8 +116,9 @@ menos en Trazos: `drawingGameEngine` lo saca del pool solo (`getStrokeGuide` dev
 | `content/clases/*.md` | el kanji aparece en el texto de la transcripción (el número de clase sale del nombre del archivo) |
 | `src/data/classVocabulary.ts` | el kanji aparece en la grafía de una palabra de esa clase |
 
-De ahí sale `getKanjiOrigin(char)`: `'clase'` si aparece en alguna, `'curriculum'` si no. Lo
-usa Kanji Grind (preset "Los de mis clases"). `KANJI_CLASS_WORDS` se sigue generando pero hoy
+De ahí sale `getKanjiOrigin(char)`: `'clase'` si aparece en alguna, `'curriculum'` si no. Hoy
+no lo usa ninguna pantalla (el preset "Los de mis clases" de Kanji Grind se fue; auditado el
+2026-11-10): la procedencia se genera igual para cuando se vuelva a mostrar. `KANJI_CLASS_WORDS` se sigue generando pero hoy
 no lo lee nadie: lo consumía la ficha.
 
 `content/clases/*.md` ya no se muestra en la app, pero **no lo borres**: sin esos archivos los

@@ -1,4 +1,6 @@
-import { normalizeRomaji } from '../game/romajiAnswer';
+// compareRomaji = el mismo criterio que los modos (を como "o"/"wo", vocal larga en sus
+// tres formas, tolerancia de tipeo en lo largo): si el modo te lo acepta, el Repaso también.
+import { compareRomaji } from '../game/romajiAnswer';
 import { SrsItem, SrsItemState } from '../srs/srsStore';
 import { WeakData, WeakFormat, selectWeakQueue } from './weakStore';
 
@@ -17,6 +19,8 @@ export type ReviewExercise = {
   format: WeakFormat;
   prompt: string;
   answer: string;
+  // Otras respuestas válidas (las que el modo original también aceptaba).
+  accepted: string[];
   // Ya barajadas; vacío salvo en 'choice'.
   options: string[];
   speakText: string;
@@ -24,6 +28,9 @@ export type ReviewExercise = {
   misses: number;
   // Presente solo en los de relleno: la clave para graduar el ítem en el SRS.
   srsKey?: string;
+  // Segunda vuelta de algo que fallaste en esta misma ronda. Es práctica: no se reporta
+  // (acertarlo segundos después no prueba que lo sepas).
+  retry?: boolean;
 };
 
 function shuffle<T>(items: T[]): T[] {
@@ -35,13 +42,10 @@ function shuffle<T>(items: T[]): T[] {
   return result;
 }
 
-// Comparación de respuestas escritas: mismo criterio que el resto de la app
-// (sin espacios, sin mayúsculas, sin acentos).
-export function normalizeReviewAnswer(value: string): string {
-  // Mismo criterio que los modos originales: si el modo te lo acepta, el Repaso también.
-  // Antes el Repaso sacaba acentos pero no toleraba を como "wo"/"o" ni las tres formas de
-  // escribir una vocal larga, así que la misma respuesta pasaba en un lado y fallaba acá.
-  return normalizeRomaji(value);
+// Las aclaraciones entre paréntesis no se tipean: "buenos dias" vale por "Buenos días
+// (formal)", como en Traducción. Antes el Repaso exigía el paréntesis.
+function withoutNotes(value: string): string {
+  return value.replace(/\([^)]*\)/g, '');
 }
 
 export function isReviewAnswerCorrect(
@@ -51,9 +55,35 @@ export function isReviewAnswerCorrect(
   if (exercise.format === 'choice') {
     return submitted === exercise.answer;
   }
-  return (
-    normalizeReviewAnswer(submitted) === normalizeReviewAnswer(exercise.answer)
+  // Mismo veredicto que los modos: en respuestas largas un carácter de más o de menos es
+  // tipeo ("Casi") y cuenta; en las cortas tiene que ser exacto.
+  return [exercise.answer, ...exercise.accepted].some(
+    (expected) => compareRomaji(withoutNotes(submitted), withoutNotes(expected)) !== 'wrong',
   );
+}
+
+// Lo que fallás vuelve una vez al final de la ronda, con las opciones en otro orden. El
+// dibujo no: DrawingPractice reporta por su cuenta y lo contaría dos veces.
+export function canRetry(exercise: ReviewExercise): boolean {
+  return !exercise.retry && exercise.format !== 'draw';
+}
+
+export function makeRetry(exercise: ReviewExercise): ReviewExercise {
+  return {
+    ...exercise,
+    key: `${exercise.key}#retry`,
+    options: shuffle(exercise.options),
+    retry: true,
+  };
+}
+
+// Qué entra en una ronda de `size`: la mitad, lo más fallado; la otra mitad, al azar entre
+// el resto. Solo por prioridad salían SIEMPRE los mismos 12 (y lo agregado a mano, con 0
+// fallos, no llegaba nunca si tenías más de 12 errores).
+function pickForSession<T>(prioritized: T[], size: number): T[] {
+  if (prioritized.length <= size) return prioritized;
+  const top = Math.ceil(size / 2);
+  return [...prioritized.slice(0, top), ...shuffle(prioritized.slice(top)).slice(0, size - top)];
 }
 
 export function buildReviewSession(
@@ -65,7 +95,8 @@ export function buildReviewSession(
   // Solo estos juegos. undefined = todos (y con relleno del SRS si no alcanza).
   modeKeys?: string[],
 ): ReviewExercise[] {
-  const fromWeak = selectWeakQueue(weak, size, modeKeys).map<ReviewExercise>((item) => {
+  const prioritized = selectWeakQueue(weak, Number.POSITIVE_INFINITY, modeKeys);
+  const fromWeak = pickForSession(prioritized, size).map<ReviewExercise>((item) => {
     // Un 'choice' sin opciones guardadas (dato viejo o incompleto) se degrada a
     // escribir la respuesta, en vez de quedar sin nada donde tocar.
     const options = item.options.length > 1 ? shuffle(item.options) : [];
@@ -79,6 +110,7 @@ export function buildReviewSession(
       format,
       prompt: item.prompt,
       answer: item.answer,
+      accepted: item.accepted,
       options,
       speakText: item.speakText,
       misses: item.misses,
@@ -88,7 +120,8 @@ export function buildReviewSession(
   const remaining = size - fromWeak.length;
   // Si elegiste juegos puntuales, rellenar con kana sueltos sería meter lo que no pediste.
   // Con "todos" (size infinito) tampoco: el relleno sería el mazo entero.
-  if (remaining <= 0 || modeKeys || !Number.isFinite(size)) return fromWeak;
+  // El orden se baraja: de mayor a menor fallo, la secuencia se aprendía de memoria.
+  if (remaining <= 0 || modeKeys || !Number.isFinite(size)) return shuffle(fromWeak);
 
   // Relleno: primero lo vencido del SRS, después lo que nunca viste.
   const due: SrsItem[] = [];
@@ -108,11 +141,12 @@ export function buildReviewSession(
       format: 'input',
       prompt: item.front,
       answer: item.answer,
+      accepted: [],
       options: [],
       speakText: item.front,
       misses: 0,
       srsKey: item.key,
     }));
 
-  return [...fromWeak, ...filler];
+  return shuffle([...fromWeak, ...filler]);
 }

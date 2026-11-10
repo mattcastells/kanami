@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerInput } from '../components/game/AnswerInput';
-import { AnswerNote, GameFooter, PromptCard } from '../components/game/GamePlay';
+import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
+import { AnswerNote, GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
 import { Segmented } from '../components/ui/InkBits';
@@ -24,32 +25,49 @@ import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { FONTS, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
+import { isSessionOver } from '../features/game/gameEngine';
+import { sessionProgress, useGameSession } from '../features/game/useGameSession';
+import { SessionSummary } from '../components/game/SessionSummary';
 
 const DIRECTIONS: { value: TranslationDirection; label: string }[] = [
   { value: 'es-to-jp', label: 'Es → 日本語' },
   { value: 'jp-to-es', label: '日本語 → Es' },
 ];
 
+// Elegir = reconocer la frase (el más fácil, va primero); ordenar y escribir = producirla.
 const INPUT_MODES: { value: TranslationInputMode; label: string }[] = [
-  { value: 'tiles', label: 'Ordenar piezas' },
+  { value: 'choice', label: 'Elegir' },
+  { value: 'tiles', label: 'Ordenar' },
   { value: 'typing', label: 'Escribir' },
 ];
 
 
+// La frase en japonés baja de tamaño con el largo: a 28, una de 10+ kana no entraba en un
+// renglón.
+function jpPromptSize(text: string) {
+  const size = text.length <= 8 ? 28 : text.length <= 13 ? 22 : 19;
+  return { fontSize: size, lineHeight: Math.round(size * 1.4) };
+}
+
 export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>) {
   const { theme: activeTheme } = useAppTheme();
-  const [direction, setDirection] = useState<TranslationDirection>('es-to-jp');
-  const [mode, setMode] = useState<TranslationInputMode>('tiles');
+  // Arranca en leer japonés y elegir qué significa: el ejercicio de entrada.
+  const [direction, setDirection] = useState<TranslationDirection>('jp-to-es');
+  const [mode, setMode] = useState<TranslationInputMode>('choice');
 
   const pool = useMemo(() => getTranslationPool('mixed'), []);
-  const resetKey = `translation:${direction}:${mode}`;
-  const { state, place, removeAt, setInputValue, submit, next } =
+  const session = useGameSession();
+  const resetKey = `translation:${direction}:${mode}:${session.nonce}`;
+  const { state, place, removeAt, setInputValue, choose, submit, next } =
     useTranslationGame(pool, direction, mode, resetKey);
 
   useTrackProgress('translation', state.stats);
   useTrackWeakItem('translation', state.answerState, {
     itemId: `${state.round.phraseId}:${direction}`,
-    format: 'input',
+    // Lo que fallaste eligiendo vuelve al Repaso con las mismas opciones.
+    ...(mode === 'choice'
+      ? { format: 'choice' as const, options: state.round.options }
+      : { format: 'input' as const }),
     prompt: state.round.promptText,
     answer: state.round.answerText,
     speakText: state.round.kana,
@@ -62,9 +80,23 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
   const { colors } = activeTheme;
   const pieceTextStyle = (text: string) => [styles.tileText, hasJapanese(text) ? styles.tileGlyph : null];
 
+  if (isSessionOver(state.stats, state.answerState, session.length)) {
+    return (
+      <ScreenBackground scrollable>
+        <SessionSummary
+          modeLabel="Traducción"
+          correct={state.stats.correct}
+          incorrect={state.stats.incorrect}
+          onRepeat={session.repeat}
+          onBack={session.back}
+        />
+      </ScreenBackground>
+    );
+  }
+
   return (
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
-      <GameHeader glyph="訳" title="Traducción" />
+      <GameHeader glyph="訳" title="Traducción" progress={sessionProgress(state.stats, session.length)} />
 
       <View style={styles.selectors}>
         <Segmented options={DIRECTIONS} value={direction} onChange={setDirection} />
@@ -75,12 +107,37 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
         size="compact"
         help={isJapanesePrompt ? '¿Qué significa?' : undefined}
         score={state.stats}
-        bottomRight={isJapanesePrompt ? <SpeakButton text={state.round.kana} /> : null}
+        speakText={isJapanesePrompt ? state.round.kana : undefined}
       >
-        <AppText style={isJapanesePrompt ? styles.jpPrompt : styles.esPrompt}>{state.round.promptText}</AppText>
+        <AppText style={isJapanesePrompt ? [styles.jpPrompt, jpPromptSize(state.round.promptText)] : styles.esPrompt}>
+          {state.round.promptText}
+        </AppText>
       </PromptCard>
 
-      {mode === 'tiles' ? (
+      {mode === 'choice' ? (
+        <View>
+          {state.round.options.map((option) => (
+            <AnswerOptionButton
+              key={option}
+              label={option}
+              fullWidth
+              lines={3}
+              labelStyle={styles.choiceText}
+              disabled={answered}
+              visualState={
+                !answered
+                  ? 'idle'
+                  : option === state.round.answerText
+                    ? 'correct'
+                    : option === state.chosen
+                      ? 'incorrect'
+                      : 'muted'
+              }
+              onPress={() => choose(option)}
+            />
+          ))}
+        </View>
+      ) : mode === 'tiles' ? (
         <>
           {/* Ranura de la respuesta: tocar una pieza colocada la devuelve al pozo. */}
           <View style={[styles.slot, activeTheme.surfaces.outlined, { backgroundColor: colors.card }]}>
@@ -168,9 +225,19 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
           status: state.answerState,
           correctText: state.round.answerText,
           selectedText:
-            state.answerState === 'incorrect' ? (mode === 'tiles' ? placed.join('') : state.inputValue) : null,
+            state.answerState === 'incorrect'
+              ? mode === 'choice'
+                ? state.chosen
+                : mode === 'tiles'
+                  ? placed.join('')
+                  : state.inputValue
+              : null,
         }}
+        chosen={mode === 'choice'}
       >
+        {mode === 'choice' && !answered ? (
+          <WaitingHint visible />
+        ) : (
         <View style={styles.actions}>
           {/* Del español al japonés, el audio dice la respuesta: recién después de responder. */}
           {answered && !isJapanesePrompt ? <SpeakButton variant="square" text={state.round.kana} /> : null}
@@ -182,6 +249,7 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
             style={styles.advance}
           />
         </View>
+        )}
       </GameFooter>
     </ScreenBackground>
   );
@@ -200,9 +268,9 @@ const styles = StyleSheet.create({
   },
   jpPrompt: {
     fontFamily: FONTS.glyph,
-    fontSize: 28,
-    lineHeight: 40,
     textAlign: 'center',
+    // Margen para el parlante chico de la esquina de arriba.
+    paddingHorizontal: 20,
   },
   reveal: {
     textAlign: 'center',
@@ -240,6 +308,11 @@ const styles = StyleSheet.create({
   },
   tileGlyph: {
     fontFamily: FONTS.glyph,
+  },
+  // Una frase entera por opción: cuerpo de lectura, no el 22 de las opciones cortas.
+  choiceText: {
+    fontSize: 16,
+    lineHeight: 22,
   },
   actions: {
     flexDirection: 'row',

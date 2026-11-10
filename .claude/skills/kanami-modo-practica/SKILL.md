@@ -34,9 +34,9 @@ escribí un `DrillSource` para `readingDrillEngine` (así están Números y Fech
 ## Regla de ubicación
 
 **Un modo nuevo va SIEMPRE en pantalla propia.** No lo metas en `src/screens/GameScreen.tsx`:
-ese archivo ya tiene 1825 líneas, multiplexa 6 vistas de modo de kana y es el legacy del repo
+ese archivo ya tiene ~1300 líneas, multiplexa 6 vistas de modo de kana y es el legacy del repo
 (ver deuda D5). Solo trabajás dentro de `GameScreen` si estás **modificando** uno de esos 6
-modos existentes: `reading`, `writing`, `syllables`, `phrases`, `fill-blank`, `word-builder`.
+modos existentes: `reading`, `writing`, `drawing`, `syllables`, `fill-blank`, `word-builder` (`phrases` se fue el 2026-11-10).
 
 ## Pasos
 
@@ -79,31 +79,36 @@ Copiá la estructura de `useAntonymGame.ts` (o `useMeaningGame.ts` si hay parám
 Tiene que hacer exactamente esto:
 
 - `useState` inicializado con la función (`useState(() => createInitial...)`), no con el valor.
-- Un `stateRef` espejo + `commit(next)`: `answer` decide leyendo el ref y dispara haptics y
-  timer **afuera** de `setState`, nunca adentro del updater.
+- Un `stateRef` espejo + `commit(next)`: `answer` decide leyendo el ref y dispara el feedback
+  **afuera** de `setState`, nunca adentro del updater.
 - `lastFeedback` en su propio `useState` para alimentar `FeedbackBanner`.
-- Si el modo tiene parámetros: `useEffect([..., resetKey])` → limpia el timeout pendiente y
-  reinicia estado + feedback.
-- `useEffect(() => () => clearTimeout(...), [])` → limpieza en unmount. **No lo omitas.**
-- Haptics condicionados por `useAppSettings().settings.hapticsEnabled`, con
-  `Haptics.NotificationFeedbackType.Success` / `.Error`.
-- Auto-avance con `setTimeout` (los tiempos usados hoy: ~180-260ms en acierto y ~260-700ms
-  en fallo en los modos de kana y Significados; Antónimos usa 700/1500ms porque después de
-  responder muestra las dos palabras con su traducción — más tiempo cuanto más hay que leer).
-- Devolvé `{ state, answer, lastFeedback }` (y `next` si el modo permite avance manual).
+- Si el modo tiene parámetros: `useEffect([..., resetKey])` → reinicia estado + feedback.
+- Si usás algún timer, limpialo en el reset **y** en el unmount.
+- Feedback con `const playAnswerFeedback = useAnswerFeedback()` (`features/feedback/`):
+  `playAnswerFeedback(isCorrect)` hace haptics + sonido de acierto según los ajustes. No
+  importes `expo-haptics` en el hook del modo.
+- **Nada avanza solo** (desde 2026-11-01): sin `setTimeout` de avance. Exponé `next` y la
+  ronda siguiente llega con SIGUIENTE (`ChoiceNext`), así se lee la corrección.
+- Devolvé `{ state, answer, next, lastFeedback }`. El modelo más reciente es
+  `useQuestionGame` (Preguntas).
 
 ### 3. Pantalla — `src/screens/<Nombre>GameScreen.tsx`
 
 Composición estándar, en este orden:
 
 ```tsx
-<ScreenBackground scrollable>                        // la partida ocupa el alto: el pie va abajo
-  <GameHeader eyebrow="反 · Antónimos" title={...} score={stats} />   // + progress si hay largo
-  <PromptCard help="¿Cómo se lee?" bottomRight={<SpeakButton ... />}>  // el prompt (Klee)
-  <View style={styles.answersGrid}>                  // <AnswerOptionButton /> por opción
-                                                     //   o <AnswerInput status={answerState} />
-  <GameFooter feedback={lastFeedback}>               // resultado + acción, abajo
-    <WaitingHint visible={answerState === 'idle'} /> // o SIGUIENTE / ENVIAR
+const session = useGameSession();                      // rondas (ajuste único) + REPETIR
+if (isSessionOver(stats, answerState, session.length)) return <SessionSummary … />;
+
+<ScreenBackground scrollable>                         // la partida ocupa el alto: el pie va abajo
+  <GameHeader glyph="反" title="Antónimos" progress={sessionProgress(stats, session.length)} />
+  <PromptCard help="¿Cómo se lee?" score={stats} speakText={…}>  // la tarjeta se toca para escuchar
+  <AnswerOptionGrid labels={…}>                       // 2×2, o 1 columna si alguna no entra
+    <AnswerOptionButton … />                          //   o <AnswerInput status={answerState} />
+  </AnswerOptionGrid>
+  <AnswerNote>…</AnswerNote>                          // lo que se revela (WordReveal para palabras)
+  <GameFooter feedback={lastFeedback} chosen>         // resultado + acción, abajo
+    <ChoiceNext answered={…} onNext={next} />         // o SIGUIENTE / ENVIAR
   </GameFooter>
 </ScreenBackground>
 ```
@@ -114,9 +119,9 @@ Composición estándar, en este orden:
   dark mode.
 - La ruta nueva va en `PLAYING_ROUTES` (`src/navigation/tabBar.ts`): durante la partida la
   tab bar se oculta. Si te olvidás, la partida queda con la barra de pestañas abajo.
-- Si el contenido es japonés, poné un `<SpeakButton text={...} />`. **El audio no puede dar
+- Si el contenido es japonés, pasale `speakText` a `PromptCard`. **El audio no puede dar
   la respuesta**: si lo que se lee es justo lo que se pregunta (una lectura, la palabra que
-  falta), el `SpeakButton` aparece **recién después de responder**. En Antónimos puede estar
+  falta), `speakText` va **recién después de responder** (`answered ? texto : undefined`). En Antónimos puede estar
   siempre porque lee la consigna y la respuesta es la otra palabra.
 
 ### 4. Ruta

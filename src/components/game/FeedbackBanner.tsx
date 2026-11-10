@@ -15,6 +15,8 @@ type FeedbackBannerProps = {
   nearMiss?: boolean;
   // Segunda línea cuando acertaste (ej. la traducción).
   detail?: string | null;
+  // Modos de elegir: lo tuyo se presenta como "Elegiste", no "Escribiste".
+  chosen?: boolean;
 };
 
 // Tira de resultado: ○/× en un círculo, la respuesta correcta primero y debajo lo tuyo
@@ -27,6 +29,7 @@ export function FeedbackBanner({
   selectedText,
   nearMiss = false,
   detail,
+  chosen = false,
 }: FeedbackBannerProps) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
@@ -48,7 +51,7 @@ export function FeedbackBanner({
       ? `Casi — se escribe: ${resolvedAnswerText}`
       : `Correcto: ${resolvedAnswerText}`
     : resolvedAnswerText;
-  const secondaryMessage = !ok && selectedText ? `Escribiste: ${selectedText}` : ok ? detail : null;
+  const secondaryMessage = !ok && selectedText ? `${chosen ? 'Elegiste' : 'Escribiste'}: ${selectedText}` : ok ? detail : null;
 
   return (
     <View style={[styles.container, { borderColor: tone, backgroundColor: soft }]}>

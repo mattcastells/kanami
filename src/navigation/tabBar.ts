@@ -29,6 +29,10 @@ export const PLAYING_ROUTES = [
   'AntonymGame',
   'NumbersGame',
   'DateTimeGame',
+  'QuestionGame',
+  'GrammarGame',
+  'ParticleGame',
+  'CountersGame',
 ];
 
 export const HIDDEN_TAB_BAR: ViewStyle = { display: 'none' };

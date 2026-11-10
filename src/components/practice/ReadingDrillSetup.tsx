@@ -7,6 +7,7 @@ import { SectionStep, Segmented } from '../ui/InkBits';
 import { ScreenBackground } from '../ui/ScreenBackground';
 import { ScreenHeader } from '../ui/ScreenHeader';
 import { CheckAll, CheckRow, selectionState } from './CheckRow';
+import { RoundsPicker } from './RoundsPicker';
 import { ModeGrid, ModeTile } from './ModeTile';
 import { StartBar } from './StartBar';
 
@@ -39,7 +40,8 @@ type ReadingDrillSetupProps<Id extends string> = {
   }) => void;
 };
 
-const ANSWER_MODES: { value: DrillAnswerMode; label: string }[] = [
+// Las dos formas de responder. La comparten Números, Fechas y hora y Palabra guiada.
+export const ANSWER_MODES: { value: DrillAnswerMode; label: string }[] = [
   { value: 'choice', label: 'Elegir entre 4' },
   { value: 'input', label: 'Escribir' },
 ];
@@ -76,7 +78,7 @@ export function ReadingDrillSetup<Id extends string>({
     >
       <ScreenHeader glyph={glyph} title={title} />
 
-      <SectionStep n={1}>Qué querés hacer</SectionStep>
+      <SectionStep n={1}>Juego</SectionStep>
       <ModeGrid>
         {directions.map((item) => (
           <ModeTile
@@ -90,13 +92,17 @@ export function ReadingDrillSetup<Id extends string>({
       </ModeGrid>
 
       <View style={styles.step}>
-        <SectionStep n={2}>Cómo respondés</SectionStep>
+        <SectionStep n={2}>Respuesta</SectionStep>
         <Segmented options={ANSWER_MODES} value={answerMode} onChange={setAnswerMode} />
       </View>
 
       <View style={styles.step}>
+        <RoundsPicker step={3} />
+      </View>
+
+      <View style={styles.step}>
         <SectionStep
-          n={3}
+          n={4}
           right={
             <CheckAll
               state={selectionState(setIds.length, sets.length)}
@@ -104,7 +110,7 @@ export function ReadingDrillSetup<Id extends string>({
             />
           }
         >
-          Con qué
+          Estilo
         </SectionStep>
         <View style={styles.sets}>
           {sets.map((set) => (

@@ -15,6 +15,14 @@ import { DateTimeSetupScreen } from '../screens/DateTimeSetupScreen';
 import { EmojiGameScreen } from '../screens/EmojiGameScreen';
 import { GameScreen } from '../screens/GameScreen';
 import { MeaningGameScreen } from '../screens/MeaningGameScreen';
+import { CountersGameScreen } from '../screens/CountersGameScreen';
+import { CountersSetupScreen } from '../screens/CountersSetupScreen';
+import { GrammarGameScreen } from '../screens/GrammarGameScreen';
+import { GrammarSetupScreen } from '../screens/GrammarSetupScreen';
+import { ParticleGameScreen } from '../screens/ParticleGameScreen';
+import { ParticlesSetupScreen } from '../screens/ParticlesSetupScreen';
+import { QuestionGameScreen } from '../screens/QuestionGameScreen';
+import { QuestionsSetupScreen } from '../screens/QuestionsSetupScreen';
 import { MeaningSetupScreen } from '../screens/MeaningSetupScreen';
 import { ReviewAddScreen } from '../screens/ReviewAddScreen';
 import { ReviewListScreen } from '../screens/ReviewListScreen';
@@ -68,6 +76,14 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="AntonymGame" component={AntonymGameScreen} />
       <PracticeStack.Screen name="Meanings" component={MeaningSetupScreen} />
       <PracticeStack.Screen name="MeaningGame" component={MeaningGameScreen} />
+      <PracticeStack.Screen name="Questions" component={QuestionsSetupScreen} />
+      <PracticeStack.Screen name="QuestionGame" component={QuestionGameScreen} />
+      <PracticeStack.Screen name="Grammar" component={GrammarSetupScreen} />
+      <PracticeStack.Screen name="GrammarGame" component={GrammarGameScreen} />
+      <PracticeStack.Screen name="Particles" component={ParticlesSetupScreen} />
+      <PracticeStack.Screen name="ParticleGame" component={ParticleGameScreen} />
+      <PracticeStack.Screen name="Counters" component={CountersSetupScreen} />
+      <PracticeStack.Screen name="CountersGame" component={CountersGameScreen} />
       <PracticeStack.Screen name="TranslationGame" component={TranslationGameScreen} />
     </PracticeStack.Navigator>
   );

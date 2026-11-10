@@ -15,11 +15,13 @@ import {
   submitDrawing,
   undoStroke,
 } from './drawingGameEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 export function useDrawingGame(pool: DrawableChar[], resetKey: string) {
   const {
     settings: { hapticsEnabled },
   } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const [state, setState] = useState<DrawingGameSessionState>(() =>
     createInitialDrawingGameState(pool),
   );
@@ -165,14 +167,8 @@ export function useDrawingGame(pool: DrawableChar[], resetKey: string) {
       selectedText,
     });
 
-    if (hapticsEnabled) {
-      if (nextAnswerState === 'correct') {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-    }
-  }, [hapticsEnabled]);
+    playAnswerFeedback(nextAnswerState === 'correct');
+  }, [playAnswerFeedback]);
 
   return {
     state,

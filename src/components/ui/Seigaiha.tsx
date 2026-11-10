@@ -14,7 +14,7 @@ const R = 22;
 // Bordes de los anillos, de afuera hacia adentro (px desde el centro).
 // Igual al mock: 22→19 b · 19→15 a · 15→12 b · 12→8 a · 8→5 b · 5→0 a
 const RINGS: { r: number; tone: 'a' | 'b' }[] = [
-  { r: 22, tone: 'b' },
+  { r: R, tone: 'b' },
   { r: 19, tone: 'a' },
   { r: 15, tone: 'b' },
   { r: 12, tone: 'a' },
@@ -28,12 +28,12 @@ export const Seigaiha = memo(function Seigaiha({ width, height, a, b }: Props) {
   const scales = useMemo(() => {
     const out: { x: number; y: number; key: string }[] = [];
     const rows = Math.ceil(height / 11) + 2;
-    const cols = Math.ceil(width / 44) + 2;
+    const cols = Math.ceil(width / (R * 2)) + 2;
     for (let row = 0; row < rows; row += 1) {
       const y = row * 11;
-      const offset = row % 2 === 0 ? 22 : 0;
+      const offset = row % 2 === 0 ? R : 0;
       for (let col = -1; col < cols; col += 1) {
-        out.push({ x: col * 44 + offset, y, key: `${row}-${col}` });
+        out.push({ x: col * R * 2 + offset, y, key: `${row}-${col}` });
       }
     }
     return out;
@@ -56,4 +56,3 @@ export const Seigaiha = memo(function Seigaiha({ width, height, a, b }: Props) {
   );
 });
 
-export const SEIGAIHA_SCALE_RADIUS = R;

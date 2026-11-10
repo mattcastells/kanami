@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
 import { useKanjiProgress } from '../kanji/KanjiProgressProvider';
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import { KanjiEntry, KanjiGrindFocus } from '../../types/kanji';
 import {
   KanjiGrindSessionState,
@@ -12,6 +10,7 @@ import {
   moveToNextGrindRound,
   submitGrindAnswer,
 } from './kanjiGrindEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 type GrindFeedback = {
   status: KanjiGrindSessionState['answerState'];
@@ -30,9 +29,7 @@ export function useKanjiGrind(
   focus: KanjiGrindFocus,
   resetKey: string,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const { data: progress, recordAnswer } = useKanjiProgress();
 
   // El progreso se lee UNA vez al armar la sesión (por eso el ref): si se leyera en cada
@@ -91,13 +88,7 @@ export function useKanjiGrind(
       recordAnswer(round.char, round.skill, isCorrect);
     }
 
-    if (hapticsEnabled) {
-      void Haptics.notificationAsync(
-        isCorrect
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Error,
-      );
-    }
+    playAnswerFeedback(isCorrect);
 
     // No avanza solo: la ronda siguiente llega con SIGUIENTE (`advance`), así se puede
     // leer la corrección.

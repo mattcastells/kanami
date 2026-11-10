@@ -13,6 +13,7 @@ import { ZenMaruGothic_500Medium } from '@expo-google-fonts/zen-maru-gothic/500M
 import { ZenMaruGothic_700Bold } from '@expo-google-fonts/zen-maru-gothic/700Bold';
 import { ZenMaruGothic_900Black } from '@expo-google-fonts/zen-maru-gothic/900Black';
 
+import { UpdatePrompt } from './src/components/update/UpdatePrompt';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { KanjiProgressProvider } from './src/features/kanji/KanjiProgressProvider';
 import { ProgressProvider } from './src/features/progress/ProgressProvider';
@@ -104,6 +105,8 @@ function AppShell() {
     <NavigationContainer theme={navigationTheme}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <RootNavigator />
+      {/* Al abrir: si hay una versión nueva (Android), la ofrece. */}
+      <UpdatePrompt />
     </NavigationContainer>
   );
 }

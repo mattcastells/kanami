@@ -274,6 +274,19 @@ const kataPhrases = katakanaPhraseData.map((data, index) =>
   createPhraseEntry(data, index, 'katakana'),
 );
 
+// Un ejemplo de uso para mostrar al revelar una palabra: la frase MÁS CORTA del mazo que
+// la contiene (una larga rompe la pantalla). Solo para palabras de 3+ kana: con menos,
+// "いい" o "て" aparecen adentro de cualquier frase y el ejemplo no tendría nada que ver.
+const EXAMPLE_MIN_WORD = 3;
+const EXAMPLE_MAX_LENGTH = 18;
+
+export function findPhraseExample(kana: string): PhraseEntry | undefined {
+  if (kana.length < EXAMPLE_MIN_WORD) return undefined;
+  return getPhrases('mixed')
+    .filter((phrase) => phrase.kana !== kana && phrase.kana.length <= EXAMPLE_MAX_LENGTH && phrase.kana.includes(kana))
+    .sort((a, b) => a.kana.length - b.kana.length)[0];
+}
+
 export function getPhrases(script: KanaScript): PhraseEntry[] {
   if (script === 'mixed') {
     return [...hiraPhrases, ...kataPhrases];

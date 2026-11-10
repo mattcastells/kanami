@@ -17,6 +17,11 @@ type HeaderTitleProps = {
 const GLYPH_PREFIX_EM = 2.1;
 const LATIN_EM = 0.66;
 const JAPANESE_CHAR = /[　-鿿＀-￯]/;
+// Dela, Klee y Zen Maru miden 1.448em de alto (ascent 1.16 + descent 0.288). Con el
+// lineHeight de la tipografía (~1.1em) Android reparte lo que falta mitad arriba y mitad
+// abajo, y al descent le quedaban ~3px: la "g" de "Hiragana" salía cortada. En un título
+// de UN renglón el alto extra no se nota, así que acá va el alto completo.
+const LINE_HEIGHT_EM = 1.4;
 
 function estimateEm(title: string, glyph?: string) {
   let em = glyph ? GLYPH_PREFIX_EM : 0;
@@ -37,10 +42,7 @@ export function HeaderTitle({ title, glyph, variant }: HeaderTitleProps) {
   const fontScale = PixelRatio.getFontScale();
   const fitted = width > 0 ? Math.floor(width / (estimateEm(title, glyph) * fontScale)) : base.fontSize;
   const fontSize = Math.min(base.fontSize, fitted);
-  const sizeStyle =
-    fontSize < base.fontSize
-      ? { fontSize, lineHeight: Math.round((base.lineHeight * fontSize) / base.fontSize) }
-      : null;
+  const sizeStyle = { fontSize, lineHeight: Math.ceil(fontSize * LINE_HEIGHT_EM) };
 
   return (
     <View style={styles.block} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}>

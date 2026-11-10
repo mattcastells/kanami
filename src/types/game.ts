@@ -3,7 +3,6 @@ export type PracticeMode =
   | 'writing'
   | 'drawing'
   | 'syllables'
-  | 'phrases'
   | 'fill-blank'
   | 'word-builder';
 export type PracticeContentKind = 'kana' | 'romaji';
@@ -28,6 +27,8 @@ export type ClassWordCategoryId =
   | 'clase-aula'
   | 'clase-saludos'
   | 'clase-expresiones'
+  | 'clase-preguntas'
+  | 'clase-kosoado'
   | 'clase-personas'
   | 'clase-familia'
   | 'clase-paises'

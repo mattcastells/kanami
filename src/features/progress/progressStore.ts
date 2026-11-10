@@ -57,6 +57,10 @@ export const PROGRESS_MODE_LABELS: Record<string, string> = {
   translation: 'Traducción',
   'kana-board': 'Tablero',
   meaning: 'Significados',
+  questions: 'Preguntas',
+  grammar: 'Gramática',
+  particles: 'Partículas',
+  counters: 'Contadores',
 };
 
 export function getModeLabel(modeKey: string): string {

@@ -45,7 +45,7 @@ la fuente de verdad de qué se propaga solo y qué hay que tocar a mano. Verific
 | `antonyms.ts` | Antónimos | — (los ids tienen que existir en `classVocabulary`) |
 | `wordVocabulary.ts` | los 7 modos de palabra · mazo SRS del Repaso · modo Imágenes | — |
 | `kanji.ts` | Kanji Grind · Trazos · Repaso | correr `kanji:generate` **y** `kanji:strokes` |
-| `phrases.ts` | Frases · Traducción | — |
+| `phrases.ts` | Traducción (elegir, ordenar, escribir) | — |
 | `vocabularyEmoji.ts` | modo Imágenes | — (ojo: el pool descarta un emoji repetido, así que un emoji que ya usa otra palabra **no** suma la nueva: elegí uno libre o dejala afuera) |
 | `numbers.ts` / `dateTime.ts` | Números / Fechas y hora (vía su `DrillSource`) | — |
 

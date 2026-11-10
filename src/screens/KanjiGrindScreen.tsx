@@ -83,7 +83,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
       scrollable
       bottomOverlay={
         <StartBar
-          title={canStart ? 'EMPEZAR EL GRIND' : 'ELEGÍ AL MENOS UNA CATEGORÍA'}
+          title={canStart ? 'COMENZAR' : 'ELEGÍ AL MENOS UNA CATEGORÍA'}
           disabled={!canStart}
           onPress={start}
         />
@@ -91,7 +91,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
     >
       <ScreenHeader glyph="漢字" title="Kanji" />
 
-      <SectionStep n={1}>Qué querés entrenar</SectionStep>
+      <SectionStep n={1}>Juego</SectionStep>
 
       <ModeGrid>
         {FOCUS_OPTIONS.map((option) => (
@@ -119,7 +119,7 @@ export function KanjiGrindScreen({ navigation }: RootStackScreenProps<'KanjiGrin
             />
           }
         >
-          Con qué kanji
+          Temática
         </SectionStep>
       </View>
 

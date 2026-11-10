@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import { HiraganaCharacter } from '../../types/hiragana';
 import { GameSessionState } from './gameEngine';
 import {
@@ -13,15 +11,14 @@ import {
   updateWritingInput,
   WritingGameSessionState,
 } from './writingGameEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 export function useWritingHiraganaGame(
   pool: HiraganaCharacter[],
   resetKey: string,
   inverted = false,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const answerKind = getWritingAnswerKind(inverted);
   const [state, setState] = useState<WritingGameSessionState>(() =>
     createInitialWritingGameState(pool, inverted),
@@ -95,13 +92,7 @@ export function useWritingHiraganaGame(
       selectedText,
     });
 
-    if (hapticsEnabled) {
-      if (nextAnswerState === 'correct') {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-    }
+    playAnswerFeedback(nextAnswerState === 'correct');
   };
 
   return {

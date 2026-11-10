@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
 import { WordPracticeEntry } from '../../data/wordVocabulary';
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import {
   clearPlacedTiles,
   createInitialWordBuilderState,
@@ -12,11 +10,10 @@ import {
   submitWordBuilder,
   WordBuilderSessionState,
 } from './wordBuilderEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 export function useWordBuilderGame(pool: WordPracticeEntry[], resetKey: string) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
 
   const [state, setState] = useState<WordBuilderSessionState>(() =>
     createInitialWordBuilderState(pool),
@@ -77,13 +74,7 @@ export function useWordBuilderGame(pool: WordPracticeEntry[], resetKey: string) 
       selectedText: placedKana,
     });
 
-    if (hapticsEnabled) {
-      void Haptics.notificationAsync(
-        submitted.answerState === 'correct'
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Error,
-      );
-    }
+    playAnswerFeedback(submitted.answerState === 'correct');
   };
 
   const next = () => {

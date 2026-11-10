@@ -101,8 +101,9 @@ Si la clase solo repasa cosas ya dadas, puede que no haya nada que sumar. Pero
 ## Los kanji de la clase
 
 La relación clase ↔ kanji es **derivada**: la calcula `npm run kanji:generate` escaneando el
-markdown y la grafía (`kanji`) de `classVocabulary.ts`. La consume Kanji Grind (preset
-"Los de mis clases", vía `getKanjiOrigin`).
+markdown y la grafía (`kanji`) de `classVocabulary.ts`. Se lee con `getKanjiOrigin` /
+`getKanjiClasses` (`kanjiCatalog`); hoy ninguna pantalla la muestra (el preset "Los de mis
+clases" de Kanji Grind ya no existe), pero se mantiene al día para cuando vuelva a hacer falta.
 
 **No escribas la lista de kanji de una clase en ningún lado.** Ver la skill `kanami-kanji`.
 

@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
-import * as Haptics from 'expo-haptics';
+import { useEffect, useRef, useState } from 'react';
 
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import { HiraganaCharacter } from '../../types/hiragana';
 import {
   createInitialGameState,
@@ -9,18 +7,24 @@ import {
   moveToNextRound,
   submitAnswer,
 } from './gameEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 export function useHiraganaGame(
   pool: HiraganaCharacter[],
   resetKey: string,
   inverted = false,
 ) {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const [state, setState] = useState<GameSessionState>(() =>
     createInitialGameState(pool),
   );
+  // Espejo del estado: `answer` decide leyéndolo, nunca dentro de un updater de setState
+  // (React puede diferir el updater y el resultado quedaba sin mostrar).
+  const stateRef = useRef(state);
+  const commit = (nextState: GameSessionState) => {
+    stateRef.current = nextState;
+    setState(nextState);
+  };
   const [lastFeedback, setLastFeedback] = useState<{
     status: GameSessionState['answerState'];
     promptText?: string;
@@ -34,7 +38,7 @@ export function useHiraganaGame(
   });
 
   useEffect(() => {
-    setState(createInitialGameState(pool));
+    commit(createInitialGameState(pool));
     setLastFeedback({
       status: 'idle',
       promptText: '',
@@ -44,35 +48,17 @@ export function useHiraganaGame(
   }, [pool, resetKey]);
 
   const answer = (optionId: string) => {
-    let nextAnswerState: GameSessionState['answerState'] = 'idle';
-    let promptText = '';
-    let correctText = '';
-    let selectedText: string | null = null;
+    const currentState = stateRef.current;
+    const updatedState = submitAnswer(currentState, optionId);
+    // El engine devuelve el mismo objeto si ya se respondió: el doble tap no cuenta.
+    if (updatedState === currentState) return;
+    commit(updatedState);
 
-    setState((currentState) => {
-      const updatedState = submitAnswer(currentState, optionId);
-      const selectedOption = currentState.round.options.find(
-        (option) => option.id === optionId,
-      );
-
-      nextAnswerState = updatedState.answerState;
-      promptText = inverted
-        ? currentState.round.prompt.romaji
-        : currentState.round.prompt.kana;
-      correctText = inverted
-        ? currentState.round.prompt.kana
-        : currentState.round.prompt.romaji;
-      selectedText = selectedOption
-        ? inverted
-          ? selectedOption.kana
-          : selectedOption.romaji
-        : null;
-      return updatedState;
-    });
-
-    if (nextAnswerState === 'idle') {
-      return;
-    }
+    const nextAnswerState = updatedState.answerState;
+    const selectedOption = currentState.round.options.find((option) => option.id === optionId);
+    const promptText = inverted ? currentState.round.prompt.romaji : currentState.round.prompt.kana;
+    const correctText = inverted ? currentState.round.prompt.kana : currentState.round.prompt.romaji;
+    const selectedText = selectedOption ? (inverted ? selectedOption.kana : selectedOption.romaji) : null;
 
     setLastFeedback({
       status: nextAnswerState,
@@ -81,19 +67,13 @@ export function useHiraganaGame(
       selectedText,
     });
 
-    if (hapticsEnabled) {
-      if (nextAnswerState === 'correct') {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-    }
+    playAnswerFeedback(nextAnswerState === 'correct');
 
   };
 
   // No avanza solo: la ronda siguiente llega con SIGUIENTE, así se puede leer la corrección.
   const next = () => {
-    setState((currentState) => moveToNextRound(currentState, pool));
+    commit(moveToNextRound(stateRef.current, pool));
     setLastFeedback({ status: 'idle', promptText: '', correctText: '', selectedText: null });
   };
 

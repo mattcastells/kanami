@@ -2,13 +2,14 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
+import { WordReveal } from '../components/game/WordReveal';
+import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { AnswerNote, ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
 import { Segmented } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
-import { SpeakButton } from '../components/ui/SpeakButton';
 import {
   getMeaningPool,
   MEANING_DIRECTION_TITLES,
@@ -19,9 +20,11 @@ import {
 import { useMeaningGame } from '../features/game/useMeaningGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
-import { useAppTheme } from '../theme/AppThemeProvider';
 import { FONTS, theme } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
+import { isSessionOver } from '../features/game/gameEngine';
+import { sessionProgress, useGameSession } from '../features/game/useGameSession';
+import { SessionSummary } from '../components/game/SessionSummary';
 
 // Las dos direcciones, a la vista y no detrás de un "Invertir" en la cabecera.
 const DIRECTIONS: { value: MeaningDirection; label: string }[] = [
@@ -71,10 +74,10 @@ function MeaningGamePlay({
   poolKey: string;
   initialDirection: MeaningDirection;
 }) {
-  const { theme: activeTheme } = useAppTheme();
   const [direction, setDirection] = useState<MeaningDirection>(initialDirection);
 
-  const resetKey = `meaning:${poolKey}:${direction}`;
+  const session = useGameSession();
+  const resetKey = `meaning:${poolKey}:${direction}:${session.nonce}`;
   const { state, answer, next, lastFeedback } = useMeaningGame(pool, direction, resetKey);
   useTrackProgress('meaning', state.stats);
   useTrackWeakItem('meaning', state.answerState, {
@@ -91,12 +94,6 @@ function MeaningGamePlay({
   const { round, answerState, selectedOptionId, stats } = state;
   const answered = answerState !== 'idle';
   const promptIsKana = round.direction === 'jp-to-es';
-  // Opciones cortas en grilla de 2 y largas una por fila. Cuatro filas no entran en un
-  // teléfono de 740px de alto: la cuarta quedaba tapada por la barra de pestañas.
-  const maxOptionLength = promptIsKana ? 16 : 6;
-  const optionsFullWidth = round.options.some(
-    (option) => option.text.length > maxOptionLength,
-  );
 
   const getOptionState = (optionId: string) => {
     if (!answered) return 'idle' as const;
@@ -107,9 +104,23 @@ function MeaningGamePlay({
 
   // Scrolleable igual: con frases largas como opciones (おさきにしつれいします) van una
   // por fila y en pantallas chicas no entran todas.
+  if (isSessionOver(stats, answerState, session.length)) {
+    return (
+      <ScreenBackground scrollable>
+        <SessionSummary
+          modeLabel="Significados"
+          correct={stats.correct}
+          incorrect={stats.incorrect}
+          onRepeat={session.repeat}
+          onBack={session.back}
+        />
+      </ScreenBackground>
+    );
+  }
+
   return (
     <ScreenBackground scrollable>
-      <GameHeader glyph="意" title="Significados" />
+      <GameHeader glyph="意" title="Significados" progress={sessionProgress(stats, session.length)} />
 
       <View style={styles.direction}>
         <Segmented options={DIRECTIONS} value={direction} onChange={setDirection} />
@@ -118,7 +129,7 @@ function MeaningGamePlay({
       <PromptCard
         score={stats}
         // Si el prompt es en español, escuchar la palabra sería darte la respuesta.
-        bottomRight={promptIsKana || answered ? <SpeakButton text={round.kana} /> : null}
+        speakText={promptIsKana || answered ? round.kana : undefined}
       >
         {promptIsKana ? (
           <AppText style={[styles.kanaPrompt, kanaPromptStyle(round.promptText)]}>{round.promptText}</AppText>
@@ -129,7 +140,7 @@ function MeaningGamePlay({
         )}
       </PromptCard>
 
-      <View style={styles.answersGrid}>
+      <AnswerOptionGrid labels={round.options.map((option) => option.text)}>
         {round.options.map((option) => (
           <AnswerOptionButton
             key={option.id}
@@ -137,20 +148,17 @@ function MeaningGamePlay({
             disabled={answered}
             visualState={getOptionState(option.id)}
             onPress={() => answer(option.id)}
-            fullWidth={optionsFullWidth}
           />
         ))}
-      </View>
+      </AnswerOptionGrid>
 
       {answered ? (
         <AnswerNote>
-          <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.answerLine}>
-            {[round.kanji, round.kana, round.romaji].filter(Boolean).join(' · ')} — {round.es}
-          </AppText>
+          <WordReveal kana={round.kana} kanji={round.kanji} romaji={round.romaji} es={round.es} example={round.example} />
         </AnswerNote>
       ) : null}
 
-      <GameFooter feedback={lastFeedback}>
+      <GameFooter feedback={lastFeedback} chosen>
         <ChoiceNext answered={answered} onNext={next} />
       </GameFooter>
     </ScreenBackground>
@@ -179,14 +187,5 @@ const styles = StyleSheet.create({
   },
   direction: {
     marginBottom: theme.spacing.md,
-  },
-  answerLine: {
-    textAlign: 'center',
-  },
-  answersGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    width: '100%',
   },
 });

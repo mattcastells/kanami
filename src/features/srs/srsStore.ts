@@ -36,21 +36,10 @@ export const SRS_VERSION = 1 as const;
 const INTERVALS_DAYS = [0, 1, 3, 7, 16, 35];
 const MAX_BOX = INTERVALS_DAYS.length - 1;
 
-export const SRS_NEW_PER_SESSION = 10;
-export const SRS_DUE_CAP = 40;
-
 export function createEmptySrs(): SrsData {
   return { version: SRS_VERSION, states: {} };
 }
 
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
 
 function addDays(day: string, amount: number): string {
   const date = new Date(`${day}T00:00:00`);
@@ -87,44 +76,6 @@ export function buildSrsDeck(): SrsItem[] {
   });
 
   return deck;
-}
-
-export type SrsCounts = { due: number; fresh: number };
-
-export function countQueue(
-  deck: SrsItem[],
-  states: Record<string, SrsItemState>,
-  today: string,
-): SrsCounts {
-  let due = 0;
-  let fresh = 0;
-  deck.forEach((item) => {
-    const state = states[item.key];
-    if (!state) fresh += 1;
-    else if (state.dueDay <= today) due += 1;
-  });
-  return { due, fresh };
-}
-
-// Cola de la sesión: primero los vencidos (cap), después ítems nuevos (cap).
-export function selectQueue(
-  deck: SrsItem[],
-  states: Record<string, SrsItemState>,
-  today: string,
-  newLimit = SRS_NEW_PER_SESSION,
-  dueLimit = SRS_DUE_CAP,
-): SrsItem[] {
-  const due: SrsItem[] = [];
-  const fresh: SrsItem[] = [];
-  deck.forEach((item) => {
-    const state = states[item.key];
-    if (!state) fresh.push(item);
-    else if (state.dueDay <= today) due.push(item);
-  });
-  return [
-    ...shuffle(due).slice(0, dueLimit),
-    ...shuffle(fresh).slice(0, newLimit),
-  ];
 }
 
 // Calcula el próximo estado de un ítem tras autoevaluarse.

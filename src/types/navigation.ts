@@ -1,9 +1,14 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { ClassVocabCategoryId } from '../data/classVocabulary';
+import { CounterKindId } from '../data/counters';
 import { DateTimeKindId } from '../data/dateTime';
+import { QuestionTopicId } from '../data/questions';
 import { NumberRangeId } from '../data/numbers';
+import { GrammarGameMode } from '../features/game/grammarGameEngine';
 import { MeaningDirection } from '../features/game/meaningGameEngine';
+import { ParticleGameMode } from '../features/game/particleGameEngine';
+import { QuestionGameMode } from '../features/game/questionGameEngine';
 import { DrillAnswerMode, DrillDirection } from '../features/game/readingDrillEngine';
 import { HiraganaGroupId } from './hiragana';
 import { KanaScript, PracticeMode, WordPracticeCategoryId } from './game';
@@ -26,8 +31,9 @@ export type RootStackParamList = {
     selectedWordCategoryIds: WordPracticeCategoryId[];
     mode: PracticeMode;
     inverted: boolean;
-    // Cantidad de rondas antes del resumen. undefined = sesión infinita (default).
-    sessionLength?: number;
+    // Palabra guiada: elegir entre 4 o escribir. Los demás modos lo ignoran.
+    answerMode?: DrillAnswerMode;
+    // Las rondas por partida NO van acá: salen del ajuste único (useSessionLength).
   };
   // Tablero de kana: el mazo entero en pantalla, se completa carta por carta.
   KanaBoardGame: {
@@ -59,6 +65,28 @@ export type RootStackParamList = {
     direction: DrillDirection;
     answerMode: DrillAnswerMode;
     kindIds: DateTimeKindId[];
+  };
+  // Contadores (edad, pisos, precios, años, andenes): mismo motor que Números.
+  Counters: undefined;
+  CountersGame: {
+    direction: DrillDirection;
+    answerMode: DrillAnswerMode;
+    kindIds: CounterKindId[];
+  };
+  // Preguntas: cómo se pregunta en japonés, por tema.
+  Particles: undefined;
+  ParticleGame: {
+    mode: ParticleGameMode;
+    textIds: string[];
+  };
+  Grammar: undefined;
+  GrammarGame: {
+    mode: GrammarGameMode;
+  };
+  Questions: undefined;
+  QuestionGame: {
+    mode: QuestionGameMode;
+    topicIds: QuestionTopicId[];
   };
   AntonymGame: undefined;
   // Significados: reconocer palabras de la cursada. `Meanings` es la selección.

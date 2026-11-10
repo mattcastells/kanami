@@ -1,13 +1,12 @@
 import { useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 
-import { useAppSettings } from '../../settings/AppSettingsProvider';
 import {
   AntonymSessionState,
   createInitialAntonymState,
   moveToNextAntonymRound,
   submitAntonymAnswer,
 } from './antonymGameEngine';
+import { useAnswerFeedback } from '../feedback/useAnswerFeedback';
 
 type AntonymFeedback = {
   status: AntonymSessionState['answerState'];
@@ -18,9 +17,7 @@ type AntonymFeedback = {
 const IDLE_FEEDBACK: AntonymFeedback = { status: 'idle', correctText: '', selectedText: null };
 
 export function useAntonymGame() {
-  const {
-    settings: { hapticsEnabled },
-  } = useAppSettings();
+  const playAnswerFeedback = useAnswerFeedback();
   const [state, setState] = useState<AntonymSessionState>(createInitialAntonymState);
   // Espejo del estado para decidir fuera de un updater: los efectos (haptics) no
   // pueden ir dentro de setState.
@@ -46,13 +43,7 @@ export function useAntonymGame() {
       selectedText: round.options.find((option) => option.id === optionId)?.text ?? null,
     });
 
-    if (hapticsEnabled) {
-      void Haptics.notificationAsync(
-        updated.answerState === 'correct'
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Error,
-      );
-    }
+    playAnswerFeedback(updated.answerState === 'correct');
 
   };
 
@@ -63,5 +54,11 @@ export function useAntonymGame() {
     setLastFeedback(IDLE_FEEDBACK);
   };
 
-  return { state, answer, next, lastFeedback };
+  // Partida nueva desde el resumen (REPETIR).
+  const restart = () => {
+    commit(createInitialAntonymState());
+    setLastFeedback(IDLE_FEEDBACK);
+  };
+
+  return { state, answer, next, restart, lastFeedback };
 }
