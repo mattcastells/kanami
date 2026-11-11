@@ -261,7 +261,7 @@ de scroll — no asumas un alto fijo, cambia con la fuente del sistema y el safe
 
 - `wordVocabulary.ts` — vocabulario **genérico** para drillear kana (~200). Es el único que
   alimenta el mazo de repaso espaciado: `buildSrsDeck()` lo importa **directo**.
-- `classVocabulary.ts` — vocabulario **de la cursada** (~700; auditado contra Notion el 2026-11-10): lo visto en las clases 1–29 más
+- `classVocabulary.ts` — vocabulario **de la cursada** (~720; auditado contra Notion el 2026-11-10 y contra la hoja de vocabulario de Minna 1–8 el 2026-11-11): lo visto en las clases 1–30 más
   la sección Vocabulario de Notion. Trae kanji, romaji, nota y `classes` (trazabilidad).
   Es **la base de "lo que sé"**: Significados (`meaningGameEngine`) lee de acá directo, y
   Antónimos arma sus pares con ids de acá (`data/antonyms.ts`), así que cada clase que suma
@@ -282,7 +282,7 @@ de scroll — no asumas un alto fijo, cambia con la fuente del sistema y el safe
 
 ### Kanji: una sola fuente de verdad (`src/data/kanji.ts`)
 
-92 kanji (los 80 de la lista de referencia N5 como `n5-core` + 12 `n5-extra` que ya estaban).
+94 kanji (los 80 de la lista de referencia N5 como `n5-core` + 14 `n5-extra`: los que ya estaban, 買 y 手, que llegó con la clase 30).
 **El id de un kanji es el propio carácter**, no un correlativo: renumerar borra el historial
 del usuario.
 

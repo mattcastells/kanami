@@ -59,4 +59,6 @@ export const ANTONYM_PAIRS: { kind: AntonymKind; pair: [string, string] }[] = [
   { kind: 'sustantivos', pair: ['per-otoko', 'per-onna'] },
   { kind: 'sustantivos', pair: ['prof-sensei', 'prof-gakusei'] },
   { kind: 'sustantivos', pair: ['exp-mou', 'exp-mada'] },
+  // Clase 30: la escala de cantidad (おかね が たくさん／すこし あります).
+  { kind: 'sustantivos', pair: ['tie-takusan', 'tie-sukoshi'] },
 ];

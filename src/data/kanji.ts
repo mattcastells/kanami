@@ -2161,6 +2161,32 @@ export const KANJI: KanjiEntry[] = [
     deck: 'n5-extra',
     order: 93,
   },
+  {
+    char: '手',
+    meaning: 'mano',
+    on: [{ kana: 'シュ', romaji: 'shu' }],
+    kun: [{ kana: 'て', romaji: 'te' }],
+    primary: 'kun',
+    examples: [
+      { jp: '手', kana: 'て', romaji: 'te', es: 'mano' },
+      { jp: '上手', kana: 'じょうず', romaji: 'jouzu', es: 'bueno en algo' },
+      { jp: '下手', kana: 'へた', romaji: 'heta', es: 'malo en algo' },
+      { jp: '苦手', kana: 'にがて', romaji: 'nigate', es: 'que no se le da' },
+      { jp: '手紙', kana: 'てがみ', romaji: 'tegami', es: 'carta' },
+    ],
+    usage:
+      'Clase 30: じょうず, へた y にがて terminan en 手, porque la habilidad está en las manos. じょうず y へた son lecturas especiales.',
+    mnemonic: 'Una mano abierta: los dedos son las rayas horizontales y el brazo baja por el medio.',
+    sentence: {
+      jp: '手 で すし を たべます。',
+      kana: 'て で すし を たべます。',
+      romaji: 'te de sushi o tabemasu.',
+      es: 'Como el sushi con la mano.',
+    },
+    category: 'personas',
+    deck: 'n5-extra',
+    order: 94,
+  },
 ];
 
 // Índice por carácter. Las consultas van por `features/kanji/kanjiCatalog.ts`, que es la

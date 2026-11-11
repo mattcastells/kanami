@@ -248,6 +248,12 @@ const EMOJI_BY_MEANING: Record<string, string> = {
   okinawa: '🏝️',
   'fiesta de las nenas (3 de marzo)': '🎎',
   'banderines de carpa (dia del nino)': '🎏',
+  // Clase 30 y la hoja de vocabulario de Minna 1-8. ダンス ya tenía foto (💃, "baile") y
+  // カラオケ queda afuera: 🎤 ya es de うた.
+  jazz: '🎷',
+  chocolate: '🍫',
+  tarjeta: '💳',
+  'equipaje / paquete': '🧳',
 };
 
 export type EmojiVocabEntry = {
