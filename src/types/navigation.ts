@@ -7,6 +7,7 @@ import { QuestionTopicId } from '../data/questions';
 import { NumberRangeId } from '../data/numbers';
 import { GrammarGameMode } from '../features/game/grammarGameEngine';
 import { MeaningDirection } from '../features/game/meaningGameEngine';
+import { MeaningFormGroupId } from '../features/game/meaningForms';
 import { ParticleGameMode } from '../features/game/particleGameEngine';
 import { QuestionGameMode } from '../features/game/questionGameEngine';
 import { DrillAnswerMode, DrillDirection } from '../features/game/readingDrillEngine';
@@ -94,6 +95,9 @@ export type RootStackParamList = {
   MeaningGame: {
     categoryIds: ClassVocabCategoryId[];
     direction: MeaningDirection;
+    // Formas conjugadas (たべました, たかくない です). Opcional: el Repaso y las rutas
+    // viejas no lo mandan.
+    formGroupIds?: MeaningFormGroupId[];
   };
   Review: undefined;
   // Tu lista de repaso: ver, quitar y fijar lo guardado; y agregar palabras o kanji.

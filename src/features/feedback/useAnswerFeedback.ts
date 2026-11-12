@@ -9,8 +9,8 @@ type PlayableSound = Exclude<AnswerSoundId, 'off'>;
 
 let audioModeSet: Promise<void> | null = null;
 
-// Se mezcla con lo que estés escuchando (baja la música un instante, no la corta) y en
-// iPhone respeta el modo silencio.
+// Se mezcla con lo que estés escuchando (baja la música lo que dura el sonido, no la corta)
+// y en iPhone respeta el modo silencio.
 function ensureAudioMode() {
   if (!audioModeSet) {
     audioModeSet = Audio.setAudioModeAsync({
@@ -29,12 +29,23 @@ function ensureAudioMode() {
 // por respuesta tarda lo suficiente como para que el sonido llegue tarde.
 const loaded = new Map<PlayableSound, Promise<Audio.Sound | null>>();
 
+// ⚠️ En Android, expo-av pide el foco de audio al sonar (la música se baja) y lo suelta
+// recién cuando ningún sonido queda "en play". Al llegar al final, el Sound sigue con
+// shouldPlay = true: sin este stop, la música quedaba bajada todo el tiempo que la app
+// estuviera abierta. Con el stop, baja solo lo que dura el sonido.
+function releaseFocusWhenDone(sound: Audio.Sound) {
+  sound.setOnPlaybackStatusUpdate((status) => {
+    if (status.isLoaded && status.didJustFinish) void sound.stopAsync().catch(() => undefined);
+  });
+  return sound;
+}
+
 function loadSound(id: PlayableSound) {
   let sound = loaded.get(id);
   if (!sound) {
     sound = ensureAudioMode()
       .then(() => Audio.Sound.createAsync(ANSWER_SOUND_SOURCES[id], { volume: 0.8 }))
-      .then(({ sound: created }) => created)
+      .then(({ sound: created }) => releaseFocusWhenDone(created))
       .catch(() => {
         // Sin audio (módulo no disponible, web sin interacción previa): se reintenta la
         // próxima vez y mientras tanto la partida sigue en silencio.

@@ -5,6 +5,7 @@ import {
 } from '../../data/classVocabulary';
 import { findPhraseExample } from '../../data/phrases';
 import { AnswerState, GameStats, shuffle } from './gameEngine';
+import { ALL_MEANING_FORMS, getMeaningForms, MeaningFormEntry, MeaningFormGroupId } from './meaningForms';
 
 // Significados: reconocer palabras que ya viste en clase. Sale SIEMPRE de
 // `classVocabulary.ts` (lo de la cursada), nunca del mazo genérico: la idea es repasar
@@ -18,7 +19,12 @@ export const MEANING_DIRECTION_TITLES: Record<MeaningDirection, string> = {
   'es-to-jp': 'Cómo se dice',
 };
 
-export type MeaningEntry = (typeof classVocabEntries)[number];
+// Una palabra de la cursada, o una forma conjugada de una (たべました → "comí").
+export type MeaningEntry = (typeof classVocabEntries)[number] | MeaningFormEntry;
+
+export function isFormEntry(entry: MeaningEntry): entry is MeaningFormEntry {
+  return 'baseId' in entry;
+}
 
 export type MeaningOption = { id: string; text: string };
 
@@ -51,9 +57,15 @@ export type MeaningSessionState = {
 export const MEANING_MIN_POOL = 4;
 const OPTION_COUNT = 4;
 
-export function getMeaningPool(categoryIds: ClassVocabCategoryId[]): MeaningEntry[] {
+export function getMeaningPool(
+  categoryIds: ClassVocabCategoryId[],
+  formGroupIds: MeaningFormGroupId[] = [],
+): MeaningEntry[] {
   const enabled = new Set(categoryIds);
-  return classVocabEntries.filter((entry) => enabled.has(entry.category));
+  return [
+    ...classVocabEntries.filter((entry) => enabled.has(entry.category)),
+    ...getMeaningForms(formGroupIds),
+  ];
 }
 
 function normalize(value: string) {
@@ -94,6 +106,37 @@ function kindOf(entry: MeaningEntry) {
   return CLASS_VOCAB_KIND_BY_CATEGORY[entry.category];
 }
 
+type DistractorTier = { candidates: MeaningEntry[]; max: number };
+const ANY = OPTION_COUNT - 1;
+
+// Distractores de una palabra, por orden de preferencia: del mazo elegido y del mismo tipo;
+// si no alcanzan, del mismo tipo en todo lo de la cursada; y como último recurso, cualquier
+// palabra de la cursada. Con un mazo chico (una temática de 5) no quedan opciones si solo
+// se mira el mazo — fue un bug real en Kanji Grind. Las formas conjugadas no entran: "comí"
+// entre "comer" y "beber" se descarta sin leer.
+function wordTiers(entry: MeaningEntry, pool: MeaningEntry[]): DistractorTier[] {
+  const kind = kindOf(entry);
+  return [
+    { candidates: pool.filter((candidate) => !isFormEntry(candidate) && kindOf(candidate) === kind), max: ANY },
+    { candidates: classVocabEntries.filter((candidate) => kindOf(candidate) === kind), max: ANY },
+    { candidates: classVocabEntries, max: ANY },
+  ];
+}
+
+// Distractores de una forma: hasta dos formas de la MISMA palabra (たべました entre
+// たべます y たべませんでした obliga a leer el tiempo) y el resto, la misma forma de otra
+// palabra (たべました entre のみました: obliga a leer el verbo).
+function formTiers(entry: MeaningFormEntry, pool: MeaningEntry[]): DistractorTier[] {
+  const sameForm = (candidate: MeaningEntry) =>
+    isFormEntry(candidate) && candidate.formGroup === entry.formGroup && candidate.negative === entry.negative;
+  return [
+    { candidates: ALL_MEANING_FORMS.filter((candidate) => candidate.baseId === entry.baseId), max: 2 },
+    { candidates: pool.filter(sameForm), max: ANY },
+    { candidates: ALL_MEANING_FORMS.filter(sameForm), max: ANY },
+    { candidates: ALL_MEANING_FORMS.filter((candidate) => candidate.formGroup === entry.formGroup), max: ANY },
+  ];
+}
+
 function buildRound(
   entry: MeaningEntry,
   pool: MeaningEntry[],
@@ -102,24 +145,16 @@ function buildRound(
   const textOf = (candidate: MeaningEntry) =>
     direction === 'es-to-jp' ? candidate.kana : candidate.es;
 
-  // Distractores por orden de preferencia: del mazo elegido y del mismo tipo; si no
-  // alcanzan, del mismo tipo en todo lo de la cursada; y como último recurso, cualquier
-  // palabra de la cursada. Con un mazo chico (una temática de 5) no quedan opciones si
-  // solo se mira el mazo — fue un bug real en Kanji Grind.
-  const kind = kindOf(entry);
-  const tiers = [
-    pool.filter((candidate) => kindOf(candidate) === kind),
-    classVocabEntries.filter((candidate) => kindOf(candidate) === kind),
-    classVocabEntries,
-  ];
+  const tiers = isFormEntry(entry) ? formTiers(entry, pool) : wordTiers(entry, pool);
 
   const entryKeys = meaningKeys(entry.es);
   // Dedupe por texto mostrado: dos botones iguales harían imposible saber cuál tocar.
   const seen = new Set([textOf(entry)]);
   const distractors: MeaningEntry[] = [];
   for (const tier of tiers) {
-    for (const candidate of shuffle(tier)) {
-      if (distractors.length >= OPTION_COUNT - 1) break;
+    const limit = Math.min(OPTION_COUNT - 1, distractors.length + tier.max);
+    for (const candidate of shuffle(tier.candidates)) {
+      if (distractors.length >= limit) break;
       if (candidate.id === entry.id) continue;
       // Un homógrafo (あつい caluroso / あつい caliente) o un sinónimo (やさしい /
       // かんたん, "fácil") también es respuesta correcta: no puede ser distractor.

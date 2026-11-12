@@ -4,11 +4,13 @@ import { LayoutChangeEvent, PixelRatio, StyleSheet, View } from 'react-native';
 import { theme } from '../../theme/theme';
 import { hasJapanese } from '../ui/japanese';
 
-// ¿Las opciones van en una columna? Lo lee AnswerOptionButton para ocupar todo el ancho.
-const SingleColumnContext = createContext(false);
+// ¿Las opciones van en una columna, y cuánto mide la grilla? Lo lee AnswerOptionButton para
+// ocupar todo el ancho y para achicar la letra de una opción que no entra.
+type GridLayout = { singleColumn: boolean; width: number };
+const GridContext = createContext<GridLayout>({ singleColumn: false, width: 0 });
 
 export function useSingleColumnOptions() {
-  return useContext(SingleColumnContext);
+  return useContext(GridContext).singleColumn;
 }
 
 // Medidas de AnswerOptionButton (variant "option": 22px). Una letra de Zen Maru bold mide
@@ -21,7 +23,7 @@ const COLUMN_RATIO = 0.48;
 const BUTTON_CHROME = 24;
 const SAFETY = 0.9;
 
-function estimateWidth(label: string) {
+export function estimateWidth(label: string) {
   let em = 0;
   for (const char of label) {
     em += hasJapanese(char) ? 1 : LATIN_EM;
@@ -48,9 +50,28 @@ export function AnswerOptionGrid({ labels, children }: { labels: string[]; child
         if (Math.abs(next - width) > 1) setWidth(next);
       }}
     >
-      <SingleColumnContext.Provider value={singleColumn}>{children}</SingleColumnContext.Provider>
+      <GridContext.Provider value={{ singleColumn, width }}>{children}</GridContext.Provider>
     </View>
   );
+}
+
+// A todo el ancho el botón deja 30 de cada lado (la × de la esquina) y 2 de borde.
+const FULL_CHROME = 64;
+// La letra se achica hasta acá antes de pasar a dos renglones: más chica ya no se lee.
+const MIN_SCALE = 0.72;
+const MAX_LINES = 3;
+
+// Cómo entra una opción larga ("せんきゅうひゃくきゅうじゅうきゅうねん"): primero con la
+// letra un poco más chica en un renglón; si ni así entra, en hasta tres renglones. Nunca
+// con "…": dos lecturas que difieren al final quedaban iguales a la vista.
+export function useOptionFit(label: string, fullWidth: boolean, minLines: number) {
+  const { singleColumn, width } = useContext(GridContext);
+  if (width <= 0) return { scale: 1, lines: Math.max(minLines, 2) };
+  const available = fullWidth || singleColumn ? width - FULL_CHROME : width * COLUMN_RATIO - BUTTON_CHROME;
+  const needed = estimateWidth(label);
+  if (needed <= available * SAFETY) return { scale: 1, lines: Math.max(minLines, 2) };
+  const scale = Math.max(MIN_SCALE, (available * SAFETY) / needed);
+  return { scale, lines: Math.max(minLines, MAX_LINES) };
 }
 
 const styles = StyleSheet.create({

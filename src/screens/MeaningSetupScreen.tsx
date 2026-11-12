@@ -16,6 +16,12 @@ import {
   classVocabKinds,
 } from '../data/classVocabulary';
 import {
+  ALL_MEANING_FORM_GROUP_IDS,
+  countMeaningForms,
+  MEANING_FORM_GROUPS,
+  MeaningFormGroupId,
+} from '../features/game/meaningForms';
+import {
   MEANING_DIRECTION_TITLES,
   MEANING_MIN_POOL,
   MeaningDirection,
@@ -54,6 +60,8 @@ const ALL_CATEGORY_IDS = KIND_GROUPS.flatMap((group) =>
   group.categories.map((category) => category.id),
 );
 
+const FORM_COUNTS = new Map(MEANING_FORM_GROUPS.map((group) => [group.id, countMeaningForms(group.id)] as const));
+
 const COUNT_BY_CATEGORY = new Map(
   KIND_GROUPS.flatMap((group) =>
     group.categories.map((category) => [category.id, category.count] as const),
@@ -68,14 +76,15 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
   const [selectedCategoryIds, setSelectedCategoryIds] =
     useState<ClassVocabCategoryId[]>(ALL_CATEGORY_IDS);
   const [expandedKinds, setExpandedKinds] = useState<ClassVocabKind[]>([]);
+  const [selectedFormIds, setSelectedFormIds] = useState<MeaningFormGroupId[]>(ALL_MEANING_FORM_GROUP_IDS);
 
   const selectedWordCount = useMemo(
     () =>
       selectedCategoryIds.reduce(
         (total, id) => total + (COUNT_BY_CATEGORY.get(id) ?? 0),
         0,
-      ),
-    [selectedCategoryIds],
+      ) + selectedFormIds.reduce((total, id) => total + (FORM_COUNTS.get(id) ?? 0), 0),
+    [selectedCategoryIds, selectedFormIds],
   );
   const canStart = selectedWordCount >= MEANING_MIN_POOL;
 
@@ -102,6 +111,7 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
     navigation.navigate('MeaningGame', {
       categoryIds: selectedCategoryIds,
       direction,
+      formGroupIds: selectedFormIds,
     });
   };
 
@@ -205,7 +215,43 @@ export function MeaningSetupScreen({ navigation }: RootStackScreenProps<'Meaning
               ))}
             </CheckSection>
           );
-        })}
+          })}
+      </View>
+
+      <View style={styles.step}>
+        <SectionStep
+          n={4}
+          right={
+            <CheckAll
+              state={selectionState(selectedFormIds.length, ALL_MEANING_FORM_GROUP_IDS.length)}
+              onToggle={() =>
+                setSelectedFormIds(
+                  selectedFormIds.length === ALL_MEANING_FORM_GROUP_IDS.length ? [] : ALL_MEANING_FORM_GROUP_IDS,
+                )
+              }
+            />
+          }
+        >
+          Formas
+        </SectionStep>
+      </View>
+
+      {/* Solo lo que se vio en clase: el pasado de los adjetivos todavía no. */}
+      <View style={styles.sections}>
+        {MEANING_FORM_GROUPS.map((group) => (
+          <CheckRow
+            key={group.id}
+            boxed
+            title={group.label}
+            count={FORM_COUNTS.get(group.id)}
+            state={selectedFormIds.includes(group.id) ? 'on' : 'off'}
+            onPress={() =>
+              setSelectedFormIds((current) =>
+                current.includes(group.id) ? current.filter((id) => id !== group.id) : [...current, group.id],
+              )
+            }
+          />
+        ))}
       </View>
     </ScreenBackground>
   );

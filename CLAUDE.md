@@ -47,7 +47,7 @@ No hay linter ni test runner en el repo. El único gate automático es `tsc`.
 App.tsx                 Fonts (Dela Gothic One, Zen Maru Gothic, Klee One) + providers + NavigationContainer
 index.ts                registerRootComponent
 content/                transcripciones de las clases (markdown, NO se bundlea)
-  clases/kurasu-NN.md   cada clase real (1-6, 8-21, 23-29; la 7 no existió, de la 22 no hay
+  clases/kurasu-NN.md   cada clase real (1-6, 8-21, 23-30; la 7 no existió, de la 22 no hay
                         material). La app ya no muestra apuntes: estos archivos quedan como
                         fuente de `kanji:generate` (procedencia de cada kanji) y de referencia
                         para cargar vocabulario nuevo en classVocabulary.ts.
@@ -103,7 +103,8 @@ Pestañas: **練 Practicar · 復 Repaso · 私 Perfil**. 復 Repaso ocupa el lu
   **EmojiGame** (matcheo palabra↔emoji),
   **TranslationGame** (traducir frases enteras en las dos direcciones, **eligiendo entre 4**
   —el default: leer japonés y elegir qué significa—, ordenando piezas o escribiendo; al ordenar, 6 de cada 10 rondas traen 2 o 3 piezas de otras frases que no van), **Meanings** + **MeaningGame** (Significados: reconocer palabras de la
-  cursada, 4 opciones, en las dos direcciones), **AntonymGame** (Antónimos: elegir el
+  cursada, 4 opciones, en las dos direcciones, por temática —con Adverbios aparte— y por
+  **Formas**: verbos en presente y pasado, adjetivos en presente; ver "Formas" abajo), **AntonymGame** (Antónimos: elegir el
   opuesto de una palabra de la cursada), **Numbers** + **NumbersGame**, **DateTime** +
   **DateTimeGame** y **Counters** + **CountersGame** (ver "Números y Fechas y hora" abajo), y
   **Questions** + **QuestionGame** (Preguntas: ver abajo), **Grammar** + **GrammarGame**
@@ -177,8 +178,24 @@ irregularidades explícitas. Los distractores salen siempre del mismo contador y
   irregularidades (さんびゃく, よじ, よっか/ようか, しがつ…) están explícitas en esas tablas.
 - Las cifras tipeadas se comparan por grupos en fechas/horas ("10/3" ≠ "1/03") y todo junto
   en números ("3.456" = "3456").
+- **No se repite un ítem en la sesión** hasta agotar el mazo (`seenIds` + `pickFreshItem`):
+  las fuentes sortean al azar, así que se re-sortea. Agotado (andenes: 12), se repite pero
+  nunca lo de la mitad más reciente. Antes solo se evitaba la ronda anterior y en 20
+  preguntas "Andén 1" salía 3 veces (2026-11-12).
 - Fechas y hora reemplazó al viejo Horarios y conserva su `modeKey` (`times`) para no perder
   el progreso acumulado.
+
+### Significados · Formas (`meaningForms.ts`)
+
+Formas conjugadas como ítems más de Significados (たべました → "comí", "no es caro" →
+たかくない です), en el paso 4 de su selección. **Solo lo visto en clase**: verbos en ます
+presente y pasado, afirmativo y negativo, y adjetivos en presente. El pasado de los
+adjetivos todavía no se dio: cuando llegue, es un grupo nuevo en `MEANING_FORM_GROUPS`.
+La forma japonesa se arma sola desde la forma diccionario (grupo sacado de la `note`); el
+español se escribe a mano en `VERB_ES` / `ADJ_ES`, y lo que no está ahí no entra (でんわする,
+las onomatopeyas, すき／じょうず y compañía). Distractores: hasta dos formas de la misma
+palabra (obliga a leer el tiempo) y el resto, la misma forma de otra (obliga a leer el
+verbo). Una forma nunca es distractor de una palabra suelta. Los ids son `form:<grupo>:<pos|neg>:<id>`.
 
 ### Preguntas (`questionGameEngine`)
 
@@ -379,7 +396,7 @@ Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"
 - `ScreenHeader`: UN renglón, `glyph` + `title` → "字 · Kanas" (kanji en `accentInk`, título Dela 26 con back, 28 en raíz de pestaña). Sin eyebrow chico arriba de un título grande (se sacó el 2026-11-01: decían dos veces lo mismo). Lo que antes iba en el título grande, si hace falta, va en `subtitle`.
 - `GameHeader` (partidas sin total): igual, `glyph` + `title` → "反 · Antónimos" en Dela 20. Nada más en esa fila: el título no se corta. Los dos usan `HeaderTitle` (`components/ui`), que achica la fuente lo justo si el título no entra: nunca baja a dos renglones.
 - `PromptCard`: tiene SOLO la pregunta. La consigna (`help`, "¿Qué significa?") y el puntaje ○/× (`score`) van en una línea chica ARRIBA de la tarjeta, no adentro (2026-11-10: le comían lugar a las frases). Esa línea es `PromptMeta` (`GamePlay`): los juegos sin PromptCard (Partículas) la usan suelta, así el ○/× está en el mismo lugar en todos. El audio es `speakText`: **la tarjeta entera se toca para escuchar** y un parlante chico arriba a la derecha lo avisa (ya no hay botón redondo abajo: tapaba las frases largas). 訳 (`bottomLeft`) sigue abajo a la izquierda. Lo que se revela al responder va en `AnswerNote`, DEBAJO de las opciones o del campo; para una palabra, `WordReveal` (palabra grande en Klee, romaji — significado, y una nota o "Ej.:" corto sacado de `phrases.ts` con `findPhraseExample`).
-- **Opciones de respuesta = `AnswerOptionGrid`** (`components/game`): 2×2 si todas entran en media columna; si alguna no ("expreso limitado") o son impares (las 3 del Negativo), en una columna. A todo el ancho el texto deja lugar a la × de la esquina. Estima el ancho del texto con el ancho medido de la grilla: no adivines con "más de N letras" en cada pantalla.
+- **Opciones de respuesta = `AnswerOptionGrid`** (`components/game`): 2×2 si todas entran en media columna; si alguna no ("expreso limitado") o son impares (las 3 del Negativo), en una columna. A todo el ancho el texto deja lugar a la × de la esquina. **Nunca "…"**: una opción que no entra achica la letra (hasta 72%) y si no alcanza pasa a 2-3 renglones (`useOptionFit`): dos lecturas que difieren al final (1998 / 1999) quedaban iguales a la vista. Estima el ancho del texto con el ancho medido de la grilla: no adivines con "más de N letras" en cada pantalla.
 - Cambiar de dirección (Significados, Imágenes, Traducción) es un `Segmented` debajo de la cabecera, no una pastilla "Invertir".
 - Opción correcta = verde, sin ○. La errada lleva ×.
 - **Textos cortos**: una línea donde alcance. Nada de párrafos explicando cómo funciona algo.
@@ -481,7 +498,8 @@ activados) + el sonido de acierto elegido en Perfil (`settings.answerSound`: 鈴
 —default—, 三 Shamisen o sin sonido; catálogo en `answerSounds.ts`). Koto y shakuhachi se
 probaron y se sacaron: sintetizados no convencían. Los .wav son **sintetizados** por `scripts/generate-sounds.mjs`: para
 cambiar un sonido se toca el generador y se corre `npm run sounds:generate`. Todos los hooks de modo y la ronda del Repaso pasan por ahí;
-no llames a `Haptics` desde un modo (la excepción es el tic de cada trazo del Dibujo). En los
+**El sonido no puede dejar la música baja**: en Android expo-av pide el foco de audio al sonar y lo suelta solo cuando ningún Sound queda en play, y al terminar el Sound sigue con `shouldPlay`. Por eso cada sonido se frena al terminar (`releaseFocusWhenDone`); sin eso, la música del teléfono quedaba bajada todo el rato (2026-11-12).
+No llames a `Haptics` desde un modo (la excepción es el tic de cada trazo del Dibujo). En los
 modos de elegir, `GameFooter chosen` hace que lo tuyo diga "Elegiste:" y no "Escribiste:".
 Los modos de `GameScreen` no llevan eyebrow ("PALABRA GUIADA · VOCABULARIO" se sacó el
 2026-11-10): con largo fijo solo la barra; sin largo, "読 · Lectura".
