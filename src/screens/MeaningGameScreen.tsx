@@ -40,8 +40,8 @@ function kanaPromptStyle(text: string) {
 }
 
 export function MeaningGameScreen({ route }: RootStackScreenProps<'MeaningGame'>) {
-  const { categoryIds, direction } = route.params;
-  const pool = useMemo(() => getMeaningPool(categoryIds), [categoryIds]);
+  const { categoryIds, direction, formGroupIds = [] } = route.params;
+  const pool = useMemo(() => getMeaningPool(categoryIds, formGroupIds), [categoryIds, formGroupIds]);
 
   // El chequeo va ANTES de montar la partida: el engine necesita palabras para armar la
   // primera ronda, y los hooks de la partida no pueden quedar detrás de un early return.
@@ -59,7 +59,7 @@ export function MeaningGameScreen({ route }: RootStackScreenProps<'MeaningGame'>
   return (
     <MeaningGamePlay
       pool={pool}
-      poolKey={categoryIds.join(',')}
+      poolKey={[...categoryIds, ...formGroupIds].join(',')}
       initialDirection={direction}
     />
   );

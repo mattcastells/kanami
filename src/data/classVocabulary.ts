@@ -35,6 +35,7 @@ export type ClassVocabCategoryId =
   | 'tiempo'
   | 'verbos'
   | 'adjetivos'
+  | 'adverbios'
   | 'transporte'
   | 'herramientas'
   | 'comida'
@@ -166,7 +167,6 @@ export const classVocabCategories: ClassVocabCategory[] = [
       { id: 'exp-chigaimasu', kanji: '違います', kana: 'ちがいます', romaji: 'chigaimasu', es: 'no / eso es incorrecto', classes: [5] },
       { id: 'exp-soujaarimasen', kana: 'そうじゃありません', romaji: 'sou ja arimasen', es: 'no es así', classes: [] },
       { id: 'exp-tabun', kana: 'たぶん', romaji: 'tabun', es: 'tal vez / probablemente', classes: [] },
-      { id: 'exp-chotto', kana: 'ちょっと', romaji: 'chotto', es: 'un momento / un poco', classes: [2, 21] },
       { id: 'exp-tsumari', kana: 'つまり', romaji: 'tsumari', es: 'o sea / es decir', classes: [16] },
       { id: 'exp-ittekimasu', kana: 'いってきます', romaji: 'ittekimasu', es: 'me voy y vuelvo', classes: [] },
       { id: 'exp-itterasshai', kana: 'いってらっしゃい', romaji: 'itterasshai', es: 'que te vaya bien', classes: [] },
@@ -177,20 +177,15 @@ export const classVocabCategories: ClassVocabCategory[] = [
       { id: 'exp-kudasai', kana: 'ください', romaji: 'kudasai', es: 'déme ~', classes: [9] },
       { id: 'exp-kashikomarimashita', kana: 'かしこまりました', romaji: 'kashikomarimashita', es: 'entendido', note: 'Muy formal, de quien atiende.', classes: [9] },
       { id: 'exp-sorekara', kana: 'それから', romaji: 'sorekara', es: 'después de eso / y después', note: 'Encadena dos acciones. Va al principio de la segunda oración.', classes: [21, 23] },
-      { id: 'exp-isshoni', kanji: '一緒に', kana: 'いっしょに', romaji: 'issho ni', es: 'juntos', note: 'いっしょに コーヒー を のみませんか？', classes: [21, 23, 25, 29] },
       { id: 'exp-iidesune', kana: 'いいですね', romaji: 'ii desu ne', es: 'qué bueno / dale', note: 'Para aceptar una invitación o comentar algo lindo.', classes: [21, 24, 25] },
-      { id: 'exp-totemo', kana: 'とても', romaji: 'totemo', es: 'muy', note: 'Con el adjetivo en afirmativo: とても あつい です。 Lo contrario es あまり + negativo.', classes: [26, 27, 28, 29, 30] },
       { id: 'exp-sumimasen-chotto', kana: 'すみません、ちょっと', romaji: 'sumimasen, chotto', es: 'perdón, no puedo', note: '⚠️ Es un NO. Se deja la frase colgada a propósito.', classes: [21] },
       { id: 'exp-nanimo', kana: 'なにも', romaji: 'nani mo', es: 'nada', note: '⚠️ Siempre con el verbo en negativo: なにも しません。', classes: [20, 23] },
       { id: 'exp-darenimo', kana: 'だれにも', romaji: 'dare ni mo', es: 'con nadie / a nadie', note: '⚠️ Siempre con el verbo en negativo: だれにも あいませんでした。', classes: [20] },
       { id: 'exp-ee', kana: 'ええ', romaji: 'ee', es: 'sí (más suelto)', note: 'Más suelto que はい: ええ、いい です ね。', classes: [21, 23, 25, 28] },
       { id: 'exp-ja', kana: 'じゃ', romaji: 'ja', es: 'entonces / bueno', note: 'じゃ、いっしょに みませんか？', classes: [21, 25, 29] },
-      { id: 'exp-mou', kana: 'もう', romaji: 'mou', es: 'ya', note: 'Con el verbo en pasado: もう ひるごはん を たべましたか？', classes: [25] },
-      { id: 'exp-mada', kana: 'まだ', romaji: 'mada', es: 'todavía', note: 'いいえ、まだ です。 — No, todavía no. ⚠️ No es まだ 〜ませんでした.', classes: [25, 30] },
       { id: 'exp-ikaga', kana: 'いかがですか', romaji: 'ikaga desu ka', es: '¿gusta…? / ¿qué tal…?', note: 'Para ofrecer algo, más formal que どう ですか: コーヒー は いかが ですか？', classes: [25, 28] },
       { id: 'exp-itadakimasu', kana: 'いただきます', romaji: 'itadakimasu', es: 'gracias (antes de comer)', note: 'Justo antes de comer o tomar lo que te sirvieron.', classes: [25] },
       { id: 'exp-soshite', kana: 'そして', romaji: 'soshite', es: 'y además', note: 'Une dos opiniones del mismo lado: べんり です。そして、きれい です。 Si son opuestas, va が: たかい です が、おいしい です。', classes: [27, 28, 29] },
-      { id: 'exp-sorosoro', kana: 'そろそろ', romaji: 'sorosoro', es: 'ya es hora (de irse)', note: 'あ、もう ６じ です ね。そろそろ しつれい します。', classes: [28] },
       { id: 'exp-kekkou', kana: 'けっこうです', romaji: 'kekkou desu', es: 'no, gracias', note: 'Para rechazar lo que te ofrecen: いいえ、けっこう です。', classes: [28] },
       { id: 'exp-mata-irasshatte', kana: 'またいらっしゃってください', romaji: 'mata irasshatte kudasai', es: 'vuelva cuando quiera', note: 'La despedida del dueño de casa.', classes: [28] },
       { id: 'exp-demo', kana: 'でも', romaji: 'demo', es: 'pero (al empezar la oración)', note: 'Abre una oración nueva: …べんり です。でも、とても いそがしい です。', classes: [29] },
@@ -619,14 +614,6 @@ export const classVocabCategories: ClassVocabCategory[] = [
       { id: 'tie-tsugi', kanji: '次', kana: 'つぎ', romaji: 'tsugi', es: 'el/la siguiente', note: 'Se engancha con の: つぎ の でんしゃ.', classes: [17] },
       { id: 'tie-natsuyasumi', kanji: '夏休み', kana: 'なつやすみ', romaji: 'natsuyasumi', es: 'vacaciones de verano', classes: [17] },
       { id: 'tie-kurisumasu', kana: 'クリスマス', romaji: 'kurisumasu', es: 'Navidad', classes: [17, 25] },
-      { id: 'tie-itsumo', kana: 'いつも', romaji: 'itsumo', es: 'siempre', note: 'Va antes del objeto: いつも スーパー で かいます。', classes: [21, 23] },
-      { id: 'tie-tokidoki', kanji: '時々', kana: 'ときどき', romaji: 'tokidoki', es: 'a veces / de vez en cuando', classes: [21] },
-      { id: 'tie-amari', kana: 'あまり', romaji: 'amari', es: 'casi no / no mucho', note: '⚠️ Siempre con negativo: あまり みません。 Con adjetivos, igual: あまり あつくない です。', classes: [21, 26, 27, 28, 29, 30] },
-      { id: 'tie-zenzen', kanji: '全然', kana: 'ぜんぜん', romaji: 'zenzen', es: 'nunca / para nada', note: '⚠️ Siempre con el verbo en negativo: ぜんぜん のみません。', classes: [21, 30] },
-      { id: 'tie-yoku', kana: 'よく', romaji: 'yoku', es: 'bien (con verbo)', note: 'Va con verbos: よく わかります. Con adjetivos va とても.', classes: [30] },
-      { id: 'tie-daitai', kana: 'だいたい', romaji: 'daitai', es: 'casi todo / más o menos', note: 'しゅくだい が だいたい わかります。', classes: [30] },
-      { id: 'tie-sukoshi', kanji: '少し', kana: 'すこし', romaji: 'sukoshi', es: 'un poco', note: 'にほんご が すこし わかります。', classes: [30] },
-      { id: 'tie-takusan', kana: 'たくさん', romaji: 'takusan', es: 'mucho (cantidad)', note: 'おかね が たくさん あります。', classes: [30] },
       { id: 'tie-hiruyasumi', kanji: '昼休み', kana: 'ひるやすみ', romaji: 'hiruyasumi', es: 'descanso del mediodía', classes: [23] },
       { id: 'tie-korekara', kana: 'これから', romaji: 'korekara', es: 'ahora / a partir de ahora', note: 'Lo que viene: いいえ、まだ です。これから たべます。', classes: [25] },
       { id: 'tie-mukashi', kanji: '昔', kana: 'むかし', romaji: 'mukashi', es: 'antes / hace mucho tiempo', note: 'むかし の ひと — la gente de antes.', classes: [25] },
@@ -776,6 +763,30 @@ export const classVocabCategories: ClassVocabCategory[] = [
       { id: 'adj-taihen', kanji: '大変', kana: 'たいへん', romaji: 'taihen', es: 'duro / agotador', note: 'Adjetivo な: まち の せいかつ は たいへん です。', classes: [29] },
       { id: 'adj-amai', kanji: '甘い', kana: 'あまい', romaji: 'amai', es: 'dulce', classes: [4] },
       { id: 'adj-tokubetsu', kanji: '特別', kana: 'とくべつ', romaji: 'tokubetsu', es: 'especial', note: 'Adjetivo な: とくべつ な ひ.', classes: [15] },
+    ],
+  },
+  {
+    // Adverbios (2026-11-12): salieron de 'tiempo' y 'expresiones' para jugarse juntos en
+    // Significados. Los ids no cambian: Antónimos y el Repaso los siguen encontrando.
+    id: 'adverbios',
+    label: 'Adverbios',
+    glyph: '副',
+    summary: 'Cuánto, cada cuánto y cómo: とても, よく, あまり, いつも…',
+    entries: [
+      { id: 'exp-totemo', kana: 'とても', romaji: 'totemo', es: 'muy', note: 'Con el adjetivo en afirmativo: とても あつい です。 Lo contrario es あまり + negativo.', classes: [26, 27, 28, 29, 30] },
+      { id: 'tie-yoku', kana: 'よく', romaji: 'yoku', es: 'bien (con verbo)', note: 'Va con verbos: よく わかります. Con adjetivos va とても.', classes: [30] },
+      { id: 'tie-daitai', kana: 'だいたい', romaji: 'daitai', es: 'casi todo / más o menos', note: 'しゅくだい が だいたい わかります。', classes: [30] },
+      { id: 'tie-sukoshi', kanji: '少し', kana: 'すこし', romaji: 'sukoshi', es: 'un poco', note: 'にほんご が すこし わかります。', classes: [30] },
+      { id: 'tie-takusan', kana: 'たくさん', romaji: 'takusan', es: 'mucho (cantidad)', note: 'おかね が たくさん あります。', classes: [30] },
+      { id: 'tie-amari', kana: 'あまり', romaji: 'amari', es: 'casi no / no mucho', note: '⚠️ Siempre con negativo: あまり みません。 Con adjetivos, igual: あまり あつくない です。', classes: [21, 26, 27, 28, 29, 30] },
+      { id: 'tie-zenzen', kanji: '全然', kana: 'ぜんぜん', romaji: 'zenzen', es: 'nunca / para nada', note: '⚠️ Siempre con el verbo en negativo: ぜんぜん のみません。', classes: [21, 30] },
+      { id: 'tie-itsumo', kana: 'いつも', romaji: 'itsumo', es: 'siempre', note: 'Va antes del objeto: いつも スーパー で かいます。', classes: [21, 23] },
+      { id: 'tie-tokidoki', kanji: '時々', kana: 'ときどき', romaji: 'tokidoki', es: 'a veces / de vez en cuando', classes: [21] },
+      { id: 'exp-mou', kana: 'もう', romaji: 'mou', es: 'ya', note: 'Con el verbo en pasado: もう ひるごはん を たべましたか？', classes: [25] },
+      { id: 'exp-mada', kana: 'まだ', romaji: 'mada', es: 'todavía', note: 'いいえ、まだ です。 — No, todavía no. ⚠️ No es まだ 〜ませんでした.', classes: [25, 30] },
+      { id: 'exp-isshoni', kanji: '一緒に', kana: 'いっしょに', romaji: 'issho ni', es: 'juntos', note: 'いっしょに コーヒー を のみませんか？', classes: [21, 23, 25, 29] },
+      { id: 'exp-chotto', kana: 'ちょっと', romaji: 'chotto', es: 'un momento / un poco', classes: [2, 21] },
+      { id: 'exp-sorosoro', kana: 'そろそろ', romaji: 'sorosoro', es: 'ya es hora (de irse)', note: 'あ、もう ６じ です ね。そろそろ しつれい します。', classes: [28] },
     ],
   },
   {
@@ -974,11 +985,12 @@ export const classVocabCategories: ClassVocabCategory[] = [
 // Es un Record a propósito: si sumás una temática nueva, TypeScript no compila hasta
 // que la clasifiques acá. `tiempo` mezcla sustantivos con adverbios (いつも, ときどき):
 // va con sustantivos porque la mayoría lo son.
-export type ClassVocabKind = 'adjetivos' | 'verbos' | 'sustantivos' | 'expresiones' | 'preguntas';
+export type ClassVocabKind = 'adjetivos' | 'verbos' | 'adverbios' | 'sustantivos' | 'expresiones' | 'preguntas';
 
 export const classVocabKinds: { id: ClassVocabKind; label: string }[] = [
   { id: 'adjetivos', label: 'Adjetivos' },
   { id: 'verbos', label: 'Verbos' },
+  { id: 'adverbios', label: 'Adverbios' },
   { id: 'sustantivos', label: 'Sustantivos' },
   { id: 'expresiones', label: 'Expresiones y saludos' },
   { id: 'preguntas', label: 'Preguntas y こそあど' },
@@ -1002,6 +1014,7 @@ export const CLASS_VOCAB_KIND_BY_CATEGORY: Record<ClassVocabCategoryId, ClassVoc
   tiempo: 'sustantivos',
   verbos: 'verbos',
   adjetivos: 'adjetivos',
+  adverbios: 'adverbios',
   transporte: 'sustantivos',
   herramientas: 'sustantivos',
   comida: 'sustantivos',

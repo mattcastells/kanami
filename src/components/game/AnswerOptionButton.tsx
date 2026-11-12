@@ -7,7 +7,7 @@ import { AppText } from '../ui/AppText';
 import { GradeMark } from '../ui/InkBits';
 import { InkPressable } from '../ui/InkPressable';
 import { hasJapanese } from '../ui/japanese';
-import { useSingleColumnOptions } from './AnswerOptionGrid';
+import { useOptionFit, useSingleColumnOptions } from './AnswerOptionGrid';
 
 export type AnswerOptionVisualState = 'idle' | 'selected' | 'correct' | 'incorrect' | 'muted';
 
@@ -21,7 +21,8 @@ type AnswerOptionButtonProps = {
   fullWidth?: boolean;
   // Opción que es un kanji suelto: más alta y en Klee 40.
   kanji?: boolean;
-  // Renglones antes de cortar con "…". 1 por default; una frase entera necesita más.
+  // Renglones mínimos que puede ocupar (una frase entera necesita más). Una opción larga
+  // achica la letra y suma renglones sola (useOptionFit): nunca se corta con "…".
   lines?: number;
 };
 
@@ -42,6 +43,7 @@ export function AnswerOptionButton({
 }: AnswerOptionButtonProps) {
   // Dentro de AnswerOptionGrid: si alguna opción no entra en media columna, van todas a una.
   const singleColumn = useSingleColumnOptions();
+  const fit = useOptionFit(label, fullWidth, lines);
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
 
@@ -128,8 +130,9 @@ export function AnswerOptionButton({
               hasJapanese(label) ? styles.glyphLabel : null,
               kanji ? styles.kanjiLabel : null,
               labelStyle,
+              fit.scale < 1 && !kanji ? { fontSize: OPTION_FONT * fit.scale, lineHeight: OPTION_LINE * fit.scale } : null,
             ]}
-            numberOfLines={lines}
+            numberOfLines={kanji ? 1 : fit.lines}
           >
             {label}
           </AppText>
@@ -138,6 +141,10 @@ export function AnswerOptionButton({
     </Animated.View>
   );
 }
+
+// Letra de la variante "option" (theme.typography.option).
+const OPTION_FONT = theme.typography.option.fontSize;
+const OPTION_LINE = theme.typography.option.lineHeight;
 
 const styles = StyleSheet.create({
   wrap: {

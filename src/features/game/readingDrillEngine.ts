@@ -57,6 +57,8 @@ export type DrillSessionState = {
   inputValue: string;
   stats: GameStats;
   roundNumber: number;
+  // Ítems que ya salieron en la sesión, en orden: no se repiten hasta agotar el mazo.
+  seenIds: string[];
 };
 
 const OPTION_COUNT = 4;
@@ -99,6 +101,27 @@ export function isDisplayCorrect(item: DrillItem, submitted: string): boolean {
   return keys.some((key) => item.displayAnswers.includes(key));
 }
 
+// Intentos de sorteo antes de aceptar un ítem repetido. Las fuentes sortean al azar (no
+// tienen una lista cerrada), así que "no repetir" es volver a sortear.
+const FRESH_ATTEMPTS = 40;
+
+// Un ítem que no haya salido en la sesión. Si el mazo se agotó (andenes: 12; un solo tipo
+// de fecha), se permite repetir, pero nunca lo de la mitad más reciente de la sesión.
+// Antes solo se evitaba repetir la ronda anterior, y en 20 preguntas "Andén 1" salía 3 veces.
+export function pickFreshItem(source: DrillSource, seenIds: string[], previousId?: string): DrillItem {
+  const seen = new Set(seenIds);
+  for (let attempt = 0; attempt < FRESH_ATTEMPTS; attempt += 1) {
+    const item = source.pick(previousId);
+    if (!seen.has(item.id)) return item;
+  }
+  const recent = new Set(seenIds.slice(-Math.max(1, Math.ceil(seenIds.length / 2))));
+  for (let attempt = 0; attempt < FRESH_ATTEMPTS; attempt += 1) {
+    const item = source.pick(previousId);
+    if (!recent.has(item.id)) return item;
+  }
+  return source.pick(previousId);
+}
+
 function optionText(item: DrillItem, direction: DrillDirection): string {
   return direction === 'to-japanese' ? item.readings[0].kana : item.display;
 }
@@ -109,8 +132,9 @@ export function createDrillRound(
   answerMode: DrillAnswerMode,
   roundNumber: number,
   previousId?: string,
+  seenIds: string[] = [],
 ): DrillRound {
-  const item = source.pick(previousId);
+  const item = pickFreshItem(source, seenIds, previousId);
   const correctText = optionText(item, direction);
   const correctKana = new Set(item.readings.map((reading) => reading.kana));
 
@@ -151,13 +175,15 @@ export function createInitialDrillState(
   direction: DrillDirection,
   answerMode: DrillAnswerMode,
 ): DrillSessionState {
+  const round = createDrillRound(source, direction, answerMode, 0);
   return {
-    round: createDrillRound(source, direction, answerMode, 0),
+    round,
     answerState: 'idle',
     selectedOptionId: null,
     inputValue: '',
     stats: { correct: 0, incorrect: 0, streak: 0, answered: 0 },
     roundNumber: 0,
+    seenIds: [round.item.id],
   };
 }
 
@@ -217,9 +243,11 @@ export function moveToNextDrillRound(
   answerMode: DrillAnswerMode,
 ): DrillSessionState {
   const roundNumber = state.roundNumber + 1;
+  const round = createDrillRound(source, direction, answerMode, roundNumber, state.round.item.id, state.seenIds);
   return {
     ...state,
-    round: createDrillRound(source, direction, answerMode, roundNumber, state.round.item.id),
+    round,
+    seenIds: [...state.seenIds, round.item.id],
     answerState: 'idle',
     selectedOptionId: null,
     inputValue: '',

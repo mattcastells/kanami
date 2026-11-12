@@ -39,6 +39,7 @@ export type ClassWordCategoryId =
   | 'clase-tiempo'
   | 'clase-verbos'
   | 'clase-adjetivos'
+  | 'clase-adverbios'
   | 'clase-transporte'
   | 'clase-herramientas'
   | 'clase-comida'
