@@ -36,17 +36,23 @@ function pickRandom<T>(items: T[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function collectDistractorSyllables(
-  pool: WordPracticeEntry[],
-  excluding: string,
-): string[] {
+const DISTRACTOR_COUNT = 3;
+
+// Distractores en kana, del MISMO silabario que la palabra (en mixto, una カ junto a か se
+// elige sin leer) y, si alcanzan, del mismo largo: una mora sola (だ) contra una combinada
+// (ぎゅ) o con ー (バー) se descarta a la vista.
+function pickDistractorSyllables(pool: WordPracticeEntry[], word: WordPracticeEntry, answer: string): string[] {
   const syllables = new Set<string>();
   pool.forEach((entry) => {
-    entry.syllables.forEach((s) => {
-      if (s !== excluding) syllables.add(s);
+    if (entry.script !== word.script) return;
+    entry.kanaSyllables.forEach((syllable) => {
+      if (syllable !== answer) syllables.add(syllable);
     });
   });
-  return Array.from(syllables);
+  const all = shuffle(Array.from(syllables));
+  const sameLength = all.filter((syllable) => syllable.length === answer.length);
+  const rest = all.filter((syllable) => syllable.length !== answer.length);
+  return [...sameLength, ...rest].slice(0, DISTRACTOR_COUNT);
 }
 
 export function createFillBlankRound(
@@ -59,13 +65,12 @@ export function createFillBlankRound(
       : pool;
 
   const word = pickRandom(promptPool);
-  const syllables = word.syllables;
+  // En kana, no en romaji: completar "dai_ku" era un juego de romaji (feedback 2026-11-15).
+  const syllables = word.kanaSyllables;
   const blankIndex = Math.floor(Math.random() * syllables.length);
   const answer = syllables[blankIndex];
 
-  const distractors = shuffle(
-    collectDistractorSyllables(pool, answer),
-  ).slice(0, 3);
+  const distractors = pickDistractorSyllables(pool, word, answer);
 
   const allOptions: FillBlankOption[] = shuffle([
     { id: `correct-${answer}`, text: answer },

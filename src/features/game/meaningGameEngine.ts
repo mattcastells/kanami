@@ -102,6 +102,10 @@ function sharesMeaning(keys: Set<string>, candidate: MeaningEntry) {
   return false;
 }
 
+function hasKatakana(kana: string) {
+  return /[ァ-ヺ]/.test(kana);
+}
+
 function kindOf(entry: MeaningEntry) {
   return CLASS_VOCAB_KIND_BY_CATEGORY[entry.category];
 }
@@ -151,9 +155,18 @@ function buildRound(
   // Dedupe por texto mostrado: dos botones iguales harían imposible saber cuál tocar.
   const seen = new Set([textOf(entry)]);
   const distractors: MeaningEntry[] = [];
+  // Con opciones en japonés, dentro de cada nivel van primero las del MISMO silabario: テレビ
+  // entre tres palabras en hiragana se elige sin leer (feedback 2026-11-15).
+  const sameScript = (candidate: MeaningEntry) => hasKatakana(candidate.kana) === hasKatakana(entry.kana);
+  const ordered = (candidates: MeaningEntry[]) => {
+    const shuffled = shuffle(candidates);
+    return direction === 'es-to-jp'
+      ? [...shuffled.filter(sameScript), ...shuffled.filter((candidate) => !sameScript(candidate))]
+      : shuffled;
+  };
   for (const tier of tiers) {
     const limit = Math.min(OPTION_COUNT - 1, distractors.length + tier.max);
-    for (const candidate of shuffle(tier.candidates)) {
+    for (const candidate of ordered(tier.candidates)) {
       if (distractors.length >= limit) break;
       if (candidate.id === entry.id) continue;
       // Un homógrafo (あつい caluroso / あつい caliente) o un sinónimo (やさしい /

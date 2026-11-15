@@ -36,14 +36,18 @@ function pickRandom<T>(items: T[]) {
 }
 
 // Junta moras en kana de otras palabras como distractores. Deduplica y excluye las
-// moras que ya forman parte de la respuesta, para no ofrecer sílabas repetidas.
+// moras que ya forman parte de la respuesta, para no ofrecer sílabas repetidas. Solo del
+// MISMO silabario que la palabra: en mixto, una カ entre las piezas de かんこくじん es una
+// trampa visual, no un ejercicio (feedback 2026-11-15).
 function collectDistractorSyllables(
   pool: WordPracticeEntry[],
-  exclude: Set<string>,
+  word: WordPracticeEntry,
   count: number,
 ): string[] {
+  const exclude = new Set(word.kanaSyllables);
   const unique = new Set<string>();
   pool.forEach((entry) => {
+    if (entry.script !== word.script) return;
     entry.kanaSyllables.forEach((mora) => {
       if (!exclude.has(mora)) unique.add(mora);
     });
@@ -69,11 +73,7 @@ export function createWordBuilderRound(
     kana,
   }));
 
-  const distractorKana = collectDistractorSyllables(
-    pool,
-    new Set(word.kanaSyllables),
-    2,
-  );
+  const distractorKana = collectDistractorSyllables(pool, word, 2);
   const distractorTiles: WordBuilderTile[] = distractorKana.map((kana, i) => ({
     id: `distractor-${i}-${kana}`,
     kana,

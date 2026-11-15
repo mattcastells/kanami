@@ -19,7 +19,6 @@ import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { DrawingPractice } from '../components/game/DrawingPractice';
 import { ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
-import { HintToggle } from '../components/game/HintToggle';
 import { SessionSummary } from '../components/game/SessionSummary';
 import { AppText } from '../components/ui/AppText';
 import { InkPressable } from '../components/ui/InkPressable';
@@ -27,7 +26,6 @@ import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { SpeakButton } from '../components/ui/SpeakButton';
-import { useAppSettings } from '../settings/AppSettingsProvider';
 import { getKanaCharactersForGroupIds, getKanaScriptLabel, getKanaWordEntries } from '../data/kana';
 import { useFillBlankGame } from '../features/game/useFillBlankGame';
 import { useWordBuilderGame } from '../features/game/useWordBuilderGame';
@@ -484,11 +482,6 @@ function WordSyllablesGameView({
   onRepeat: () => void;
   onBack: () => void;
 }) {
-  const { theme: activeTheme } = useAppTheme();
-  const {
-    settings: { wordHintEnabled },
-    setWordHintEnabled,
-  } = useAppSettings();
   const { state, setInputValue, submit, next, lastFeedback } = useWordPracticeGame(
     pool,
     resetKey,
@@ -501,6 +494,8 @@ function WordSyllablesGameView({
     ...(isChoice ? { format: 'choice' as const, options: state.round.options } : { format: 'input' as const }),
     prompt: state.round.promptText,
     answer: state.round.answer,
+    // Escribiendo vale kana o romaji: el Repaso tiene que aceptar lo mismo.
+    accepted: [state.round.word.syllables.join('')],
     speakText: state.round.word.kana,
   });
   const promptTransition = useRef(new Animated.Value(1)).current;
@@ -569,21 +564,16 @@ function WordSyllablesGameView({
         sessionLength={sessionLength}
       />
 
+      {/* El significado arriba, la palabra en japonés abajo. Sin pista de romaji: con el
+          romaji a la vista el juego era transliterar (feedback 2026-11-15). */}
       <PromptCard
         size="input"
+        help="¿Cómo se dice?"
         score={state.stats}
-        bottomLeft={
-          <HintToggle enabled={wordHintEnabled} onToggle={() => setWordHintEnabled(!wordHintEnabled)} />
-        }
         speakText={state.answerState !== 'idle' ? state.round.word.kana : undefined}
       >
         <Animated.View style={[styles.promptAnimatedWrap, promptAnimatedStyle]}>
-          <PromptGlyph style={styles.syllablesPrompt}>{state.round.promptText}</PromptGlyph>
-          {wordHintEnabled ? (
-            <AppText variant="bodySmall" color={activeTheme.colors.textSecondary} style={styles.promptHint}>
-              {state.round.word.translations[0]}
-            </AppText>
-          ) : null}
+          <PromptGlyph style={styles.wordTranslationPrompt}>{state.round.promptText}</PromptGlyph>
         </Animated.View>
       </PromptCard>
 
@@ -618,7 +608,7 @@ function WordSyllablesGameView({
           blurOnSubmit={false}
           returnKeyType="done"
           maxLength={24}
-          placeholder={`Escribí la palabra en ${scriptLabelLowercase}`}
+          placeholder={`Escribí la palabra (${scriptLabelLowercase} o romaji)`}
           glyph
         />
       )}
@@ -721,6 +711,7 @@ function FillBlankGameView({
 
   const { syllables, blankIndex } = state.round;
   const translation = state.round.word.translations[0] ?? '';
+  const blankSizing = fillBlankSizing(syllables.join('').length);
 
   if (isSessionOver(state.stats, state.answerState, sessionLength)) {
     return (
@@ -757,11 +748,12 @@ function FillBlankGameView({
                   key={index}
                   style={[
                     styles.blankBox,
+                    blankSizing.box,
                     { borderColor: activeTheme.colors.primary, backgroundColor: activeTheme.colors.primarySoft },
                   ]}
                 />
               ) : (
-                <AppText key={index} style={styles.fillBlankSyllable}>
+                <AppText key={index} style={[styles.fillBlankSyllable, blankSizing.text]}>
                   {syl}
                 </AppText>
               ),
@@ -820,6 +812,8 @@ function WordBuilderGameView({
     format: 'input',
     prompt: state.round.promptText,
     answer: state.round.answer,
+    // En el Repaso se repite escribiendo: kana o romaji, como Palabra guiada.
+    accepted: [state.round.word.syllables.join('')],
     speakText: state.round.word.kana,
   });
   const promptTransition = useRef(new Animated.Value(1)).current;
@@ -922,11 +916,25 @@ function WordBuilderGameView({
         })}
       </View>
 
-      {/* Pozo de piezas — las ya colocadas salen de acá (viven en los casilleros). */}
+      {/* Pozo de piezas. La ya colocada queda en su lugar, apagada: si saliera del pozo,
+          las demás se correrían y habría que volver a buscarlas (feedback 2026-11-15).
+          Tocarla apagada la devuelve, igual que tocarla en su casillero. */}
       <View style={styles.wordBuilderTiles}>
-        {state.round.tiles
-          .filter((tile) => !state.placedTileIds.includes(tile.id))
-          .map((tile) => (
+        {state.round.tiles.map((tile) =>
+          state.placedTileIds.includes(tile.id) ? (
+            <InkPressable
+              key={tile.id}
+              onPress={() => tapTile(tile.id)}
+              disabled={answered}
+              dimDisabled={false}
+              elevation="flat"
+              style={[styles.wordBuilderTile, activeTheme.surfaces.quiet, { backgroundColor: colors.background }]}
+            >
+              <AppText style={styles.wordBuilderKana} color={colors.textMuted}>
+                {tile.kana}
+              </AppText>
+            </InkPressable>
+          ) : (
             <InkPressable
               key={tile.id}
               onPress={() => tapTile(tile.id)}
@@ -935,7 +943,8 @@ function WordBuilderGameView({
             >
               <AppText style={styles.wordBuilderKana}>{tile.kana}</AppText>
             </InkPressable>
-          ))}
+          ),
+        )}
       </View>
 
       <GameFooter feedback={lastFeedback}>
@@ -1044,6 +1053,17 @@ function estimatePromptTextWidth(
   );
 }
 
+// Completar en kana: una palabra larga (ボイスメッセージ) a 40px partía el renglón en el
+// medio. El hueco acompaña el tamaño de la letra.
+function fillBlankSizing(kanaLength: number) {
+  const fontSize = kanaLength <= 5 ? 40 : kanaLength <= 7 ? 32 : 26;
+  const box = Math.round(fontSize * 1.3);
+  return {
+    text: { fontSize, lineHeight: Math.round(fontSize * 1.35) },
+    box: { width: box, height: box },
+  };
+}
+
 function PromptGlyph({
   children,
   style,
@@ -1116,10 +1136,6 @@ const styles = StyleSheet.create({
   writingScreenContent: {
     paddingBottom: theme.spacing.xl,
   },
-  promptHint: {
-    textAlign: 'center',
-    marginTop: theme.spacing.xs,
-  },
   moras: {
     fontFamily: FONTS.bold,
     fontSize: 12,
@@ -1168,11 +1184,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     lineHeight: 38,
     letterSpacing: 0.2,
-  },
-  syllablesPrompt: {
-    fontSize: 38,
-    lineHeight: 46,
-    letterSpacing: 0.8,
   },
   actionRow: {
     flexDirection: 'row',

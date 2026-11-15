@@ -3,7 +3,7 @@ import { PracticeMode } from '../../types/game';
 import { AnswerState, GameStats, shuffle } from './gameEngine';
 
 export type WordPracticeAnswerKind = 'translation' | 'kana';
-export type WordPracticePromptKind = 'translation' | 'kana' | 'syllables';
+export type WordPracticePromptKind = 'translation' | 'kana';
 
 export type WordRound = {
   word: WordPracticeEntry;
@@ -43,8 +43,10 @@ export function getWordPromptKind(
   mode: Extract<PracticeMode, 'words' | 'syllables'>,
   inverted = false,
 ): WordPracticePromptKind {
+  // Palabra guiada: el significado arriba y la palabra en japonés abajo. Antes la consigna
+  // era el romaji ("kuruma") y el juego se reducía a transliterar (feedback 2026-11-15).
   if (mode === 'syllables') {
-    return 'syllables';
+    return 'translation';
   }
 
   return inverted ? 'translation' : 'kana';
@@ -71,19 +73,23 @@ export function sanitizeWordPracticeInput(
     return normalizeTranslation(trimmedValue.replace(/\s+/g, ' '));
   }
 
-  return trimmedValue.replace(/\s+/g, '');
+  return trimmedValue.replace(/\s+/g, '').toLowerCase();
 }
 
 const OPTION_COUNT = 4;
 const SIMILAR_POOL = 8;
 
 // Distractores de Palabra guiada: del MISMO silabario (una katakana entre tres hiragana
-// se elige sin leer) y de largo parecido, sin repetir la escritura de la correcta.
+// se elige sin leer) y de largo parecido, sin repetir la escritura de la correcta. La
+// consigna es el significado: una palabra que comparte alguna traducción (sinónimo) también
+// sería correcta, así que nunca es distractor.
 function pickWordOptions(pool: WordPracticeEntry[], word: WordPracticeEntry): string[] {
   const seen = new Set([word.kana]);
+  const meanings = new Set(word.translations.map((translation) => sanitizeWordPracticeInput(translation)));
   const candidates: string[] = [];
   pool.forEach((entry) => {
     if (entry.script !== word.script || seen.has(entry.kana)) return;
+    if (entry.translations.some((translation) => meanings.has(sanitizeWordPracticeInput(translation)))) return;
     seen.add(entry.kana);
     candidates.push(entry.kana);
   });
@@ -107,14 +113,7 @@ export function createWordRound(
   const promptKind = getWordPromptKind(mode, inverted);
   const answerKind = getWordAnswerKind(mode, inverted);
   const primaryTranslation = getPrimaryTranslation(word);
-  const promptText =
-    promptKind === 'kana'
-      ? word.kana
-      : promptKind === 'translation'
-        ? primaryTranslation
-        : // La palabra va escrita entera ("kuruma"), no cortada en moras ("ku ru ma"):
-          // separarla ya resolvía media consigna.
-          word.syllables.join('');
+  const promptText = promptKind === 'kana' ? word.kana : primaryTranslation;
   const answer = answerKind === 'kana' ? word.kana : primaryTranslation;
 
   return {
@@ -123,7 +122,9 @@ export function createWordRound(
     answer,
     acceptedAnswers:
       answerKind === 'kana'
-        ? [sanitizeWordPracticeInput(word.kana, 'kana')]
+        ? // Escribiendo se acepta kana o romaji: lo que se mide es acordarse la palabra,
+          // no tener el teclado japonés a mano.
+          [sanitizeWordPracticeInput(word.kana, 'kana'), sanitizeWordPracticeInput(word.syllables.join(''), 'kana')]
         : word.translations.map((translation) =>
             sanitizeWordPracticeInput(translation, 'translation'),
           ),
