@@ -25,8 +25,8 @@ type GameHeaderProps = {
 
 // Cabecera de partida. Con total: [cerrar] [barra] [7/20] y debajo el eyebrow. Sin
 // total: [cerrar] [glyph · título]. El puntaje no va acá: va arriba a la derecha de la
-// tarjeta del prompt (así el título no se corta). Cambiar de dirección tampoco: es un
-// `Segmented` debajo.
+// tarjeta del prompt (así el título no se corta). Cambiar de dirección tampoco: se elige
+// en la pantalla de selección, antes de jugar.
 export function GameHeader({ glyph, title, eyebrow, progress, onClose }: GameHeaderProps) {
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, Text } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
 import { WordReveal } from '../components/game/WordReveal';
@@ -7,30 +7,22 @@ import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { AnswerNote, ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
-import { Segmented } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { findPhraseExample } from '../data/phrases';
 import { getEmojiVocabulary } from '../data/vocabularyEmoji';
-import { EmojiGameMode } from '../features/game/emojiGameEngine';
 import { useEmojiGame } from '../features/game/useEmojiGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
-import { FONTS, theme } from '../theme/theme';
+import { FONTS } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 import { isSessionOver } from '../features/game/gameEngine';
 import { sessionProgress, useGameSession } from '../features/game/useGameSession';
 import { SessionSummary } from '../components/game/SessionSummary';
 
-// Las dos direcciones, a la vista y no detrás de un "Invertir" en la cabecera.
-const MODES: { value: EmojiGameMode; label: string }[] = [
-  { value: 'word-to-emoji', label: 'Palabra → Imagen' },
-  { value: 'emoji-to-word', label: 'Imagen → Palabra' },
-];
-
 export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
-  const { script } = route.params;
-  const [mode, setMode] = useState<EmojiGameMode>('word-to-emoji');
+  // La dirección se elige en EmojiSetupScreen; la partida no la cambia.
+  const { script, mode } = route.params;
 
   const pool = useMemo(() => getEmojiVocabulary(script), [script]);
   const session = useGameSession();
@@ -92,10 +84,6 @@ export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
     <ScreenBackground scrollable>
       <GameHeader glyph="絵" title="Imágenes" progress={sessionProgress(stats, session.length)} />
 
-      <View style={styles.direction}>
-        <Segmented options={MODES} value={mode} onChange={setMode} />
-      </View>
-
       <PromptCard
         score={stats}
         // Imagen → palabra: escuchar la palabra antes de elegir sería darte la respuesta.
@@ -149,8 +137,5 @@ const styles = StyleSheet.create({
   emojiOption: {
     fontSize: 40,
     lineHeight: 48,
-  },
-  direction: {
-    marginBottom: theme.spacing.md,
   },
 });

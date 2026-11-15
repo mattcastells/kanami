@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AnswerInput } from '../components/game/AnswerInput';
@@ -6,15 +6,12 @@ import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
 import { AnswerNote, GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
-import { Segmented } from '../components/ui/InkBits';
 import { InkPressable } from '../components/ui/InkPressable';
 import { hasJapanese } from '../components/ui/japanese';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { SpeakButton } from '../components/ui/SpeakButton';
 import {
-  TranslationDirection,
-  TranslationInputMode,
   canSubmitTranslation,
   getPlacedText,
   getTranslationPool,
@@ -29,19 +26,6 @@ import { isSessionOver } from '../features/game/gameEngine';
 import { sessionProgress, useGameSession } from '../features/game/useGameSession';
 import { SessionSummary } from '../components/game/SessionSummary';
 
-const DIRECTIONS: { value: TranslationDirection; label: string }[] = [
-  { value: 'es-to-jp', label: 'Es → 日本語' },
-  { value: 'jp-to-es', label: '日本語 → Es' },
-];
-
-// Elegir = reconocer la frase (el más fácil, va primero); ordenar y escribir = producirla.
-const INPUT_MODES: { value: TranslationInputMode; label: string }[] = [
-  { value: 'choice', label: 'Elegir' },
-  { value: 'tiles', label: 'Ordenar' },
-  { value: 'typing', label: 'Escribir' },
-];
-
-
 // La frase en japonés baja de tamaño con el largo: a 28, una de 10+ kana no entraba en un
 // renglón.
 function jpPromptSize(text: string) {
@@ -49,11 +33,11 @@ function jpPromptSize(text: string) {
   return { fontSize: size, lineHeight: Math.round(size * 1.4) };
 }
 
-export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>) {
+export function TranslationGameScreen({ route }: RootStackScreenProps<'TranslationGame'>) {
   const { theme: activeTheme } = useAppTheme();
-  // Arranca en leer japonés y elegir qué significa: el ejercicio de entrada.
-  const [direction, setDirection] = useState<TranslationDirection>('jp-to-es');
-  const [mode, setMode] = useState<TranslationInputMode>('choice');
+  // Dirección y forma de responder vienen de la selección (TranslationSetupScreen): la
+  // partida no las cambia, así nada la reinicia a mitad de camino.
+  const { direction, mode } = route.params;
 
   const pool = useMemo(() => getTranslationPool('mixed'), []);
   const session = useGameSession();
@@ -97,11 +81,6 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
   return (
     <ScreenBackground scrollable keyboardShouldPersistTaps="handled">
       <GameHeader glyph="訳" title="Traducción" progress={sessionProgress(state.stats, session.length)} />
-
-      <View style={styles.selectors}>
-        <Segmented options={DIRECTIONS} value={direction} onChange={setDirection} />
-        <Segmented options={INPUT_MODES} value={mode} onChange={setMode} />
-      </View>
 
       <PromptCard
         size="compact"
@@ -256,10 +235,6 @@ export function TranslationGameScreen(_: RootStackScreenProps<'TranslationGame'>
 }
 
 const styles = StyleSheet.create({
-  selectors: {
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.md,
-  },
   esPrompt: {
     fontFamily: FONTS.bold,
     fontSize: 22,

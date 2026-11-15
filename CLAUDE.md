@@ -100,8 +100,8 @@ Pestañas: **練 Practicar · 復 Repaso · 私 Perfil**. 復 Repaso ocupa el lu
   (puerta única a Hiragana, Katakana y Kanji: en la grilla son UNA card), KanaGroups,
   KanaGame, **KanaBoardGame** (el tablero de kana), **KanjiGrind** + **KanjiGrindGame**
   (la práctica de kanji), KanjiDraw,
-  **EmojiGame** (matcheo palabra↔emoji),
-  **TranslationGame** (traducir frases enteras en las dos direcciones, **eligiendo entre 4**
+  **Emoji** + **EmojiGame** (matcheo palabra↔emoji),
+  **Translation** + **TranslationGame** (traducir frases enteras en las dos direcciones, **eligiendo entre 4**
   —el default: leer japonés y elegir qué significa—, ordenando piezas o escribiendo; al ordenar, 6 de cada 10 rondas traen 2 o 3 piezas de otras frases que no van), **Meanings** + **MeaningGame** (Significados: reconocer palabras de la
   cursada, 4 opciones, en las dos direcciones, por temática —con Adverbios aparte— y por
   **Formas**: verbos en presente y pasado, adjetivos en presente; ver "Formas" abajo), **AntonymGame** (Antónimos: elegir el
@@ -249,6 +249,11 @@ Cada hueco va como `choice`: su oración con ＿＿ + traducción, y 3 partícul
 
 ### Pantallas de selección de práctica (kana, vocabulario, kanji, números, fechas)
 
+**Primero se configura, después se juega** (2026-11-15). Todo lo que define la partida
+(dirección, forma de responder, rondas) se elige en su pantalla de selección y viaja por la
+ruta. **La partida no tiene controles que la cambien**: Traducción, Imágenes y Significados
+tenían un `Segmented` arriba de la partida y tocarlo a mitad de camino la reiniciaba.
+
 Siguen el mismo flujo y comparten primitives (`src/components/practice/`):
 
 Pasos numerados, en este orden (cada pantalla muestra los que le tocan y numera seguido):
@@ -261,7 +266,7 @@ Pasos numerados, en este orden (cada pantalla muestra los que le tocan y numera 
 
 **Rondas por partida** (2026-11-10): UN ajuste persistido (`settings.sessionRounds`, 0 = sin
 límite, default 10) para todos los juegos. Se elige en cada pantalla de selección y en Perfil
-(rige para Antónimos, Imágenes y Traducción, que no tienen selección). Los juegos lo leen con
+(rige para Antónimos, el único juego sin selección). Los juegos lo leen con
 `useGameSession` / `useSessionLength`, NO por parámetro de ruta. Con largo, la cabecera es la
 barra "7/10" (`sessionProgress`); al terminar, `SessionSummary`. El corte es `isSessionOver`
 (gameEngine): recién después de SIGUIENTE en la última, para que su corrección se lea. Sin
@@ -273,6 +278,19 @@ en la cabecera.
 **Todo arranca preseleccionado**: el botón de arranque nunca queda muerto esperando que
 elijas algo. `ScreenBackground` **mide** el overlay con `onLayout` para reservar el padding
 de scroll — no asumas un alto fijo, cambia con la fuente del sistema y el safe area.
+
+### Vocabulario: Palabra guiada, Completar y Constructor
+
+- **Palabra guiada**: el significado arriba ("¿Cómo se dice?"), la palabra en japonés abajo
+  (elegir entre 4 o escribir, en kana o romaji). Antes la consigna era el romaji y el juego
+  era transliterar. Sin pista de traducción: la traducción ES la consigna.
+- **Completar**: la palabra en **kana** con una mora hecha hueco; opciones en kana.
+- **Constructor**: la pieza que tocás queda **apagada en su lugar** en el pozo (tocarla la
+  devuelve). Sacarla del pozo corría las demás y mareaba. Lo mismo en Traducción · Ordenar.
+- **Un solo silabario por ronda.** Piezas y opciones salen del silabario de la palabra: en
+  mixto, una カ entre las piezas de かんこくじん es una trampa visual, y una katakana entre
+  tres hiragana se elige sin leer. Rige también para Imágenes y Significados (Cómo se dice),
+  que ordenan los distractores poniendo primero los del mismo silabario.
 
 ### Los dos mazos de vocabulario (no mezclarlos)
 
@@ -397,7 +415,7 @@ Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"
 - `GameHeader` (partidas sin total): igual, `glyph` + `title` → "反 · Antónimos" en Dela 20. Nada más en esa fila: el título no se corta. Los dos usan `HeaderTitle` (`components/ui`), que achica la fuente lo justo si el título no entra: nunca baja a dos renglones.
 - `PromptCard`: tiene SOLO la pregunta. La consigna (`help`, "¿Qué significa?") y el puntaje ○/× (`score`) van en una línea chica ARRIBA de la tarjeta, no adentro (2026-11-10: le comían lugar a las frases). Esa línea es `PromptMeta` (`GamePlay`): los juegos sin PromptCard (Partículas) la usan suelta, así el ○/× está en el mismo lugar en todos. El audio es `speakText`: **la tarjeta entera se toca para escuchar** y un parlante chico arriba a la derecha lo avisa (ya no hay botón redondo abajo: tapaba las frases largas). 訳 (`bottomLeft`) sigue abajo a la izquierda. Lo que se revela al responder va en `AnswerNote`, DEBAJO de las opciones o del campo; para una palabra, `WordReveal` (palabra grande en Klee, romaji — significado, y una nota o "Ej.:" corto sacado de `phrases.ts` con `findPhraseExample`).
 - **Opciones de respuesta = `AnswerOptionGrid`** (`components/game`): 2×2 si todas entran en media columna; si alguna no ("expreso limitado") o son impares (las 3 del Negativo), en una columna. A todo el ancho el texto deja lugar a la × de la esquina. **Nunca "…"**: una opción que no entra achica la letra (hasta 72%) y si no alcanza pasa a 2-3 renglones (`useOptionFit`): dos lecturas que difieren al final (1998 / 1999) quedaban iguales a la vista. Estima el ancho del texto con el ancho medido de la grilla: no adivines con "más de N letras" en cada pantalla.
-- Cambiar de dirección (Significados, Imágenes, Traducción) es un `Segmented` debajo de la cabecera, no una pastilla "Invertir".
+- La dirección (Significados, Imágenes, Traducción) es un paso **Juego** de su pantalla de selección, nunca un control dentro de la partida.
 - Opción correcta = verde, sin ○. La errada lleva ×.
 - **Textos cortos**: una línea donde alcance. Nada de párrafos explicando cómo funciona algo.
 - **Tab bar**: borde superior 2px `line`; activa = pastilla `highlight` con contorno. **Se oculta durante una partida.**

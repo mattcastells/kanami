@@ -11,6 +11,13 @@ import { getPhraseTiles } from './phraseSegmentation';
 export type TranslationDirection = 'es-to-jp' | 'jp-to-es';
 export type TranslationInputMode = 'choice' | 'tiles' | 'typing';
 
+// Los mismos nombres que las direcciones de Significados: es el mismo par de ejercicios,
+// con frases en vez de palabras.
+export const TRANSLATION_DIRECTION_TITLES: Record<TranslationDirection, string> = {
+  'jp-to-es': 'Qué significa',
+  'es-to-jp': 'Cómo se dice',
+};
+
 export type TranslationRound = {
   phraseId: string;
   promptText: string;

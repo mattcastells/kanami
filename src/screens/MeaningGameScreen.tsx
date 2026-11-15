@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
 
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
 import { WordReveal } from '../components/game/WordReveal';
@@ -7,12 +7,10 @@ import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { AnswerNote, ChoiceNext, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
-import { Segmented } from '../components/ui/InkBits';
 import { ScreenBackground } from '../components/ui/ScreenBackground';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import {
   getMeaningPool,
-  MEANING_DIRECTION_TITLES,
   MEANING_MIN_POOL,
   MeaningDirection,
   MeaningEntry,
@@ -20,17 +18,11 @@ import {
 import { useMeaningGame } from '../features/game/useMeaningGame';
 import { useTrackProgress } from '../features/progress/useTrackProgress';
 import { useTrackWeakItem } from '../features/weak/useTrackWeakItem';
-import { FONTS, theme } from '../theme/theme';
+import { FONTS } from '../theme/theme';
 import { RootStackScreenProps } from '../types/navigation';
 import { isSessionOver } from '../features/game/gameEngine';
 import { sessionProgress, useGameSession } from '../features/game/useGameSession';
 import { SessionSummary } from '../components/game/SessionSummary';
-
-// Las dos direcciones, a la vista y no detrás de un "Invertir" en la cabecera.
-const DIRECTIONS: { value: MeaningDirection; label: string }[] = [
-  { value: 'jp-to-es', label: MEANING_DIRECTION_TITLES['jp-to-es'] },
-  { value: 'es-to-jp', label: MEANING_DIRECTION_TITLES['es-to-jp'] },
-];
 
 // Las frases (おさきにしつれいします) no entran a 46px en un teléfono.
 function kanaPromptStyle(text: string) {
@@ -60,7 +52,7 @@ export function MeaningGameScreen({ route }: RootStackScreenProps<'MeaningGame'>
     <MeaningGamePlay
       pool={pool}
       poolKey={[...categoryIds, ...formGroupIds].join(',')}
-      initialDirection={direction}
+      direction={direction}
     />
   );
 }
@@ -68,13 +60,14 @@ export function MeaningGameScreen({ route }: RootStackScreenProps<'MeaningGame'>
 function MeaningGamePlay({
   pool,
   poolKey,
-  initialDirection,
+  direction,
 }: {
   pool: MeaningEntry[];
   poolKey: string;
-  initialDirection: MeaningDirection;
+  // Se elige en la selección (MeaningSetupScreen). Antes también se podía cambiar arriba de
+  // la partida, y tocarlo la reiniciaba (feedback 2026-11-15).
+  direction: MeaningDirection;
 }) {
-  const [direction, setDirection] = useState<MeaningDirection>(initialDirection);
 
   const session = useGameSession();
   const resetKey = `meaning:${poolKey}:${direction}:${session.nonce}`;
@@ -121,10 +114,6 @@ function MeaningGamePlay({
   return (
     <ScreenBackground scrollable>
       <GameHeader glyph="意" title="Significados" progress={sessionProgress(stats, session.length)} />
-
-      <View style={styles.direction}>
-        <Segmented options={DIRECTIONS} value={direction} onChange={setDirection} />
-      </View>
 
       <PromptCard
         score={stats}
@@ -184,8 +173,5 @@ const styles = StyleSheet.create({
   },
   esPrompt: {
     textAlign: 'center',
-  },
-  direction: {
-    marginBottom: theme.spacing.md,
   },
 });

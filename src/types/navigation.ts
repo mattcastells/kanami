@@ -5,10 +5,12 @@ import { CounterKindId } from '../data/counters';
 import { DateTimeKindId } from '../data/dateTime';
 import { QuestionTopicId } from '../data/questions';
 import { NumberRangeId } from '../data/numbers';
+import { EmojiGameMode } from '../features/game/emojiGameEngine';
 import { GrammarGameMode } from '../features/game/grammarGameEngine';
 import { MeaningDirection } from '../features/game/meaningGameEngine';
 import { MeaningFormGroupId } from '../features/game/meaningForms';
 import { ParticleGameMode } from '../features/game/particleGameEngine';
+import { TranslationDirection, TranslationInputMode } from '../features/game/phraseTranslationEngine';
 import { QuestionGameMode } from '../features/game/questionGameEngine';
 import { DrillAnswerMode, DrillDirection } from '../features/game/readingDrillEngine';
 import { HiraganaGroupId } from './hiragana';
@@ -21,7 +23,13 @@ export type RootStackParamList = {
   Practice: undefined;
   // Puerta a Hiragana, Katakana y Kanji (una sola card en la grilla).
   Kanas: undefined;
-  TranslationGame: undefined;
+  // Traducción: `Translation` es la selección (dirección + forma de responder); la partida
+  // no las cambia.
+  Translation: undefined;
+  TranslationGame: {
+    direction: TranslationDirection;
+    mode: TranslationInputMode;
+  };
   KanaGroups: {
     script: KanaScript;
     initialMode?: PracticeMode;
@@ -50,8 +58,10 @@ export type RootStackParamList = {
   };
   KanjiDraw: { chars: string[] };
   Vocabulary: undefined;
+  Emoji: undefined;
   EmojiGame: {
     script: KanaScript;
+    mode: EmojiGameMode;
   };
   // Números y Fechas y hora: selección + partida, con el motor compartido de
   // readingDrillEngine.

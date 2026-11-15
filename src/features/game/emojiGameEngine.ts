@@ -3,6 +3,11 @@ import { AnswerState, GameStats } from './gameEngine';
 
 export type EmojiGameMode = 'word-to-emoji' | 'emoji-to-word';
 
+export const EMOJI_MODE_TITLES: Record<EmojiGameMode, string> = {
+  'word-to-emoji': 'Palabra → Imagen',
+  'emoji-to-word': 'Imagen → Palabra',
+};
+
 export type EmojiOption = {
   id: string;
   text: string;
@@ -45,6 +50,11 @@ function pickRandom<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+// El mazo de imágenes no guarda el silabario: se deduce del kana (con ー sola no alcanza).
+function isKatakanaWord(kana: string): boolean {
+  return /[ァ-ヺ]/.test(kana);
+}
+
 export function createEmojiRound(
   pool: EmojiVocabEntry[],
   mode: EmojiGameMode,
@@ -59,13 +69,20 @@ export function createEmojiRound(
   const optionsAreEmoji = mode === 'word-to-emoji';
   // Excluimos distractores que muestran el mismo texto que la respuesta correcta
   // (mismo emoji o misma palabra), para que las opciones nunca colisionen.
-  const distractors = shuffle(
+  const candidates = shuffle(
     pool.filter((entry) =>
       optionsAreEmoji
         ? entry.emoji !== correct.emoji
         : entry.kana !== correct.kana,
     ),
-  ).slice(0, Math.min(3, pool.length - 1));
+  );
+  // Con palabras de opción, primero las del MISMO silabario: カレンダー entre tres palabras
+  // en hiragana se elige sin leer (feedback 2026-11-15). Si no alcanzan, se completa.
+  const sameScript = (entry: EmojiVocabEntry) => isKatakanaWord(entry.kana) === isKatakanaWord(correct.kana);
+  const ordered = optionsAreEmoji
+    ? candidates
+    : [...candidates.filter(sameScript), ...candidates.filter((entry) => !sameScript(entry))];
+  const distractors = ordered.slice(0, Math.min(3, pool.length - 1));
 
   const options: EmojiOption[] = shuffle([correct, ...distractors]).map(
     (entry) => ({

@@ -46,9 +46,9 @@ export function PracticeScreen({ navigation }: RootStackScreenProps<'Practice'>)
     {
       glyph: '絵',
       title: 'Imágenes',
-      onPress: () => navigation.navigate('EmojiGame', { script: 'mixed' }),
+      onPress: () => navigation.navigate('Emoji'),
     },
-    { glyph: '訳', title: 'Traducción', onPress: () => navigation.navigate('TranslationGame') },
+    { glyph: '訳', title: 'Traducción', onPress: () => navigation.navigate('Translation') },
   ];
 
   // De a dos por fila. Si queda una impar, ocupa la fila entera: una card a media

@@ -13,6 +13,7 @@ import { AntonymGameScreen } from '../screens/AntonymGameScreen';
 import { DateTimeGameScreen } from '../screens/DateTimeGameScreen';
 import { DateTimeSetupScreen } from '../screens/DateTimeSetupScreen';
 import { EmojiGameScreen } from '../screens/EmojiGameScreen';
+import { EmojiSetupScreen } from '../screens/EmojiSetupScreen';
 import { GameScreen } from '../screens/GameScreen';
 import { MeaningGameScreen } from '../screens/MeaningGameScreen';
 import { CountersGameScreen } from '../screens/CountersGameScreen';
@@ -39,6 +40,7 @@ import { NumbersSetupScreen } from '../screens/NumbersSetupScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { KanaBoardGameScreen } from '../screens/KanaBoardGameScreen';
 import { TranslationGameScreen } from '../screens/TranslationGameScreen';
+import { TranslationSetupScreen } from '../screens/TranslationSetupScreen';
 import { VocabularyScreen } from '../screens/VocabularyScreen';
 
 // Tabs: 練 Practicar · 復 Repaso · 私 Perfil
@@ -68,6 +70,7 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="KanjiGrindGame" component={KanjiGrindGameScreen} />
       <PracticeStack.Screen name="KanjiDraw" component={KanjiDrawScreen} />
       <PracticeStack.Screen name="Vocabulary" component={VocabularyScreen} />
+      <PracticeStack.Screen name="Emoji" component={EmojiSetupScreen} />
       <PracticeStack.Screen name="EmojiGame" component={EmojiGameScreen} />
       <PracticeStack.Screen name="Numbers" component={NumbersSetupScreen} />
       <PracticeStack.Screen name="NumbersGame" component={NumbersGameScreen} />
@@ -84,6 +87,7 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="ParticleGame" component={ParticleGameScreen} />
       <PracticeStack.Screen name="Counters" component={CountersSetupScreen} />
       <PracticeStack.Screen name="CountersGame" component={CountersGameScreen} />
+      <PracticeStack.Screen name="Translation" component={TranslationSetupScreen} />
       <PracticeStack.Screen name="TranslationGame" component={TranslationGameScreen} />
     </PracticeStack.Navigator>
   );
