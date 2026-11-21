@@ -37,7 +37,8 @@ function kanjiOf(text) {
 // ── Leer el dataset ────────────────────────────────────────────────────────────────
 // Se parsea el TS en vez de importarlo: el script corre en Node plano, sin toolchain.
 function readKanjiEntries() {
-  const source = readFileSync(KANJI_FILE, 'utf8');
+  // Con core.autocrlf la copia de trabajo puede venir en CRLF: los patrones asumen \n.
+  const source = readFileSync(KANJI_FILE, 'utf8').replace(/\r\n/g, '\n');
   const blocks = source.split(/\n  \{\n/).slice(1);
 
   return blocks.map((block) => {
@@ -164,7 +165,7 @@ function scanClassNotes(charSet) {
 // Palabras de la cursada que contienen el kanji. Se guarda el id de la entrada, no la
 // palabra: `classVocabulary` sigue siendo el dueño de ese dato.
 function scanClassVocabulary(charSet) {
-  const source = readFileSync(CLASS_VOCAB_FILE, 'utf8');
+  const source = readFileSync(CLASS_VOCAB_FILE, 'utf8').replace(/\r\n/g, '\n');
   const classesByChar = new Map();
   const wordsByChar = new Map();
 

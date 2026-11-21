@@ -169,4 +169,18 @@ export const PARTICLE_TEXTS: ParticleText[] = [
       { jp: 'わたし {は} ひとりで あるいて うち {へ|に} かえります。', es: 'Yo vuelvo a casa solo, caminando.' },
     ],
   },
+  {
+    id: 'agenda',
+    title: 'Una semana ocupada',
+    glyph: '忙',
+    classes: [29, 30, 31],
+    sentences: [
+      { jp: 'どようび {は} いそがしい です。', es: 'El sábado estoy ocupado.' },
+      { jp: 'あさ {から} しごと {が} あります。', es: 'Tengo trabajo desde la mañana.' },
+      { jp: 'よる {は} ともだち {と} やくそく {が} あります。', es: 'A la noche quedé con un amigo.' },
+      { jp: 'にちようび {は} じかん {が} あります {から}、いっしょに えいが {を} みませんか。', es: 'El domingo tengo tiempo, así que ¿vemos una película juntos?' },
+      { jp: 'わたし {は} アニメ {が} すき です {から}、まいにち にほんご {を} べんきょう します。', es: 'Como me gusta el animé, estudio japonés todos los días.' },
+      { jp: 'きのう {は} ようじ {が} ありました {から}、クラス {へ|に} いきませんでした。', es: 'Como ayer tuve cosas que hacer, no fui a clase.' },
+    ],
+  },
 ];

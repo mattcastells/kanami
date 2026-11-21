@@ -19,7 +19,8 @@ export type QuestionTopicId =
   | 'tiempo'
   | 'transporte'
   | 'rutina'
-  | 'opiniones';
+  | 'opiniones'
+  | 'razones';
 
 export type QuestionEntry = {
   id: string;
@@ -48,6 +49,7 @@ export const QUESTION_TOPICS: QuestionTopic[] = [
   { id: 'transporte', label: 'Viajes y transporte', hint: 'なんで · だれ と' },
   { id: 'rutina', label: 'Qué hacés', hint: 'なに を · どこ で' },
   { id: 'opiniones', label: 'Opiniones y gustos', hint: 'どう · どんな' },
+  { id: 'razones', label: 'Por qué', hint: 'どうして · 〜から' },
 ];
 
 // Qué contesta cada palabra. Dos palabras del mismo tipo nunca se mezclan como respuesta
@@ -78,10 +80,14 @@ export const ANSWER_KIND_BY_WORD: Record<string, string> = {
   どう: 'opinion',
   どんな: 'opinion',
   いかが: 'opinion',
+  // Se contesta con la razón + から: ninguna otra respuesta termina así.
+  どうして: 'razon',
 };
 
 const PLACE = ['どちら'];
 const PLACE_FORMAL = ['どこ'];
+// なんで es 'en qué' en el curso, pero en japonés coloquial también es 'por qué'.
+const WHY_COLLOQUIAL = ['なんで'];
 
 export const QUESTIONS: QuestionEntry[] = [
   // Presentarse (clases 1–3)
@@ -153,6 +159,13 @@ export const QUESTIONS: QuestionEntry[] = [
   { id: 'q-nanigasuki', topic: 'opiniones', ask: 'なに が すき ですか？', romaji: 'nani ga suki desu ka?', es: '¿Qué te gusta?', word: 'なに', answerKind: 'gusto', answer: 'アニメ が すき です。', answerEs: 'Me gusta el animé.', classes: [29] },
   { id: 'q-donnasupootsu', topic: 'opiniones', ask: 'どんな スポーツ が すき ですか？', romaji: 'donna supootsu ga suki desu ka?', es: '¿Qué deportes te gustan?', word: 'どんな', answerKind: 'gusto', answer: 'サッカー が すき です。', answerEs: 'Me gusta el fútbol.', classes: [29] },
   { id: 'q-nanigajouzu', topic: 'opiniones', ask: 'なに が じょうず ですか？', romaji: 'nani ga jouzu desu ka?', es: '¿En qué sos bueno/a?', word: 'なに', answerKind: 'gusto', answer: 'りょうり が じょうず です。', answerEs: 'Cocino bien.', classes: [29] },
+
+  // Por qué (clase 31)
+  { id: 'q-doushite-nihongo', topic: 'razones', ask: 'どうして にほんご を べんきょう しますか？', romaji: 'doushite nihongo o benkyou shimasu ka?', es: '¿Por qué estudiás japonés?', word: 'どうして', alsoValid: WHY_COLLOQUIAL, answer: 'アニメ が すき です から。', answerEs: 'Porque me gusta el animé.', classes: [31] },
+  { id: 'q-doushite-shukudai', topic: 'razones', ask: 'どうして しゅくだい を しませんでしたか？', romaji: 'doushite shukudai o shimasen deshita ka?', es: '¿Por qué no hiciste la tarea?', word: 'どうして', alsoValid: WHY_COLLOQUIAL, answer: 'しごと が たくさん ありました から。', answerEs: 'Porque tuve mucho trabajo.', classes: [31] },
+  { id: 'q-doushite-okane', topic: 'razones', ask: 'どうして ともだち に おかね を かりましたか？', romaji: 'doushite tomodachi ni okane o karimashita ka?', es: '¿Por qué le pediste plata a un amigo?', word: 'どうして', alsoValid: WHY_COLLOQUIAL, answer: 'おかね が ありません から。', answerEs: 'Porque no tengo plata.', classes: [31] },
+  { id: 'q-doushite-pan', topic: 'razones', ask: 'どうして まいにち パン を たべますか？', romaji: 'doushite mainichi pan o tabemasu ka?', es: '¿Por qué comés pan todos los días?', word: 'どうして', alsoValid: WHY_COLLOQUIAL, answer: 'パン が すき です から。', answerEs: 'Porque me gusta el pan.', classes: [31] },
+  { id: 'q-doushite-takushii', topic: 'razones', ask: 'どうして かいしゃ へ タクシー で いきますか？', romaji: 'doushite kaisha e takushii de ikimasu ka?', es: '¿Por qué vas a la empresa en taxi?', word: 'どうして', alsoValid: WHY_COLLOQUIAL, answer: 'じかん が ありません から。', answerEs: 'Porque no tengo tiempo.', classes: [31] },
 ];
 
 export function answerKindOf(question: QuestionEntry): string {
