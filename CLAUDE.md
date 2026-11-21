@@ -199,11 +199,11 @@ verbo). Una forma nunca es distractor de una palabra suelta. Los ids son `form:<
 
 ### Preguntas (`questionGameEngine`)
 
-Cómo se pregunta en japonés, con el banco `data/questions.ts` (54 preguntas en 8 temas, de las
-clases 1–29). Tres juegos: **Completá** (la pregunta con un hueco + su traducción → la palabra
+Cómo se pregunta en japonés, con el banco `data/questions.ts` (59 preguntas en 9 temas, de las
+clases 1–31). Tres juegos: **Completá** (la pregunta con un hueco + su traducción → la palabra
 que pregunta), **Cómo se pregunta** (español → la pregunta en japonés) y **Qué contestás** (la
 pregunta → la respuesta). Para que nunca haya dos opciones correctas: `alsoValid` (どこ/どちら,
-なんさい/おいくつ, だれ/どなた, どう/いかが nunca son distractores entre sí) y el tipo de
+なんさい/おいくつ, だれ/どなた, どう/いかが, どうして/なんで nunca son distractores entre sí) y el tipo de
 respuesta (`ANSWER_KIND_BY_WORD`, con `answerKind` para pisarlo): en "Qué contestás" las
 incorrectas son siempre de otro tipo. Hora y fecha son un mismo tipo, y piso y lugar también.
 Una pregunta nueva va al banco con su `word` tal cual aparece en `ask` (si no, no hay hueco).
@@ -235,7 +235,7 @@ algo SIN partícula (あした, ひとりで, あるいて). Las palabras de há
 con lo que se hace una vez (regalar, encontrarse). Una palabra nueva va a su lista; un verbo
 nuevo, a su molde. Usa las rondas del ajuste (sin límite = no termina).
 
-**Textos**: textos cortos de la cursada (`data/particleTexts.ts`, 11 textos, 118 huecos) con cada partícula
+**Textos**: textos cortos de la cursada (`data/particleTexts.ts`, 12 textos, 136 huecos) con cada partícula
 hecha un hueco: `{は}`, o `{へ|に}` si valen las dos. Se completan EN ORDEN con un teclado fijo de
 12 partículas (は が を に へ で と の も か から まで); lo respondido queda corregido en el
 texto (verde, o tachado con la buena al lado) y abajo va la traducción de la oración que toca.
@@ -296,7 +296,7 @@ de scroll — no asumas un alto fijo, cambia con la fuente del sistema y el safe
 
 - `wordVocabulary.ts` — vocabulario **genérico** para drillear kana (~200). Es el único que
   alimenta el mazo de repaso espaciado: `buildSrsDeck()` lo importa **directo**.
-- `classVocabulary.ts` — vocabulario **de la cursada** (~720; auditado contra Notion el 2026-11-10 y contra la hoja de vocabulario de Minna 1–8 el 2026-11-11): lo visto en las clases 1–30 más
+- `classVocabulary.ts` — vocabulario **de la cursada** (~720; auditado contra Notion el 2026-11-10 y contra la hoja de vocabulario de Minna 1–8 el 2026-11-11): lo visto en las clases 1–31 más
   la sección Vocabulario de Notion. Trae kanji, romaji, nota y `classes` (trazabilidad).
   Es **la base de "lo que sé"**: Significados (`meaningGameEngine`) lee de acá directo, y
   Antónimos arma sus pares con ids de acá (`data/antonyms.ts`), así que cada clase que suma

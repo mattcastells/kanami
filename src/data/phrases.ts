@@ -172,6 +172,13 @@ const hiraganaPhrasesData: [string, string, string][] = [
   ['やまのせいかつはあまりべんりじゃありません', 'yama no seikatsu wa amari benri ja arimasen', 'La vida en la montaña no es muy práctica'],
   ['かわのさかなはおいしいですよ', 'kawa no sakana wa oishii desu yo', 'El pescado del río es rico'],
   ['こんどわたしのうちへきませんか', 'kondo watashi no uchi e kimasen ka', '¿Venís a mi casa la próxima?'],
+  // Clase 31. Van al final: el id es el índice.
+  ['あしたしけんがあります', 'ashita shiken ga arimasu', 'Mañana tengo examen'],
+  ['すみませんようじがあります', 'sumimasen youji ga arimasu', 'Perdón, tengo cosas que hacer'],
+  ['ともだちとやくそくがあります', 'tomodachi to yakusoku ga arimasu', 'Quedé con un amigo'],
+  ['きょうはじかんがありません', 'kyou wa jikan ga arimasen', 'Hoy no tengo tiempo'],
+  ['どうしてにほんごをべんきょうしますか', 'doushite nihongo wo benkyou shimasu ka', '¿Por qué estudiás japonés?'],
+  ['おかねがありませんから', 'okane ga arimasen kara', 'Porque no tengo plata'],
 ];
 
 const katakanaPhraseData: [string, string, string][] = [
@@ -250,6 +257,9 @@ const katakanaPhraseData: [string, string, string][] = [
   ['たなかさんはサッカーがじょうずです', 'tanaka san wa sakkaa ga jouzu desu', 'Tanaka juega muy bien al fútbol'],
   ['わたしはサッカーがとくいです', 'watashi wa sakkaa ga tokui desu', 'El fútbol es lo mío'],
   ['わたしはサッカーがへたです', 'watashi wa sakkaa ga heta desu', 'Juego mal al fútbol'],
+  // Clase 31.
+  ['アニメがすきですから', 'anime ga suki desu kara', 'Porque me gusta el animé'],
+  ['すいようびアルバイトがあります', 'suiyoubi arubaito ga arimasu', 'El miércoles tengo el trabajo de medio tiempo'],
 ];
 
 function createPhraseEntry(
