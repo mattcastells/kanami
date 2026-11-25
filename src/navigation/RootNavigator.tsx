@@ -20,6 +20,8 @@ import { CountersGameScreen } from '../screens/CountersGameScreen';
 import { CountersSetupScreen } from '../screens/CountersSetupScreen';
 import { GrammarGameScreen } from '../screens/GrammarGameScreen';
 import { GrammarSetupScreen } from '../screens/GrammarSetupScreen';
+import { MockExamGameScreen } from '../screens/MockExamGameScreen';
+import { MockExamSetupScreen } from '../screens/MockExamSetupScreen';
 import { ParticleGameScreen } from '../screens/ParticleGameScreen';
 import { ParticlesSetupScreen } from '../screens/ParticlesSetupScreen';
 import { QuestionGameScreen } from '../screens/QuestionGameScreen';
@@ -83,6 +85,8 @@ function PracticeNavigator() {
       <PracticeStack.Screen name="QuestionGame" component={QuestionGameScreen} />
       <PracticeStack.Screen name="Grammar" component={GrammarSetupScreen} />
       <PracticeStack.Screen name="GrammarGame" component={GrammarGameScreen} />
+      <PracticeStack.Screen name="MockExam" component={MockExamSetupScreen} />
+      <PracticeStack.Screen name="MockExamGame" component={MockExamGameScreen} />
       <PracticeStack.Screen name="Particles" component={ParticlesSetupScreen} />
       <PracticeStack.Screen name="ParticleGame" component={ParticleGameScreen} />
       <PracticeStack.Screen name="Counters" component={CountersSetupScreen} />

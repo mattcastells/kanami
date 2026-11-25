@@ -33,6 +33,7 @@ export const PLAYING_ROUTES = [
   'GrammarGame',
   'ParticleGame',
   'CountersGame',
+  'MockExamGame',
 ];
 
 export const HIDDEN_TAB_BAR: ViewStyle = { display: 'none' };
