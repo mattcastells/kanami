@@ -27,7 +27,19 @@ export type KanjiGrindRoundKind =
   | 'word-recognition'
   | 'sentence-recognition';
 
-export type KanjiGrindOption = { id: string; text: string };
+export type KanjiGrindOption = {
+  id: string;
+  text: string;
+  // Qué significa la opción: se muestra debajo si la elegiste y estaba mal.
+  gloss?: string;
+};
+
+// Lo que es la opción, sin repetir lo que ya dice: "agua" → "水 · みず", 水 → "みず · agua".
+function kanjiGloss(entry: KanjiEntry, text: string): string {
+  return [entry.char, getMainReading(entry)?.kana, entry.meaning]
+    .filter((part): part is string => Boolean(part) && part !== text)
+    .join(' · ');
+}
 
 export type KanjiGrindRound = {
   key: string;
@@ -122,7 +134,7 @@ function buildTextOptions(
   if (!correctText) return [];
 
   const used = new Set<string>([correctText]);
-  const options: KanjiGrindOption[] = [{ id: correct.char, text: correctText }];
+  const options: KanjiGrindOption[] = [{ id: correct.char, text: correctText, gloss: kanjiGloss(correct, correctText) }];
 
   for (const candidate of shuffle(pool)) {
     if (options.length >= OPTION_COUNT) break;
@@ -130,19 +142,19 @@ function buildTextOptions(
     const text = textOf(candidate);
     if (!text || used.has(text) || forbidden.has(text)) continue;
     used.add(text);
-    options.push({ id: candidate.char, text });
+    options.push({ id: candidate.char, text, gloss: kanjiGloss(candidate, text) });
   }
 
   return shuffle(options);
 }
 
 function buildKanjiOptions(correct: KanjiEntry, pool: KanjiEntry[]): KanjiGrindOption[] {
-  const options: KanjiGrindOption[] = [{ id: correct.char, text: correct.char }];
+  const options: KanjiGrindOption[] = [{ id: correct.char, text: correct.char, gloss: kanjiGloss(correct, correct.char) }];
 
   for (const candidate of shuffle(pool)) {
     if (options.length >= OPTION_COUNT) break;
     if (candidate.char === correct.char) continue;
-    options.push({ id: candidate.char, text: candidate.char });
+    options.push({ id: candidate.char, text: candidate.char, gloss: kanjiGloss(candidate, candidate.char) });
   }
 
   // Una sola opción no es una pregunta. Devolver vacío hace que la ronda se descarte

@@ -30,6 +30,9 @@ export type TranslationRound = {
   answerText: string;
   // Modo elegir: la respuesta y 3 frases de otras entradas, ya barajadas.
   options: string[];
+  // Qué dice cada opción del otro lado (japonés ↔ español): se ve debajo de la que
+  // elegiste si estaba mal.
+  optionGlosses: Record<string, string>;
   kana: string;
   romaji: string;
   translation: string;
@@ -159,6 +162,7 @@ export function createTranslationRound(
   const entry = pickRandom(candidates);
 
   const solution = getTiles(entry, direction);
+  const options = pickOptions(pool, entry, direction);
   const decoys = Math.random() < DECOY_CHANCE ? pickDecoys(pool, entry, direction, solution) : [];
 
   return {
@@ -167,7 +171,13 @@ export function createTranslationRound(
     solution,
     shuffledTiles: shuffleUntilDifferent([...solution, ...decoys], solution),
     answerText: answerFor(entry, direction),
-    options: pickOptions(pool, entry, direction),
+    options,
+    optionGlosses: Object.fromEntries(
+      options.map((text) => {
+        const owner = pool.find((other) => answerFor(other, direction) === text);
+        return [text, owner ? (direction === 'es-to-jp' ? owner.translation : owner.kana) : ''];
+      }),
+    ),
     kana: entry.kana,
     romaji: entry.romaji,
     translation: entry.translation,

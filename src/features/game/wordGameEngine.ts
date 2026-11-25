@@ -12,6 +12,8 @@ export type WordRound = {
   acceptedAnswers: string[];
   // Palabra guiada respondida eligiendo: la palabra y 3 más (en kana), ya barajadas.
   options: string[];
+  // Qué significa cada opción (por su kana): se ve debajo de la que elegiste si estaba mal.
+  optionGlosses: Record<string, string>;
   roundKey: string;
   feedbackText: string;
   feedbackPromptText?: string;
@@ -113,6 +115,7 @@ export function createWordRound(
   const promptKind = getWordPromptKind(mode, inverted);
   const answerKind = getWordAnswerKind(mode, inverted);
   const primaryTranslation = getPrimaryTranslation(word);
+  const options = mode === 'syllables' ? pickWordOptions(pool, word) : [];
   const promptText = promptKind === 'kana' ? word.kana : primaryTranslation;
   const answer = answerKind === 'kana' ? word.kana : primaryTranslation;
 
@@ -128,7 +131,13 @@ export function createWordRound(
         : word.translations.map((translation) =>
             sanitizeWordPracticeInput(translation, 'translation'),
           ),
-    options: mode === 'syllables' ? pickWordOptions(pool, word) : [],
+    options,
+    optionGlosses: Object.fromEntries(
+      options.map((kana) => {
+        const entry = kana === word.kana ? word : pool.find((candidate) => candidate.kana === kana);
+        return [kana, entry ? getPrimaryTranslation(entry) : ''];
+      }),
+    ),
     roundKey: word.id,
     feedbackText:
       mode === 'syllables' ? `${word.kana} - ${primaryTranslation}` : answer,

@@ -84,6 +84,35 @@ export const ANSWER_KIND_BY_WORD: Record<string, string> = {
   どうして: 'razon',
 };
 
+// Qué significa cada palabra que pregunta. En "Completá", si elegís la que no va, se ve
+// debajo qué preguntaba. Toda palabra del banco (word y alsoValid) tiene que estar acá.
+export const QUESTION_WORD_ES: Record<string, string> = {
+  なん: '¿qué?',
+  なに: '¿qué?',
+  どこ: '¿dónde?',
+  どちら: '¿dónde? (formal)',
+  だれ: '¿quién?',
+  どなた: '¿quién? (formal)',
+  どの: '¿cuál? (+ sustantivo)',
+  いくら: '¿cuánto cuesta?',
+  なんがい: '¿qué piso?',
+  なんじ: '¿qué hora?',
+  なんようび: '¿qué día de la semana?',
+  なんにち: '¿qué día del mes?',
+  なんがつ: '¿qué mes?',
+  なんねん: '¿qué año?',
+  いつ: '¿cuándo?',
+  なんさい: '¿cuántos años?',
+  おいくつ: '¿cuántos años? (formal)',
+  なんばん: '¿qué número?',
+  なんばんせん: '¿qué andén?',
+  なんで: '¿en qué? / ¿con qué?',
+  どう: '¿qué tal?',
+  どんな: '¿qué tipo de…?',
+  いかが: '¿qué tal? (formal)',
+  どうして: '¿por qué?',
+};
+
 const PLACE = ['どちら'];
 const PLACE_FORMAL = ['どこ'];
 // なんで es 'en qué' en el curso, pero en japonés coloquial también es 'por qué'.

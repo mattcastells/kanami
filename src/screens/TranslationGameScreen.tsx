@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AnswerInput } from '../components/game/AnswerInput';
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
-import { AnswerNote, GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { AnswerNote, GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { AppText } from '../components/ui/AppText';
 import { InkPressable } from '../components/ui/InkPressable';
@@ -99,6 +99,7 @@ export function TranslationGameScreen({ route }: RootStackScreenProps<'Translati
             <AnswerOptionButton
               key={option}
               label={option}
+              gloss={state.round.optionGlosses[option]}
               fullWidth
               lines={3}
               labelStyle={styles.choiceText}
@@ -215,7 +216,7 @@ export function TranslationGameScreen({ route }: RootStackScreenProps<'Translati
         chosen={mode === 'choice'}
       >
         {mode === 'choice' && !answered ? (
-          <WaitingHint visible />
+          null
         ) : (
         <View style={styles.actions}>
           {/* Del español al japonés, el audio dice la respuesta: recién después de responder. */}

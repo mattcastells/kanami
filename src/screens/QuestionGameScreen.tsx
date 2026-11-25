@@ -109,6 +109,7 @@ export function QuestionGameScreen({ route }: RootStackScreenProps<'QuestionGame
           <AnswerOptionButton
             key={option.id}
             label={option.text}
+            gloss={option.gloss}
             lines={2}
             labelStyle={sentenceOptions ? styles.sentenceOption : undefined}
             disabled={answered}

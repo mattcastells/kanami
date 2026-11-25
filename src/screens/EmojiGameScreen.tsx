@@ -101,6 +101,7 @@ export function EmojiGameScreen({ route }: RootStackScreenProps<'EmojiGame'>) {
           <AnswerOptionButton
             key={option.id}
             label={option.text}
+            gloss={round.optionsAreEmoji ? `${option.kana} · ${option.translation}` : option.translation}
             disabled={answerState !== 'idle'}
             visualState={getOptionState(option.id)}
             onPress={() => answer(option.id)}

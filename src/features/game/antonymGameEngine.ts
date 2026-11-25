@@ -14,7 +14,12 @@ export type AntonymWord = {
   kind: AntonymKind;
 };
 
-export type AntonymOption = { id: string; text: string };
+export type AntonymOption = {
+  id: string;
+  text: string;
+  // Qué significa la opción: se muestra debajo si la elegiste y estaba mal.
+  gloss?: string;
+};
 
 export type AntonymRound = {
   prompt: AntonymWord;
@@ -117,6 +122,7 @@ export function createAntonymRound(previousRoundId?: string): AntonymRound {
     options: shuffle([answer, ...distractors]).map((word) => ({
       id: word.id,
       text: word.kana,
+      gloss: word.es,
     })),
     correctOptionId: answer.id,
     roundId,

@@ -92,6 +92,7 @@ export function AntonymGameScreen(_: RootStackScreenProps<'AntonymGame'>) {
           <AnswerOptionButton
             key={option.id}
             label={option.text}
+            gloss={option.gloss}
             disabled={answered}
             visualState={getOptionState(option.id)}
             onPress={() => answer(option.id)}

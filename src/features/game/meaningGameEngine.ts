@@ -26,7 +26,12 @@ export function isFormEntry(entry: MeaningEntry): entry is MeaningFormEntry {
   return 'baseId' in entry;
 }
 
-export type MeaningOption = { id: string; text: string };
+export type MeaningOption = {
+  id: string;
+  text: string;
+  // Qué significa la opción: se muestra debajo si la elegiste y estaba mal.
+  gloss?: string;
+};
 
 export type MeaningRound = {
   entryId: string;
@@ -186,6 +191,8 @@ function buildRound(
     options: shuffle([entry, ...distractors]).map((candidate) => ({
       id: candidate.id,
       text: textOf(candidate),
+      // Del lado contrario: si elegiste "comer", que veas que era たべる.
+      gloss: direction === 'es-to-jp' ? candidate.es : candidate.kana,
     })),
     correctOptionId: entry.id,
     kana: entry.kana,

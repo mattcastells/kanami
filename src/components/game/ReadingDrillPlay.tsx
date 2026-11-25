@@ -17,7 +17,7 @@ import { SpeakButton } from '../ui/SpeakButton';
 import { AnswerInput } from './AnswerInput';
 import { AnswerOptionButton } from './AnswerOptionButton';
 import { AnswerOptionGrid } from './AnswerOptionGrid';
-import { AnswerNote, GameFooter, PromptCard, WaitingHint } from './GamePlay';
+import { AnswerNote, GameFooter, PromptCard } from './GamePlay';
 import { GameHeader } from './GameHeader';
 
 // La partida de Números y de Fechas y hora: mismo ejercicio, otro contenido (lo pone el
@@ -210,6 +210,7 @@ export function ReadingDrillPlay({
             <AnswerOptionButton
               key={option.id}
               label={option.text}
+              gloss={option.gloss}
               disabled={answered}
               visualState={getOptionState(option.id)}
               onPress={() => choose(option.id)}
@@ -263,7 +264,7 @@ export function ReadingDrillPlay({
             onPress={() => submit(state.inputValue)}
           />
         ) : (
-          <WaitingHint visible />
+          null
         )}
       </GameFooter>
     </ScreenBackground>

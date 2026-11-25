@@ -312,6 +312,7 @@ function ReadingGameView({
           <AnswerOptionButton
             key={option.id}
             label={inverted ? option.kana : option.romaji}
+            gloss={inverted ? option.romaji : option.kana}
             disabled={state.answerState !== 'idle'}
             visualState={getOptionState(option.id, state)}
             onPress={() => answer(option.id)}
@@ -583,6 +584,7 @@ function WordSyllablesGameView({
             <AnswerOptionButton
               key={option}
               label={option}
+              gloss={state.round.optionGlosses[option]}
               disabled={state.answerState !== 'idle'}
               visualState={
                 state.answerState === 'idle'

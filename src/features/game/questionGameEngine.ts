@@ -1,4 +1,4 @@
-import { answerKindOf, QUESTIONS, QuestionEntry } from '../../data/questions';
+import { answerKindOf, QUESTION_WORD_ES, QUESTIONS, QuestionEntry } from '../../data/questions';
 import { AnswerState, GameStats, shuffle } from './gameEngine';
 
 // Preguntas: practicar cómo se pregunta en japonés, con el banco de `data/questions.ts`.
@@ -21,7 +21,12 @@ export const QUESTION_BLANK = '＿＿';
 
 const OPTION_COUNT = 4;
 
-export type QuestionOption = { id: string; text: string };
+export type QuestionOption = {
+  id: string;
+  text: string;
+  // Qué significa la opción: se muestra debajo si la elegiste y estaba mal.
+  gloss?: string;
+};
 
 export type QuestionRound = {
   mode: QuestionGameMode;
@@ -99,9 +104,17 @@ function buildOptions(question: QuestionEntry, mode: QuestionGameMode, pool: Que
   return [question.answer, ...pickDistinct(candidates, new Set([question.answer]), OPTION_COUNT - 1)];
 }
 
+// Qué significa una opción: la palabra que pregunta (どこ → ¿dónde?), la pregunta o la
+// respuesta del banco en español.
+function glossOf(text: string, mode: QuestionGameMode): string | undefined {
+  if (mode === 'word') return QUESTION_WORD_ES[text];
+  if (mode === 'ask') return QUESTIONS.find((question) => question.ask === text)?.es;
+  return QUESTIONS.find((question) => question.answer === text)?.answerEs;
+}
+
 function buildRound(question: QuestionEntry, mode: QuestionGameMode, pool: QuestionEntry[]): QuestionRound {
   const texts = buildOptions(question, mode, pool);
-  const options = shuffle(texts).map((text) => ({ id: text, text }));
+  const options = shuffle(texts).map((text) => ({ id: text, text, gloss: glossOf(text, mode) }));
   return {
     mode,
     question,
