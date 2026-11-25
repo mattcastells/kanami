@@ -6,7 +6,7 @@ import { AnswerInput } from '../components/game/AnswerInput';
 import { AnswerOptionButton } from '../components/game/AnswerOptionButton';
 import { AnswerOptionGrid } from '../components/game/AnswerOptionGrid';
 import { DrawingPractice } from '../components/game/DrawingPractice';
-import { GameFooter, PromptCard, WaitingHint } from '../components/game/GamePlay';
+import { GameFooter, PromptCard } from '../components/game/GamePlay';
 import { GameHeader } from '../components/game/GameHeader';
 import { SessionSummary } from '../components/game/SessionSummary';
 import { SelectChip } from '../components/practice/SelectChip';
@@ -385,7 +385,7 @@ export function ReviewScreen({ navigation }: RootStackScreenProps<'Review'>) {
             onPress={() => (answered ? next() : grade(inputValue))}
           />
         ) : (
-          <WaitingHint visible />
+          null
         )}
       </GameFooter>
     </ScreenBackground>

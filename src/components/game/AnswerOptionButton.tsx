@@ -24,12 +24,16 @@ type AnswerOptionButtonProps = {
   // Renglones mínimos que puede ocupar (una frase entera necesita más). Una opción larga
   // achica la letra y suma renglones sola (useOptionFit): nunca se corta con "…".
   lines?: number;
+  // Qué significa esta opción ("comer" → たべる, 300 → さんびゃく). Se muestra debajo solo si
+  // la elegiste y estaba mal: así el error también enseña algo.
+  gloss?: string;
 };
 
 // Opción de respuesta. idle = card con sombra; selected = kihada hundida (antes de
 // confirmar); correcta = teñida de verde con borde 3 (sin ○: alcanza con el color);
-// incorrecta = teñida de rojo, borde 3 y × en la esquina;
-// muted = apagada para que la vista vaya a las dos que importan.
+// incorrecta = teñida de rojo, borde 3, × en la esquina y lo que significaba debajo.
+// muted = las que no elegiste y no eran: desaparecen (2026-11-21). Quedan solo la correcta
+// y la tuya, a todo el ancho, y SIGUIENTE no termina abajo de todo.
 export function AnswerOptionButton({
   label,
   visualState,
@@ -40,10 +44,14 @@ export function AnswerOptionButton({
   fullWidth = false,
   kanji = false,
   lines = 1,
+  gloss,
 }: AnswerOptionButtonProps) {
   // Dentro de AnswerOptionGrid: si alguna opción no entra en media columna, van todas a una.
   const singleColumn = useSingleColumnOptions();
-  const fit = useOptionFit(label, fullWidth, lines);
+  // Ya respondida, la que queda (la correcta y, si erraste, la tuya) va a todo el ancho:
+  // en la grilla 2×2 quedaba una suelta a la izquierda.
+  const resolved = visualState === 'correct' || visualState === 'incorrect';
+  const fit = useOptionFit(label, fullWidth || resolved, lines);
   const { theme: activeTheme } = useAppTheme();
   const { colors } = activeTheme;
 
@@ -99,8 +107,12 @@ export function AnswerOptionButton({
     ],
   };
 
+  if (visualState === 'muted') return null;
+
+  const showGloss = visualState === 'incorrect' && Boolean(gloss?.trim());
+
   return (
-    <Animated.View style={[styles.wrap, fullWidth || singleColumn ? styles.wrapFull : null, animatedStyle]}>
+    <Animated.View style={[styles.wrap, fullWidth || singleColumn || resolved ? styles.wrapFull : null, animatedStyle]}>
       <InkPressable
         onPress={onPress}
         disabled={disabled}
@@ -111,7 +123,7 @@ export function AnswerOptionButton({
           styles.container,
           // A todo el ancho el texto puede llegar a la esquina de la ×: se le deja lugar a
           // los dos lados para que siga centrado.
-          fullWidth || singleColumn ? styles.containerFull : null,
+          fullWidth || singleColumn || resolved ? styles.containerFull : null,
           { minHeight: kanji ? SIZES.optionKanji : SIZES.option },
           surface,
         ]}
@@ -136,6 +148,11 @@ export function AnswerOptionButton({
           >
             {label}
           </AppText>
+          {showGloss ? (
+            <AppText variant="bodySmall" color={colors.errorInk} style={styles.gloss}>
+              {gloss}
+            </AppText>
+          ) : null}
         </View>
       </InkPressable>
     </Animated.View>
@@ -178,6 +195,10 @@ const styles = StyleSheet.create({
   },
   glyphLabel: {
     fontFamily: FONTS.glyph,
+  },
+  gloss: {
+    textAlign: 'center',
+    marginTop: 2,
   },
   kanjiLabel: {
     fontFamily: FONTS.glyph,

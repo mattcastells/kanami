@@ -15,7 +15,7 @@ type FeedbackBannerProps = {
   nearMiss?: boolean;
   // Segunda línea cuando acertaste (ej. la traducción).
   detail?: string | null;
-  // Modos de elegir: lo tuyo se presenta como "Elegiste", no "Escribiste".
+  // Modos de elegir: lo tuyo no se repite acá (la opción errada queda a la vista).
   chosen?: boolean;
 };
 
@@ -51,7 +51,9 @@ export function FeedbackBanner({
       ? `Casi — se escribe: ${resolvedAnswerText}`
       : `Correcto: ${resolvedAnswerText}`
     : resolvedAnswerText;
-  const secondaryMessage = !ok && selectedText ? `${chosen ? 'Elegiste' : 'Escribiste'}: ${selectedText}` : ok ? detail : null;
+  // Eligiendo, lo tuyo ya queda a la vista: la opción errada sigue en pantalla, con lo que
+  // significaba (2026-11-21). Repetirlo acá era una línea más para scrollear.
+  const secondaryMessage = !ok && selectedText && !chosen ? `Escribiste: ${selectedText}` : ok ? detail : null;
 
   return (
     <View style={[styles.container, { borderColor: tone, backgroundColor: soft }]}>

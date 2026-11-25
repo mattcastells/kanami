@@ -115,7 +115,7 @@ type GameFooterProps = {
   };
   // Segunda línea del resultado cuando acertaste (la traducción).
   detail?: string | null;
-  // Modo de elegir entre opciones: "Elegiste: …" en vez de "Escribiste: …".
+  // Modo de elegir entre opciones: lo tuyo no se repite en el cartel (queda la opción).
   chosen?: boolean;
   children: ReactNode;
 };
@@ -142,30 +142,11 @@ export function GameFooter({ feedback, detail, chosen, children }: GameFooterPro
   );
 }
 
-// Pie de los modos de elegir: mientras no respondiste, "ELEGÍ UNA OPCIÓN"; después,
-// SIGUIENTE. Nada avanza solo (desde 2026-11-01): no dejaba leer la corrección.
+// Pie de los modos de elegir: SIGUIENTE recién después de responder. Nada avanza solo
+// (desde 2026-11-01): no dejaba leer la corrección. Mientras no respondiste no hay nada:
+// el cartel "ELEGÍ UNA OPCIÓN" se sacó el 2026-11-21 (era obvio).
 export function ChoiceNext({ answered, onNext }: { answered: boolean; onNext: () => void }) {
-  return answered ? (
-    <PrimaryButton title="SIGUIENTE" variant="primary" onPress={onNext} />
-  ) : (
-    <WaitingHint visible />
-  );
-}
-
-// En lugar del botón mientras no respondiste. Ocupa el alto de un botón para que la
-// pantalla no salte.
-export function WaitingHint({ visible }: { visible: boolean }) {
-  const { theme: activeTheme } = useAppTheme();
-
-  return (
-    <View style={styles.waiting}>
-      {visible ? (
-        <AppText variant="labelSmall" color={activeTheme.colors.textMuted}>
-          ELEGÍ UNA OPCIÓN
-        </AppText>
-      ) : null}
-    </View>
-  );
+  return answered ? <PrimaryButton title="SIGUIENTE" variant="primary" onPress={onNext} /> : null;
 }
 
 const styles = StyleSheet.create({
@@ -243,10 +224,5 @@ const styles = StyleSheet.create({
   feedbackSlot: {
     minHeight: 54,
     marginBottom: theme.spacing.sm,
-  },
-  waiting: {
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

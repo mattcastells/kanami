@@ -173,6 +173,7 @@ export function KanjiGrindGameScreen({
           <AnswerOptionButton
             key={option.id}
             label={option.text}
+            gloss={option.gloss}
             kanji={isKanjiOptions}
             visualState={getOptionState(option.id)}
             disabled={state.answerState !== 'idle'}

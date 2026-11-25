@@ -36,7 +36,12 @@ export type DrillSource = {
   distractors: (item: DrillItem, count: number) => DrillItem[];
 };
 
-export type DrillOption = { id: string; text: string };
+export type DrillOption = {
+  id: string;
+  text: string;
+  // Qué significa la opción: se muestra debajo si la elegiste y estaba mal.
+  gloss?: string;
+};
 
 export type DrillRound = {
   item: DrillItem;
@@ -156,6 +161,8 @@ export function createDrillRound(
   const options = shuffle([item, ...distractors]).map((candidate) => ({
     id: candidate.id,
     text: optionText(candidate, direction),
+    // El otro lado: さんびゃく → 300, 300 → さんびゃく.
+    gloss: direction === 'to-japanese' ? candidate.display : candidate.readings[0].kana,
   }));
 
   const canType = direction === 'to-japanese' || item.displayAnswers.length > 0;
