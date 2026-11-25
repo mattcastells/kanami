@@ -7,6 +7,7 @@ import { QuestionTopicId } from '../data/questions';
 import { NumberRangeId } from '../data/numbers';
 import { EmojiGameMode } from '../features/game/emojiGameEngine';
 import { GrammarGameMode } from '../features/game/grammarGameEngine';
+import { MockExamSource } from '../features/game/mockExamEngine';
 import { MeaningDirection } from '../features/game/meaningGameEngine';
 import { MeaningFormGroupId } from '../features/game/meaningForms';
 import { ParticleGameMode } from '../features/game/particleGameEngine';
@@ -89,6 +90,10 @@ export type RootStackParamList = {
   ParticleGame: {
     mode: ParticleGameMode;
     textIds: string[];
+  };
+  MockExam: undefined;
+  MockExamGame: {
+    source: MockExamSource;
   };
   Grammar: undefined;
   GrammarGame: {

@@ -108,7 +108,8 @@ Pestañas: **練 Practicar · 復 Repaso · 私 Perfil**. 復 Repaso ocupa el lu
   opuesto de una palabra de la cursada), **Numbers** + **NumbersGame**, **DateTime** +
   **DateTimeGame** y **Counters** + **CountersGame** (ver "Números y Fechas y hora" abajo), y
   **Questions** + **QuestionGame** (Preguntas: ver abajo), **Grammar** + **GrammarGame**
-  (Gramática: ver abajo) y **Particles** + **ParticleGame** (Partículas: ver abajo).
+  (Gramática: ver abajo), **Particles** + **ParticleGame** (Partículas: ver abajo) y
+  **MockExam** + **MockExamGame** (Examen: ver abajo).
 
   `PracticeScreen` es una **grilla pareja de 2 columnas**: todas las cards miden lo mismo,
   sin subtítulos, y el único destacado es el Repaso. El mosaico bento asimétrico anterior
@@ -235,7 +236,7 @@ algo SIN partícula (あした, ひとりで, あるいて). Las palabras de há
 con lo que se hace una vez (regalar, encontrarse). Una palabra nueva va a su lista; un verbo
 nuevo, a su molde. Usa las rondas del ajuste (sin límite = no termina).
 
-**Textos**: textos cortos de la cursada (`data/particleTexts.ts`, 12 textos, 136 huecos) con cada partícula
+**Textos**: textos cortos de la cursada (`data/particleTexts.ts`, 17 textos, 195 huecos) con cada partícula
 hecha un hueco: `{は}`, o `{へ|に}` si valen las dos. Se completan EN ORDEN con un teclado fijo de
 12 partículas (は が を に へ で と の も か から まで); lo respondido queda corregido en el
 texto (verde, o tachado con la buena al lado) y abajo va la traducción de la oración que toca.
@@ -246,6 +247,26 @@ gramática vista (INDEX, "4. Partículas").
 **Reporta al Repaso desde el hook** (`reportMiss`/`reportHit`), no con `useTrackWeakItem`:
 entre hueco y hueco no vuelve a `idle`, y dos aciertos seguidos no serían una transición.
 Cada hueco va como `choice`: su oración con ＿＿ + traducción, y 3 partículas que no valen.
+
+### Examen (`mockExamEngine`)
+
+Simulacro del examen N7 de fin de año (もぎしけん): 47 preguntas con la estructura del
+examen real — もじ・ごい I (dibujo → palabra bien escrita, 15), II (vocabulario, 10) y
+ぶんぽう・どっかい I (partículas, 6), II (formas y palabras para preguntar, 9), III (diálogos,
+5), IV (lectura → la oración correcta) y V (lectura → el cuadro). Es guiado: antes de la
+primera pregunta de cada sección hay una presentación (もんだい…, la consigna y EMPEZAR).
+Se elige **Al azar** o un **Modelo** fijo. Al azar sale de un pozo grande: de cada sección,
+una parte de los modelos escritos a mano (`HANDWRITTEN_SHARE`) y el resto **generado** por
+`mockExamGenerators.ts` con los datos de la app — dibujos del vocabulario con emoji (mal
+escritos por `pickMisspellings`), qué va con cada verbo, oraciones de Partículas, Negativo,
+tiempo verbal, adjetivo + sustantivo, el banco de Preguntas y lecturas de plantilla. Nunca
+repite respuesta en un examen. Los distractores de partículas evitan lo que también valdría
+(は/も por を, と/に con あいます): si sumás un generador, cuidá que haya UNA sola correcta. Los modelos están en `data/mockExams.ts`, escritos a mano y solo con lo
+visto en clase: la primera opción es la correcta, `e` la explica y `g` dice qué tiene de
+malo cada incorrecta (sale como `gloss` debajo de la opción errada). En los dibujos no hace
+falta `g`: `describeMisspelling` compara la escritura (le falta el ゛, le sobra la ー, ャ va
+chiquita…) o, si la opción es otra palabra de la cursada (びよういん), dice qué significa.
+Un modelo nuevo es otro objeto en `MOCK_EXAM_MODELS`, con las 47 en el mismo orden.
 
 ### Pantallas de selección de práctica (kana, vocabulario, kanji, números, fechas)
 
@@ -271,7 +292,7 @@ límite, default 10) para todos los juegos. Se elige en cada pantalla de selecci
 barra "7/10" (`sessionProgress`); al terminar, `SessionSummary`. El corte es `isSessionOver`
 (gameEngine): recién después de SIGUIENTE en la última, para que su corrección se lea. Sin
 rondas: Tablero (es el mazo entero), Kanji Grind (va por lotes), Partículas · Textos (la sesión son los
-textos elegidos) y el Repaso (tiene su 12/24/Todos).
+textos elegidos), el Examen (siempre 47, como el real) y el Repaso (tiene su 12/24/Todos).
 El silabario mixto se llama **"Kanas"** (`getKanaScriptLabel`): "Hiragana + Katakana" no entraba
 en la cabecera.
 
@@ -416,7 +437,10 @@ Rediseño **"版画 Hanga"** (grabado ukiyo-e pop; reemplazó a "Japón moderno"
 - `PromptCard`: tiene SOLO la pregunta. La consigna (`help`, "¿Qué significa?") y el puntaje ○/× (`score`) van en una línea chica ARRIBA de la tarjeta, no adentro (2026-11-10: le comían lugar a las frases). Esa línea es `PromptMeta` (`GamePlay`): los juegos sin PromptCard (Partículas) la usan suelta, así el ○/× está en el mismo lugar en todos. El audio es `speakText`: **la tarjeta entera se toca para escuchar** y un parlante chico arriba a la derecha lo avisa (ya no hay botón redondo abajo: tapaba las frases largas). 訳 (`bottomLeft`) sigue abajo a la izquierda. Lo que se revela al responder va en `AnswerNote`, DEBAJO de las opciones o del campo; para una palabra, `WordReveal` (palabra grande en Klee, romaji — significado, y una nota o "Ej.:" corto sacado de `phrases.ts` con `findPhraseExample`).
 - **Opciones de respuesta = `AnswerOptionGrid`** (`components/game`): 2×2 si todas entran en media columna; si alguna no ("expreso limitado") o son impares (las 3 del Negativo), en una columna. A todo el ancho el texto deja lugar a la × de la esquina. **Nunca "…"**: una opción que no entra achica la letra (hasta 72%) y si no alcanza pasa a 2-3 renglones (`useOptionFit`): dos lecturas que difieren al final (1998 / 1999) quedaban iguales a la vista. Estima el ancho del texto con el ancho medido de la grilla: no adivines con "más de N letras" en cada pantalla.
 - La dirección (Significados, Imágenes, Traducción) es un paso **Juego** de su pantalla de selección, nunca un control dentro de la partida.
-- Opción correcta = verde, sin ○. La errada lleva ×.
+- Opción correcta = verde, sin ○. La errada lleva × y, debajo, **qué significaba** (`gloss` de
+  `AnswerOptionButton`, que arma cada engine: el otro lado de la opción). Al responder, **las demás
+  desaparecen** (`muted` no se dibuja) y las que quedan van a todo el ancho: así SIGUIENTE entra sin
+  scrollear (2026-11-21). Antes de responder no hay cartel ("ELEGÍ UNA OPCIÓN" se sacó: era obvio).
 - **Textos cortos**: una línea donde alcance. Nada de párrafos explicando cómo funciona algo.
 - **Tab bar**: borde superior 2px `line`; activa = pastilla `highlight` con contorno. **Se oculta durante una partida.**
 - Primitives Hanga: `InkPressable`, `InkSwitch` (reemplaza `Switch`), `InkBits` (`GradeMark`, `ProgressTrack`, `SectionStep`, `Segmented`, `Marker`), `Seigaiha` (olas del hero), `Tanzaku` (etiqueta vertical 練習/合格).
@@ -483,7 +507,7 @@ Los tres formatos y cómo los repite el Repaso:
 
 | Formato | Modos | Cómo se repite |
 |---|---|---|
-| `choice` | reading, kanji-grind, times, numbers, counters, emoji, fill-blank, meaning, antonyms, questions, grammar, particles, translation y syllables (al elegir) | prompt + opciones guardadas |
+| `choice` | reading, kanji-grind, times, numbers, counters, emoji, fill-blank, meaning, antonyms, questions, grammar, particles, mock-exam, translation y syllables (al elegir) | prompt + opciones guardadas |
 | `input` | writing, syllables, word-builder, translation, kana-board, times, numbers | prompt + escribir |
 | `draw` | drawing | `DrawingPractice` con pool de un carácter |
 
@@ -518,7 +542,7 @@ probaron y se sacaron: sintetizados no convencían. Los .wav son **sintetizados*
 cambiar un sonido se toca el generador y se corre `npm run sounds:generate`. Todos los hooks de modo y la ronda del Repaso pasan por ahí;
 **El sonido no puede dejar la música baja**: en Android expo-av pide el foco de audio al sonar y lo suelta solo cuando ningún Sound queda en play, y al terminar el Sound sigue con `shouldPlay`. Por eso cada sonido se frena al terminar (`releaseFocusWhenDone`); sin eso, la música del teléfono quedaba bajada todo el rato (2026-11-12).
 No llames a `Haptics` desde un modo (la excepción es el tic de cada trazo del Dibujo). En los
-modos de elegir, `GameFooter chosen` hace que lo tuyo diga "Elegiste:" y no "Escribiste:".
+modos de elegir, `GameFooter chosen` saca del cartel lo tuyo: tu opción ya queda a la vista.
 Los modos de `GameScreen` no llevan eyebrow ("PALABRA GUIADA · VOCABULARIO" se sacó el
 2026-11-10): con largo fijo solo la barra; sin largo, "読 · Lectura".
 

@@ -59,6 +59,7 @@ export const PROGRESS_MODE_LABELS: Record<string, string> = {
   meaning: 'Significados',
   questions: 'Preguntas',
   grammar: 'Gramática',
+  'mock-exam': 'Examen',
   particles: 'Partículas',
   counters: 'Contadores',
 };
